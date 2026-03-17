@@ -116,12 +116,6 @@ const Licensing: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Price */}
-                <div className="mb-8">
-                  <span className="text-4xl font-black text-white">${license.price}</span>
-                  <span className="text-[#6B7280]"> / beat</span>
-                </div>
-
                 {/* Features */}
                 <ul className="space-y-4 mb-8 flex-1">
                   {license.features.map((feature, idx) => (
