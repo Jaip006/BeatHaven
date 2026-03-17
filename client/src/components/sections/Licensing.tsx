@@ -5,60 +5,48 @@ import { Button } from '../ui/Button';
 const licenses = [
   {
     id: 'basic',
-    name: 'Basic Lease',
-    price: 29.99,
-    fileType: 'High Quality MP3',
+    name: 'Basic',
+    fileType: 'WAV',
     icon: FileAudio,
     color: '#1ED760',
     glow: 'rgba(30,215,96,0.15)',
     features: [
-      { text: 'Used for Music Recording', included: true },
-      { text: 'Distribute up to 3,000 copies', included: true },
-      { text: '500,000 Audio Streams', included: true },
-      { text: '1 Music Video', included: true },
-      { text: 'For Profit Live Performances', included: false },
-      { text: 'Radio Broadcasting Rights', included: false },
-      { text: 'Trackout Stems Included', included: false },
+      { text: 'Non Exclusive' },
+      { text: 'Rights Sharing' },
+      { text: '1-99 Yr License Period' },
+      { text: 'WAV File Only' }
     ],
     isPopular: false,
   },
   {
     id: 'premium',
-    name: 'Premium Lease',
-    price: 59.99,
-    fileType: 'WAV + MP3',
-    icon: Shield,
-    color: '#7C5CFF',
-    glow: 'rgba(124,92,255,0.15)',
-    features: [
-      { text: 'Used for Music Recording', included: true },
-      { text: 'Distribute up to 10,000 copies', included: true },
-      { text: '1,000,000 Audio Streams', included: true },
-      { text: '2 Music Videos', included: true },
-      { text: 'For Profit Live Performances', included: true },
-      { text: 'Radio Broadcasting Rights', included: false },
-      { text: 'Trackout Stems Included', included: false },
-    ],
-    isPopular: true,
-  },
-  {
-    id: 'unlimited',
-    name: 'Unlimited Trackout',
-    price: 149.99,
-    fileType: 'WAV + STEMS + MP3',
+    name: 'Premium',
+    fileType: 'WAV + STEMS',
     icon: LayoutGrid,
     color: '#1ED760',
     glow: 'rgba(30,215,96,0.15)',
     features: [
-      { text: 'Used for Music Recording', included: true },
-      { text: 'Unlimited Distribution', included: true },
-      { text: 'Unlimited Audio Streams', included: true },
-      { text: 'Unlimited Music Videos', included: true },
-      { text: 'For Profit Live Performances', included: true },
-      { text: 'Radio Broadcasting Rights', included: true },
-      { text: 'Trackout Stems Included', included: true },
+      { text: 'Non Exclusive' },
+      { text: 'Rights Sharing' },
+      { text: '1-99 Yr License Period' },
+      { text: 'WAV + STEMS File' }
     ],
     isPopular: false,
+  },
+  {
+    id: 'unlimited',
+    name: 'Unlimited',
+    fileType: 'WAV + STEMS + Exclusive',
+    icon: LayoutGrid,
+    color: '#1ED760',
+    glow: 'rgba(30,215,96,0.15)',
+    features: [
+      { text: 'Exclusive' },
+      { text: 'Rights Sharing Optional' },
+      { text: 'Lifetime' },
+      { text: 'WAV + STEMS File' }
+    ],
+    isPopular: true,
   },
 ];
 
@@ -86,11 +74,10 @@ const Licensing: React.FC = () => {
             return (
               <div
                 key={license.id}
-                className={`relative bg-[#121212] border rounded-3xl p-8 flex flex-col h-full transition-all duration-300 hover:-translate-y-2 ${
-                  license.isPopular
-                    ? 'border-[#7C5CFF]/50 shadow-[0_0_40px_rgba(124,92,255,0.1)] z-10 lg:-mt-4 lg:mb-4'
-                    : 'border-[#262626] hover:border-[#1ED760]/30 hover:shadow-[0_0_40px_rgba(30,215,96,0.05)]'
-                }`}
+                className={`relative bg-[#121212] border rounded-3xl p-8 flex flex-col h-full transition-all duration-300 hover:-translate-y-2 ${license.isPopular
+                  ? 'border-[#7C5CFF]/50 shadow-[0_0_40px_rgba(124,92,255,0.1)] z-10 lg:-mt-4 lg:mb-4'
+                  : 'border-[#262626] hover:border-[#1ED760]/30 hover:shadow-[0_0_40px_rgba(30,215,96,0.05)]'
+                  }`}
               >
                 {/* Popular Badge */}
                 {license.isPopular && (
@@ -126,9 +113,8 @@ const Licensing: React.FC = () => {
                         <X size={18} className="text-[#262626] shrink-0 mt-0.5" />
                       )}
                       <span
-                        className={`text-sm ${
-                          feature.included ? 'text-[#B3B3B3]' : 'text-[#6B7280]'
-                        }`}
+                        className={`text-sm ${feature.included ? 'text-[#B3B3B3]' : 'text-[#6B7280]'
+                          }`}
                       >
                         {feature.text}
                       </span>

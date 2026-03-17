@@ -59,7 +59,7 @@ const Navbar: React.FC = () => {
             </Button>
             <Button variant="primary" size="sm">
               <ShoppingBag size={14} />
-              Get Started
+              Start Selling
             </Button>
           </div>
 
