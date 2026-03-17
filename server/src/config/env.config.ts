@@ -3,6 +3,19 @@ import { z } from "zod";
 
 dotenv.config();
 
+const emailFromSchema = z
+  .string()
+  .refine((value) => {
+    const trimmedValue = value.trim();
+    const plainEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const displayNameEmailPattern = /^[^<>]+<\s*[^\s@]+@[^\s@]+\.[^\s@]+\s*>$/;
+
+    return (
+      plainEmailPattern.test(trimmedValue) ||
+      displayNameEmailPattern.test(trimmedValue)
+    );
+  }, "Invalid sender email format");
+
 const envSchema = z.object({
   NODE_ENV: z
     .enum(["staging", "production", "development"])
@@ -25,7 +38,11 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string().optional(),
 
   // Email
-  EMAIL_PROVIDER_API_KEY: z.string().optional(),
+  EMAIL_HOST: z.string().optional(),
+  EMAIL_PORT: z.string().transform(Number).optional(),
+  EMAIL_USER: z.string().optional(),
+  EMAIL_PASS: z.string().optional(),
+  EMAIL_FROM: emailFromSchema.optional(),
 });
 
 /**

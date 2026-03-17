@@ -18,6 +18,8 @@ export const beatService = {
 export const authService = {
   login: (data: any) => api.post("/auth/login", data),
   register: (data: any) => api.post("/auth/register", data),
+  verifyEmail: (data: any) => api.post("/auth/verify-email", data),
+  resendOtp: (data: any) => api.post("/auth/resend-otp", data),
   logout: () => api.post("/auth/logout"),
   getProfile: () => api.get("/auth/me"),
 };

@@ -3,7 +3,7 @@ import { env } from "../config/env.config";
 
 export interface TokenPayload {
   userId: string;
-  role: "buyer" | "producer";
+  role: "buyer" | "seller";
 }
 
 // ─── Access Token ──────────────────────────────────────────

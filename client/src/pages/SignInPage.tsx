@@ -1,8 +1,48 @@
-import React from 'react';
-import { LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { authService } from '../utils/api';
 
 const SignInPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const getApiErrorMessage = (apiError: unknown, fallback: string) => {
+    if (axios.isAxiosError(apiError)) {
+      return apiError.response?.data?.message ?? fallback;
+    }
+
+    return fallback;
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+
+    try {
+      setIsSubmitting(true);
+      const response = await authService.login({ email, password });
+      const role = response.data?.data?.user?.role as 'buyer' | 'seller' | undefined;
+
+      if (role === 'seller') {
+        navigate('/dashboard/seller');
+        return;
+      }
+
+      navigate('/dashboard/buyer');
+    } catch (apiError) {
+      setError(getApiErrorMessage(apiError, 'Unable to sign in right now.'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0B0B0B] text-white">
       <main className="relative min-h-screen overflow-hidden">
@@ -27,7 +67,6 @@ const SignInPage: React.FC = () => {
                 Pick up where you left off, manage licenses, and keep your music workflow moving
                 inside the same BeatHaven universe.
               </p>
-
             </div>
 
             <div className="glass rounded-[2rem] border border-[#262626] p-6 sm:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
@@ -39,15 +78,24 @@ const SignInPage: React.FC = () => {
                 </p>
               </div>
 
-              <form className="space-y-5">
+              {error ? (
+                <div className="mb-5 rounded-2xl border border-[#5a1f28] bg-[#2a1015] px-4 py-3 text-sm text-[#ffb4c0]">
+                  {error}
+                </div>
+              ) : null}
+
+              <form className="space-y-5" onSubmit={handleSubmit}>
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-[#B3B3B3]">Email</span>
                   <div className="flex items-center gap-3 rounded-2xl border border-[#262626] bg-[#121212] px-4 py-3 focus-within:border-[#1ED760] transition-colors duration-200">
                     <Mail size={18} className="text-[#6B7280]" />
                     <input
                       type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
                       placeholder="artist@beathaven.com"
                       className="w-full bg-transparent text-white outline-none placeholder:text-[#6B7280]"
+                      required
                     />
                   </div>
                 </label>
@@ -57,10 +105,21 @@ const SignInPage: React.FC = () => {
                   <div className="flex items-center gap-3 rounded-2xl border border-[#262626] bg-[#121212] px-4 py-3 focus-within:border-[#7C5CFF] transition-colors duration-200">
                     <LockKeyhole size={18} className="text-[#6B7280]" />
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
                       placeholder="Enter your password"
                       className="w-full bg-transparent text-white outline-none placeholder:text-[#6B7280]"
+                      required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((current) => !current)}
+                      className="text-[#6B7280] hover:text-white transition-colors duration-200"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
                 </label>
 
@@ -74,8 +133,8 @@ const SignInPage: React.FC = () => {
                   </a>
                 </div>
 
-                <Button type="submit" variant="primary" size="lg" className="w-full">
-                  Sign In
+                <Button type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? 'Signing In...' : 'Sign In'}
                 </Button>
               </form>
 
@@ -87,9 +146,9 @@ const SignInPage: React.FC = () => {
 
               <p className="mt-6 text-center text-sm text-[#6B7280]">
                 New here?{' '}
-                <a href="#" className="text-white hover:text-[#1ED760] transition-colors duration-200">
+                <Link to="/sign-up" className="text-white hover:text-[#1ED760] transition-colors duration-200">
                   Sign Up
-                </a>
+                </Link>
               </p>
             </div>
           </div>

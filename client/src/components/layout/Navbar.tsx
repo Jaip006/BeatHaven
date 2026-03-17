@@ -14,7 +14,7 @@ const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const hideSignIn = location.pathname === '/sign-in';
+  const hideAuthCta = location.pathname === '/sign-in' || location.pathname === '/sign-up';
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -56,7 +56,7 @@ const Navbar: React.FC = () => {
           </nav>
 
           {/* CTA Buttons */}
-          {!hideSignIn ? (
+          {!hideAuthCta ? (
             <div className="hidden md:flex items-center gap-3">
               <Link to="/sign-in">
                 <Button variant="primary" size="sm">
@@ -94,7 +94,7 @@ const Navbar: React.FC = () => {
               {link.label}
             </a>
           ))}
-          {!hideSignIn ? (
+          {!hideAuthCta ? (
             <div className="flex gap-3 pt-3">
               <Link to="/sign-in" className="flex-1" onClick={() => setMobileOpen(false)}>
                 <Button variant="secondary" size="sm" className="w-full">Sign In</Button>

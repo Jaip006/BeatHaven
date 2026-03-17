@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 
-export type UserRole = "buyer" | "producer";
+export type UserRole = "buyer" | "seller";
 
 export interface IUser extends Document {
   email: string;
@@ -10,6 +10,8 @@ export interface IUser extends Document {
   displayName: string;
   avatar?: string;
   isVerified: boolean;
+  emailVerificationOtp?: string | null;
+  emailVerificationOtpExpires?: Date | null;
   refreshToken?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -34,7 +36,7 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ["buyer", "producer"],
+      enum: ["buyer", "seller"],
       default: "buyer",
       required: true,
     },
@@ -52,6 +54,15 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    emailVerificationOtp: {
+      type: String,
+      select: false,
+      default: null,
+    },
+    emailVerificationOtpExpires: {
+      type: Date,
+      default: null,
+    },
     refreshToken: {
       type: String,
       select: false, // Not returned by default
@@ -63,11 +74,10 @@ const userSchema = new Schema<IUser>(
 );
 
 // ─── Pre-save hook: hash password ─────────────────────────
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 // ─── Instance method: compare password ────────────────────
