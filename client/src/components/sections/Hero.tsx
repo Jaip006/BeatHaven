@@ -1,5 +1,6 @@
 import React from 'react';
-import { Play, ChevronDown, Zap, Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Play, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 // Decorative waveform bars
@@ -36,15 +37,10 @@ const Hero: React.FC = () => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#1ED760]/5 rounded-full blur-[150px] pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {/* Announcement badge */}
-        <div className="inline-flex items-center gap-2 bg-[#121212] border border-[#262626] rounded-full px-4 py-2 mb-8 text-sm">
-          <Zap size={14} className="text-[#1ED760]" />
-          <span className="text-[#B3B3B3]">New beats added daily by top producers</span>
-          <Star size={12} className="text-[#7C5CFF]" />
-        </div>
+  
 
         {/* Headline */}
-        <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black mb-6 leading-[1.05] tracking-tight">
+        <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black mb-6 mt-16 leading-[1.05] tracking-tight">
           <span className="text-white">Where Hits</span>
           <br />
           <span className="gradient-text">Get Made.</span>
@@ -58,13 +54,19 @@ const Hero: React.FC = () => {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <Button variant="primary" size="lg" className="w-full sm:w-auto">
-            <Play size={18} fill="currentColor" />
-            Browse Beats
-          </Button>
-          <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-            Sell Your Beats
-          </Button>
+
+          <a href="#categories" className="w-full sm:w-auto">
+            <Button variant="primary" size="lg" className="w-full sm:w-auto">
+              <Play size={18} fill="currentColor" />
+              Browse Beats
+            </Button>
+          </a>
+  
+          <Link to="/sign-in" className="w-full sm:w-auto">
+            <Button variant="secondary" size="lg" className="w-full sm:w-auto">
+              Sell Your Beats
+            </Button>
+          </Link>
         </div>
 
         {/* Stats Row */}

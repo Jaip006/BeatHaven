@@ -18,7 +18,7 @@ const socialLinks = [
 const Footer: React.FC = () => {
   return (
     <footer className="bg-[#080808] border-t border-[#1A1A1A]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
           {/* Brand Col */}
           <div className="lg:col-span-2">

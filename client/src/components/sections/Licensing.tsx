@@ -1,6 +1,5 @@
 import React from 'react';
 import { Check, X, Shield, FileAudio, LayoutGrid } from 'lucide-react';
-import { Button } from '../ui/Button';
 
 const licenses = [
   {
@@ -121,14 +120,6 @@ const Licensing: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-
-                {/* Button */}
-                <Button
-                  variant={license.isPopular ? 'accent' : 'secondary'}
-                  className={`w-full ${!license.isPopular && 'hover:bg-[#1A1A1A] hover:text-[#1ED760] hover:border-[#1ED760]'}`}
-                >
-                  Browse Beats
-                </Button>
               </div>
             );
           })}

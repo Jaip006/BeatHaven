@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Music2, ShoppingBag } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../ui/Button';
 
 const navLinks = [
@@ -12,6 +13,8 @@ const navLinks = [
 const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  const hideSignIn = location.pathname === '/sign-in';
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -29,14 +32,14 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <a href="/" className="flex items-center gap-2.5 group">
+          <Link to="/" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] flex items-center justify-center shadow-[0_0_20px_rgba(30,215,96,0.3)] group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)] transition-all duration-300">
               <Music2 size={18} className="text-[#0B0B0B]" />
             </div>
             <span className="text-xl font-bold text-white tracking-tight">
               Beat<span className="text-[#1ED760]">Haven</span>
             </span>
-          </a>
+          </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
@@ -53,15 +56,16 @@ const Navbar: React.FC = () => {
           </nav>
 
           {/* CTA Buttons */}
-          <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" size="sm">
-              Sign In
-            </Button>
-            <Button variant="primary" size="sm">
-              <ShoppingBag size={14} />
-              Start Selling
-            </Button>
-          </div>
+          {!hideSignIn ? (
+            <div className="hidden md:flex items-center gap-3">
+              <Link to="/sign-in">
+                <Button variant="primary" size="sm">
+                  <ShoppingBag size={14} />
+                  Sign In
+                </Button>
+              </Link>
+            </div>
+          ) : null}
 
           {/* Mobile hamburger */}
           <button
@@ -90,10 +94,14 @@ const Navbar: React.FC = () => {
               {link.label}
             </a>
           ))}
-          <div className="flex gap-3 pt-3">
-            <Button variant="secondary" size="sm" className="flex-1">Sign In</Button>
-            <Button variant="primary" size="sm" className="flex-1">Start Selling</Button>
-          </div>
+          {!hideSignIn ? (
+            <div className="flex gap-3 pt-3">
+              <Link to="/sign-in" className="flex-1" onClick={() => setMobileOpen(false)}>
+                <Button variant="secondary" size="sm" className="w-full">Sign In</Button>
+              </Link>
+              <Button variant="primary" size="sm" className="flex-1">Start Selling</Button>
+            </div>
+          ) : null}
         </div>
       </div>
     </header>

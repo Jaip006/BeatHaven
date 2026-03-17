@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Play, Upload, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
 
@@ -27,27 +28,16 @@ const CallToAction: React.FC = () => {
             </div>
 
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-4 leading-tight">
-              Ready to Create
+              Artist or Producer?
               <br />
-              <span className="gradient-text">Your Next Hit?</span>
+              <span className="gradient-text">Sign in and Shine</span>
             </h2>
             <p className="text-[#B3B3B3] text-lg max-w-xl mx-auto mb-10">
-              Start browsing premium beats for free. No credit card required.
+              Start browsing premium beats for free. No Complex Contracts and payment processing.
               Your music journey starts right here.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button variant="primary" size="lg">
-                <Play size={18} fill="currentColor" />
-                Browse Beats Free
-              </Button>
-              <Button variant="secondary" size="lg">
-                Learn More <ArrowRight size={16} />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Split CTA for buyer and producer */}
+              {/* Split CTA for buyer and producer */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Buyer CTA */}
           <div className="group bg-[#121212] border border-[#262626] rounded-2xl p-8 hover:border-[#1ED760]/40 hover:bg-[#1A1A1A] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(30,215,96,0.1)]">
@@ -58,9 +48,11 @@ const CallToAction: React.FC = () => {
             <p className="text-[#6B7280] text-sm mb-6 leading-relaxed">
               Browse thousands of beats, preview with full waveforms, and license the perfect track for your next release.
             </p>
-            <Button variant="outline" size="md">
-              Browse Beats <ArrowRight size={14} />
-            </Button>
+            <Link to="/sign-in">
+              <Button variant="outline" size="md">
+                Browse Beats <ArrowRight size={14} />
+              </Button>
+            </Link>
           </div>
 
           {/* Producer CTA */}
@@ -72,9 +64,14 @@ const CallToAction: React.FC = () => {
             <p className="text-[#6B7280] text-sm mb-6 leading-relaxed">
               Upload your beats, set your prices, and start earning. Reach thousands of artists looking for your unique sound.
             </p>
-            <Button variant="accent" size="md">
-              Start Selling <ArrowRight size={14} />
-            </Button>
+            <Link to="/sign-in">
+              <Button variant="accent" size="md">
+                Start Selling <ArrowRight size={14} />
+              </Button>
+            </Link>
+          </div>
+        </div>
+            </div>
           </div>
         </div>
       </div>
