@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: theme('colors.bg');
+    color: theme('colors.textPrimary');
+    font-family: theme('fontFamily.sans');
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: theme('colors.card');
+  }
+  ::-webkit-scrollbar-thumb {
+    background: theme('colors.borderColor');
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.primary');
+  }
+
+  /* Glass effect utility */
+  .glass {
+    background: rgba(18, 18, 18, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(38, 38, 38, 0.6);
+  }
+
+  /* Gradient text utility */
+  .gradient-text {
+    background: linear-gradient(135deg, theme('colors.primary') 0%, theme('colors.accent') 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glow effect */
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(30, 215, 96, 0.3);
+  }
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(124, 92, 255, 0.3);
+  }
+
+  /* Animated gradient background */
+  .animated-gradient {
+    background: linear-gradient(-45deg, theme('colors.bg'), theme('colors.card'), #0d1a12, #130d2a);
+    background-size: 400% 400%;
+    animation: gradient-shift 8s ease infinite;
+  }
+
+  .waveform-bar {
+    animation: pulse-glow 1.5s ease-in-out infinite;
+  }
+
+  .fade-in-up {
+    animation: fade-in-up 0.6s ease-out forwards;
+  }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.2); }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
