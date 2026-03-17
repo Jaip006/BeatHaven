@@ -52,8 +52,8 @@ const Hero: React.FC = () => {
 
         {/* Sub copy */}
         <p className="text-lg sm:text-xl text-[#B3B3B3] max-w-2xl mx-auto mb-10 leading-relaxed">
-          Discover and license premium beats from the world's top producers.
-          Preview with studio-quality waveforms and own your next smash track.
+          Discover and license premium beats from the India's top producers.
+          Preview with studio-quality waveforms for your next big track.
         </p>
 
         {/* CTA Buttons */}

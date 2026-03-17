@@ -11,10 +11,10 @@ const licenses = [
     color: '#1ED760',
     glow: 'rgba(30,215,96,0.15)',
     features: [
-      { text: 'Non Exclusive' },
-      { text: 'Rights Sharing' },
-      { text: '1-99 Yr License Period' },
-      { text: 'WAV File Only' }
+      { text: 'Non Exclusive', included: true },
+      { text: 'Rights Sharing', included: true },
+      { text: '1-99 Yr License Period', included: true },
+      { text: 'WAV File Only', included: true }
     ],
     isPopular: false,
   },
@@ -26,10 +26,10 @@ const licenses = [
     color: '#1ED760',
     glow: 'rgba(30,215,96,0.15)',
     features: [
-      { text: 'Non Exclusive' },
-      { text: 'Rights Sharing' },
-      { text: '1-99 Yr License Period' },
-      { text: 'WAV + STEMS File' }
+      { text: 'Non Exclusive', included: true },
+      { text: 'Rights Sharing', included: true },
+      { text: '1-99 Yr License Period', included: true },
+      { text: 'WAV + STEMS File', included: true }
     ],
     isPopular: false,
   },
@@ -37,14 +37,14 @@ const licenses = [
     id: 'unlimited',
     name: 'Unlimited',
     fileType: 'WAV + STEMS + Exclusive',
-    icon: LayoutGrid,
+    icon: Shield,
     color: '#1ED760',
     glow: 'rgba(30,215,96,0.15)',
     features: [
-      { text: 'Exclusive' },
-      { text: 'Rights Sharing Optional' },
-      { text: 'Lifetime' },
-      { text: 'WAV + STEMS File' }
+      { text: 'Exclusive', included: true },
+      { text: 'Rights Sharing Optional', included: true },
+      { text: 'Lifetime', included: true },
+      { text: 'WAV + STEMS File', included: true }
     ],
     isPopular: true,
   },
