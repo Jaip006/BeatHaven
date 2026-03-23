@@ -20,6 +20,7 @@ export const authService = {
   register: (data: any) => api.post("/auth/register", data),
   verifyEmail: (data: any) => api.post("/auth/verify-email", data),
   resendOtp: (data: any) => api.post("/auth/resend-otp", data),
+  refresh: () => api.post("/auth/refresh"),
   logout: () => api.post("/auth/logout"),
   getProfile: () => api.get("/auth/me"),
 };

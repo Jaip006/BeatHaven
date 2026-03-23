@@ -8,16 +8,22 @@ import {
   Search,
   ShoppingCart,
   FileText,
-  Upload,
-  User,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
+import UserQuickActions from '../components/layout/UserQuickActions';
+import { useCart } from '../context/CartContext';
+import type { Beat } from '../types';
+import { formatPrice } from '../utils/formatters';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
 
 const dashboardOptions = ['Seller Dashboard', 'Buyer Dashboard'];
 const beatOptions = ['All Beats', 'Trending Beats'];
+const dashboardRoutes: Record<(typeof dashboardOptions)[number], string> = {
+  'Seller Dashboard': '/dashboard/seller',
+  'Buyer Dashboard': '/dashboard/buyer',
+};
 const browseSections = [
   {
     title: 'Orders',
@@ -30,9 +36,9 @@ const browseSections = [
 ];
 
 const trendingBeats = [
-  { title: 'Neon Skyline', producer: 'Aaryan Waves', vibe: 'Trap Soul', bpm: 142, price: '$39' },
-  { title: 'Velvet Motion', producer: 'Riz Mixx', vibe: 'R&B', bpm: 96, price: '$29' },
-  { title: 'Drift Theory', producer: 'Karma Keys', vibe: 'Melodic Drill', bpm: 138, price: '$44' },
+  { id: 'buyer-neon-skyline', title: 'Neon Skyline', producer: 'Aaryan Waves', vibe: 'Trap Soul', bpm: 142, price: 3999, key: 'Am', genre: 'Trap Soul', coverImage: 'https://picsum.photos/seed/buyer-neon-skyline/400/400' },
+  { id: 'buyer-velvet-motion', title: 'Velvet Motion', producer: 'Riz Mixx', vibe: 'R&B', bpm: 96, price: 2999, key: 'Dm', genre: 'R&B', coverImage: 'https://picsum.photos/seed/buyer-velvet-motion/400/400' },
+  { id: 'buyer-drift-theory', title: 'Drift Theory', producer: 'Karma Keys', vibe: 'Melodic Drill', bpm: 138, price: 4499, key: 'Gm', genre: 'Drill', coverImage: 'https://picsum.photos/seed/buyer-drift-theory/400/400' },
 ];
 
 const playlists = [
@@ -50,17 +56,33 @@ const producers = [
 const quickAccessItems = [
   { title: 'Liked Beats', hint: 'Your liked beats', icon: Heart, accent: 'text-[#1ED760]' },
   { title: 'Downloads', hint: 'Your downloaded beats', icon: Download, accent: 'text-[#7C5CFF]' },
-  { title: 'Cart', hint: 'Review beats ready for checkout', icon: ShoppingCart, accent: 'text-[#1ED760]' },
+  { title: 'Cart', hint: 'Review beats ready for checkout', icon: ShoppingCart, accent: 'text-[#1ED760]', route: '/cart' },
   { title: 'My Lyrics', hint: 'Keep your writing ideas close', icon: FileText, accent: 'text-[#7C5CFF]' },
 ];
 
 const BuyerDashboardPage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
   const dropdownContainerRef = useRef<HTMLDivElement | null>(null);
+  const { addToCart, getItemQuantity } = useCart();
 
   const toggleDropdown = (key: Exclude<DropdownKey, null>) => {
     setOpenDropdown((current) => (current === key ? null : key));
   };
+
+  const mapTrendingBeatToCartBeat = (beat: (typeof trendingBeats)[number]): Beat => ({
+    id: beat.id,
+    title: beat.title,
+    producerName: beat.producer,
+    producerId: `producer-${beat.id}`,
+    genre: beat.genre,
+    bpm: beat.bpm,
+    key: beat.key,
+    price: beat.price,
+    coverImage: beat.coverImage,
+    tags: [beat.vibe.toLowerCase().replace(/\s+/g, '-')],
+    plays: 0,
+    likes: 0,
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -87,7 +109,7 @@ const BuyerDashboardPage: React.FC = () => {
         <div className="absolute top-56 right-[-8rem] h-72 w-72 rounded-full bg-[#7C5CFF]/10 blur-[120px] pointer-events-none" />
 
         <div className="fixed inset-x-0 top-0 z-[100]">
-          <div className="border-b border-[#262626] bg-[#0B0B0B]/85 backdrop-blur-xl">
+          <div className="relative z-[120] border-b border-[#262626] bg-[#0B0B0B]/85 backdrop-blur-xl">
             <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-5 lg:px-7 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
                 <Link to="/" className="flex items-center gap-2.5 group">
@@ -106,21 +128,12 @@ const BuyerDashboardPage: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <button className="flex h-11 w-11 items-center justify-center rounded-full border border-[#262626] bg-[#121212]/95 text-[#B3B3B3] transition-colors duration-200 hover:text-white">
-                  <ShoppingCart size={18} />
-                </button>
-                <Button variant="primary" size="md">
-                  <Upload size={16} />
-                  Upload
-                </Button>
-                <button className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/95 px-4 py-3 text-sm font-medium text-white transition-colors duration-200 hover:border-[#1ED760]">
-                  <User size={16} className="text-[#1ED760]" />
-                </button>
+                <UserQuickActions />
               </div>
             </div>
           </div>
 
-          <div className="border-b border-[#262626] bg-[#090909]/80 backdrop-blur-xl">
+          <div className="relative z-[110] border-b border-[#262626] bg-[#090909]/80 backdrop-blur-xl">
             <div ref={dropdownContainerRef} className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-5 lg:px-7">
             <div className="relative">
               <button
@@ -133,16 +146,18 @@ const BuyerDashboardPage: React.FC = () => {
               {openDropdown === 'dashboard' ? (
                 <div className="absolute left-0 top-full z-[120] mt-3 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010]/100 p-2 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
                   {dashboardOptions.map((option) => (
-                    <button
+                    <Link
                       key={option}
-                      className={`w-full rounded-xl px-4 py-3 text-left text-sm transition-colors duration-200 ${
+                      to={dashboardRoutes[option]}
+                      onClick={() => setOpenDropdown(null)}
+                      className={`block w-full rounded-xl px-4 py-3 text-left text-sm transition-colors duration-200 ${
                         option === 'Buyer Dashboard'
                           ? 'bg-[#161616] text-[#1ED760]'
                           : 'text-[#B3B3B3] hover:bg-[#161616] hover:text-white'
                       }`}
                     >
                       {option}
-                    </button>
+                    </Link>
                   ))}
                 </div>
               ) : null}
@@ -236,20 +251,40 @@ const BuyerDashboardPage: React.FC = () => {
           </div>
         
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {quickAccessItems.map(({ title, hint, icon: Icon, accent }) => (
-              <button
-                key={title}
-                className="glass rounded-[1.75rem] border border-[#262626] p-6 text-left transition-all duration-200 hover:-translate-y-1 hover:border-[#1ED760]/50 hover:bg-[#121212]/90"
-              >
-                <div className="inline-flex items-center justify-between gap-4">
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-[#121212] ${accent}`}>
-                    <Icon size={20} />
+            {quickAccessItems.map(({ title, hint, icon: Icon, accent, route }) => {
+              const content = (
+                <>
+                  <div className="inline-flex items-center justify-between gap-4">
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-[#121212] ${accent}`}>
+                      <Icon size={20} />
+                    </div>
+                    <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
                   </div>
-                  <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-[#B3B3B3]">{hint}</p>
-              </button>
-            ))}
+                  <p className="mt-3 text-sm leading-relaxed text-[#B3B3B3]">{hint}</p>
+                </>
+              );
+
+              if (route) {
+                return (
+                  <Link
+                    key={title}
+                    to={route}
+                    className="glass rounded-[1.75rem] border border-[#262626] p-6 text-left transition-all duration-200 hover:-translate-y-1 hover:border-[#1ED760]/50 hover:bg-[#121212]/90"
+                  >
+                    {content}
+                  </Link>
+                );
+              }
+
+              return (
+                <button
+                  key={title}
+                  className="glass rounded-[1.75rem] border border-[#262626] p-6 text-left transition-all duration-200 hover:-translate-y-1 hover:border-[#1ED760]/50 hover:bg-[#121212]/90"
+                >
+                  {content}
+                </button>
+              );
+            })}
           </div>
 
           <div className="glass rounded-[2rem] border border-[#262626] p-6">
@@ -277,8 +312,15 @@ const BuyerDashboardPage: React.FC = () => {
                     {beat.vibe} • {beat.bpm} BPM
                   </p>
                   <div className="mt-5 flex items-center justify-between">
-                    <span className="text-lg font-bold text-[#1ED760]">{beat.price}</span>
-                    <Button variant="accent" size="sm">Add To Cart</Button>
+                    <span className="text-lg font-bold text-[#1ED760]">{formatPrice(beat.price)}</span>
+                    <Button
+                      variant="accent"
+                      size="sm"
+                      onClick={() => addToCart(mapTrendingBeatToCartBeat(beat))}
+                    >
+                      <ShoppingCart size={14} fill="currentColor" />
+                      {getItemQuantity(beat.id) > 0 ? 'In Cart' : 'Add To Cart'}
+                    </Button>
                   </div>
                 </div>
               ))}

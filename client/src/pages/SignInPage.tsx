@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { authService } from '../utils/api';
+import { saveAuthSession } from '../utils/auth';
+import { getDefaultDashboardPath, type DashboardRole } from '../utils/dashboard';
 
 const SignInPage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,14 +30,15 @@ const SignInPage: React.FC = () => {
     try {
       setIsSubmitting(true);
       const response = await authService.login({ email, password });
-      const role = response.data?.data?.user?.role as 'buyer' | 'seller' | undefined;
+      const accessToken = response.data?.data?.accessToken as string | undefined;
+      const user = response.data?.data?.user;
+      const role = response.data?.data?.user?.role as DashboardRole | undefined;
 
-      if (role === 'seller') {
-        navigate('/dashboard/seller');
-        return;
+      if (accessToken && user) {
+        saveAuthSession({ accessToken, user });
       }
 
-      navigate('/dashboard/buyer');
+      navigate(getDefaultDashboardPath(role));
     } catch (apiError) {
       setError(getApiErrorMessage(apiError, 'Unable to sign in right now.'));
     } finally {

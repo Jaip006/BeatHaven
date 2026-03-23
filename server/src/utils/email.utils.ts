@@ -24,6 +24,20 @@ function buildTransporter() {
   });
 }
 
+function isAuthenticationError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const smtpError = error as { code?: string; responseCode?: number; message?: string };
+
+  return (
+    smtpError.code === "EAUTH" ||
+    smtpError.responseCode === 535 ||
+    smtpError.message?.toLowerCase().includes("authentication failed") === true
+  );
+}
+
 export async function sendVerificationOtpEmail({
   email,
   displayName,
@@ -62,8 +76,21 @@ export async function sendVerificationOtpEmail({
       `,
     });
   } catch (error) {
+    if (env.NODE_ENV === "development") {
+      console.warn(
+        `[DEV OTP FALLBACK] Email delivery failed for ${email}. Using console OTP instead.`
+      );
+      console.warn(error);
+      console.log(`[DEV OTP] ${email}: ${otp}`);
+      return;
+    }
+
+    const message = isAuthenticationError(error)
+      ? "Failed to send verification email. SMTP authentication failed. Check EMAIL_USER, EMAIL_PASS, and the provider's app-password requirements."
+      : "Failed to send verification email";
+
     throw new AppError(
-      "Failed to send verification email",
+      message,
       502,
       "EMAIL_SEND_FAILED",
       error instanceof Error ? error.message : error

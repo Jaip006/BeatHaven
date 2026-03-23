@@ -1,16 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ChevronDown,
-  IndianRupee,
-  FolderOpen,
-  Music2,
-  Search,
-  Upload,
-  Waves,
-  Home,
-} from 'lucide-react';
+import { ChevronDown, Music2, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
 import UserQuickActions from '../components/layout/UserQuickActions';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
@@ -21,6 +11,7 @@ const dashboardRoutes: Record<(typeof dashboardOptions)[number], string> = {
   'Seller Dashboard': '/dashboard/seller',
   'Buyer Dashboard': '/dashboard/buyer',
 };
+
 const browseSections = [
   {
     title: 'Sales',
@@ -32,31 +23,55 @@ const browseSections = [
   },
 ];
 
-const sellerStats = [
+const agreementSections = [
   {
-    title: 'Active Beats',
-    value: '48',
-    note: '12 uploaded this month',
-    icon: Waves,
-    accent: 'text-[#1ED760]',
+    eyebrow: 'User Agreement',
+    points: [
+      'You must provide accurate account information and keep your contact details up to date at all times.',
+      'You are responsible for all activity that happens through your account, including uploads, edits, pricing changes, and license updates.',
+      'You must keep your login credentials secure and notify BeatHaven immediately if you suspect unauthorized access.',
+      'You may not create duplicate, deceptive, or impersonation-based accounts for yourself or for any other creator.',
+    ],
   },
   {
-    title: 'Beats Sold',
-    value: '186',
-    note: '23 sales in the last 30 days',
-    icon: FolderOpen,
-    accent: 'text-[#7C5CFF]',
+    eyebrow: 'Seller Agreement',
+    points: [
+      'You may only upload beats, stems, artwork, and previews that you own or are fully authorized to distribute commercially.',
+      'Any samples, loops, vocals, or third-party materials included in your content must be properly cleared for the licenses you are offering.',
+      'You must clearly describe what each license includes, including trackouts, stems, publishing rights, exclusivity, and performance limitations.',
+      'BeatHaven may remove content that appears to infringe rights, violate policy, misrepresent ownership, or create legal risk for buyers.',
+    ],
   },
   {
-    title: 'Total Earnings',
-    value: '₹8,420',
-    note: 'Up 14% from last month',
-    icon: IndianRupee,
-    accent: 'text-[#1ED760]',
+    eyebrow: 'Terms and Conditions',
+    points: [
+      'You agree to maintain fair pricing, honest listing descriptions, and delivery expectations that match the actual product being sold.',
+      'You may not manipulate plays, reviews, sales metrics, rankings, or buyer communication through spam, fake traffic, or misleading claims.',
+      'Refunds, revisions, file replacements, and support responses must be handled in a timely and professional manner when your listing promises them.',
+      'BeatHaven may suspend seller tools, hold payouts, or restrict marketplace visibility if repeated complaints, disputes, or policy violations occur.',
+    ],
+  },
+  {
+    eyebrow: 'Payments',
+    points: [
+      'Platform fees, payment processor fees, taxes, and chargeback adjustments may be deducted before seller payouts are finalized.',
+      'Payout timing may vary based on payment provider processing windows, account verification status, and fraud or dispute reviews.',
+      'You are responsible for maintaining valid payout details and for reporting your own taxes as required in your jurisdiction.',
+      'BeatHaven may delay or withhold payouts tied to suspicious transactions, unresolved customer disputes, or policy enforcement actions.',
+    ],
+  },
+  {
+    eyebrow: 'Policy Enforcement',
+    points: [
+      'Serious violations including copyright abuse, fraud, harassment, or repeated deceptive listings may lead to immediate account suspension.',
+      'If your seller access is restricted, BeatHaven may remove listings, pause checkout, cancel active offers, or request additional verification.',
+      'Termination of seller privileges does not remove your responsibility for existing customer disputes, refunds, tax obligations, or legal claims.',
+      'Continued use of seller tools after policy updates means you accept the latest agreement and marketplace operating rules.',
+    ],
   },
 ];
 
-const SellerDashboardPage: React.FC = () => {
+const SellerAgreementPage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
   const dropdownContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -133,11 +148,7 @@ const SellerDashboardPage: React.FC = () => {
                         key={option}
                         to={dashboardRoutes[option]}
                         onClick={() => setOpenDropdown(null)}
-                        className={`block w-full rounded-xl px-4 py-3 text-left text-sm transition-colors duration-200 ${
-                          option === 'Seller Dashboard'
-                            ? 'bg-[#161616] text-[#1ED760]'
-                            : 'text-[#B3B3B3] hover:bg-[#161616] hover:text-white'
-                        }`}
+                        className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
                       >
                         {option}
                       </Link>
@@ -201,46 +212,37 @@ const SellerDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <section className="relative z-0 mx-auto max-w-7xl space-y-8 px-4 pt-[11.5rem] pb-6 sm:px-5 sm:pt-[12rem] sm:pb-8 lg:px-7">
-          <div className="glass rounded-[2rem] border border-[#262626] mb-20 p-6 sm:p-8">
+        <section className="relative z-0 mx-auto max-w-7xl space-y-8 px-4 pb-8 pt-[11.5rem] sm:px-5 sm:pb-10 sm:pt-[12rem] lg:px-7">
+          <div className="glass rounded-[2rem] border border-[#262626] p-6 sm:p-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl">
-                <h1 className="mt-3 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
-                  Drop your next beat pack into
-                  <span className="gradient-text"> the marketplace</span>
+              <div className="max-w-3xl">
+                <h1 className="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+                  Marketplace rules, terms,
+                  <span className="gradient-text"> and seller responsibilities.</span>
                 </h1>
-                <p className="mt-4 text-base leading-relaxed text-[#B3B3B3] sm:text-lg">
-                  Upload WAV, MP3, stems, and cover art. Set BPM, key, mood tags, and lease pricing before publishing.
-                </p>
               </div>
-              <div className="flex flex-col items-center gap-6">
-               <Button variant="accent" size="lg">
-                <Home size={16} />
-                My Studio
-              </Button>
-              <Button variant="accent" size="lg">
-                <Upload size={16} />
-                New Upload
-              </Button>
+              <div className="rounded-[1.5rem] border border-[#2A2A2A] bg-[#121212]/85 px-5 py-4 text-sm text-[#B3B3B3]">
+                Last reviewed: March 18, 2026
               </div>
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {sellerStats.map(({ title, value, note, icon: Icon, accent }) => (
-              <div
-                key={title}
-                className="glass rounded-[1.75rem] border border-[#262626] p-6 transition-all duration-200 hover:-translate-y-1 hover:border-[#1ED760]/40 hover:bg-[#121212]/90"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.22em] text-[#6B7280]">{title}</p>
-                    <h2 className="mt-4 text-4xl font-black tracking-tight text-white">{value}</h2>
-                    <p className="mt-3 text-sm leading-relaxed text-[#B3B3B3]">{note}</p>
-                  </div>
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-[#121212] ${accent}`}>
-                    <Icon size={22} />
-                  </div>
+          <div className="grid gap-5">
+            {agreementSections.map((section) => (
+              <div key={section.eyebrow} className="glass rounded-[1.8rem] border border-[#262626] p-6 sm:p-7">
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-white">{section.eyebrow}</h2>
+                <div className="mt-5 space-y-3">
+                  {section.points.map((point, index) => (
+                    <div
+                      key={point}
+                      className="rounded-[1.25rem] border border-[#262626] bg-[#121212]/90 px-4 py-4 text-sm leading-relaxed text-[#C8C8C8]"
+                    >
+                      <span className="mr-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#171717] text-xs font-semibold text-[#1ED760]">
+                        {index + 1}
+                      </span>
+                      {point}
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
@@ -251,4 +253,4 @@ const SellerDashboardPage: React.FC = () => {
   );
 };
 
-export default SellerDashboardPage;
+export default SellerAgreementPage;

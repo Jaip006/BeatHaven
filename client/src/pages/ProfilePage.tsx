@@ -1,17 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ChevronDown,
-  IndianRupee,
-  FolderOpen,
-  Music2,
-  Search,
-  Upload,
-  Waves,
-  Home,
-} from 'lucide-react';
+import { ChevronDown, Mail, Music2, Search, ShieldCheck, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
 import UserQuickActions from '../components/layout/UserQuickActions';
+import { getAuthSession, getUserInitials, type AuthUser } from '../utils/auth';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
 
@@ -21,6 +12,7 @@ const dashboardRoutes: Record<(typeof dashboardOptions)[number], string> = {
   'Seller Dashboard': '/dashboard/seller',
   'Buyer Dashboard': '/dashboard/buyer',
 };
+
 const browseSections = [
   {
     title: 'Sales',
@@ -32,32 +24,27 @@ const browseSections = [
   },
 ];
 
-const sellerStats = [
+const profileHighlights = [
   {
-    title: 'Active Beats',
-    value: '48',
-    note: '12 uploaded this month',
-    icon: Waves,
-    accent: 'text-[#1ED760]',
+    label: 'Primary Role',
+    value: 'Creator Account',
+    hint: 'Your default dashboard is based on the role selected at sign in.',
   },
   {
-    title: 'Beats Sold',
-    value: '186',
-    note: '23 sales in the last 30 days',
-    icon: FolderOpen,
-    accent: 'text-[#7C5CFF]',
+    label: 'Account Access',
+    value: 'Buyer + Seller Views',
+    hint: 'You can move between both dashboards from the dashboard switcher.',
   },
   {
-    title: 'Total Earnings',
-    value: '₹8,420',
-    note: 'Up 14% from last month',
-    icon: IndianRupee,
-    accent: 'text-[#1ED760]',
+    label: 'Verification',
+    value: 'Email Verified',
+    hint: 'Your email is verified and ready for marketplace activity.',
   },
 ];
 
-const SellerDashboardPage: React.FC = () => {
+const ProfilePage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
+  const [currentUser] = useState<AuthUser | null>(getAuthSession()?.user ?? null);
   const dropdownContainerRef = useRef<HTMLDivElement | null>(null);
 
   const toggleDropdown = (key: Exclude<DropdownKey, null>) => {
@@ -133,11 +120,7 @@ const SellerDashboardPage: React.FC = () => {
                         key={option}
                         to={dashboardRoutes[option]}
                         onClick={() => setOpenDropdown(null)}
-                        className={`block w-full rounded-xl px-4 py-3 text-left text-sm transition-colors duration-200 ${
-                          option === 'Seller Dashboard'
-                            ? 'bg-[#161616] text-[#1ED760]'
-                            : 'text-[#B3B3B3] hover:bg-[#161616] hover:text-white'
-                        }`}
+                        className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
                       >
                         {option}
                       </Link>
@@ -201,49 +184,64 @@ const SellerDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <section className="relative z-0 mx-auto max-w-7xl space-y-8 px-4 pt-[11.5rem] pb-6 sm:px-5 sm:pt-[12rem] sm:pb-8 lg:px-7">
-          <div className="glass rounded-[2rem] border border-[#262626] mb-20 p-6 sm:p-8">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl">
-                <h1 className="mt-3 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
-                  Drop your next beat pack into
-                  <span className="gradient-text"> the marketplace</span>
-                </h1>
-                <p className="mt-4 text-base leading-relaxed text-[#B3B3B3] sm:text-lg">
-                  Upload WAV, MP3, stems, and cover art. Set BPM, key, mood tags, and lease pricing before publishing.
+        <section className="relative z-0 mx-auto max-w-7xl space-y-8 px-4 pb-8 pt-[11.5rem] sm:px-5 sm:pb-10 sm:pt-[12rem] lg:px-7">
+
+          <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="glass rounded-[1.8rem] border border-[#262626] p-6 sm:p-7">
+              <div className="flex flex-col items-center text-center">
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] text-2xl font-black text-[#0B0B0B]">
+                  {getUserInitials(currentUser?.displayName ?? 'User')}
+                </div>
+                <h2 className="mt-4 text-2xl font-bold text-white">
+                  {currentUser?.displayName ?? 'BeatHaven User'}
+                </h2>
+                <p className="mt-2 text-sm text-[#B3B3B3]">
+                  {currentUser?.role === 'seller' ? 'Seller-first account' : 'Buyer-first account'}
                 </p>
               </div>
-              <div className="flex flex-col items-center gap-6">
-               <Button variant="accent" size="lg">
-                <Home size={16} />
-                My Studio
-              </Button>
-              <Button variant="accent" size="lg">
-                <Upload size={16} />
-                New Upload
-              </Button>
-              </div>
-            </div>
-          </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {sellerStats.map(({ title, value, note, icon: Icon, accent }) => (
-              <div
-                key={title}
-                className="glass rounded-[1.75rem] border border-[#262626] p-6 transition-all duration-200 hover:-translate-y-1 hover:border-[#1ED760]/40 hover:bg-[#121212]/90"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.22em] text-[#6B7280]">{title}</p>
-                    <h2 className="mt-4 text-4xl font-black tracking-tight text-white">{value}</h2>
-                    <p className="mt-3 text-sm leading-relaxed text-[#B3B3B3]">{note}</p>
+              <div className="mt-8 space-y-3">
+                <div className="rounded-[1.25rem] border border-[#262626] bg-[#121212]/90 px-4 py-4">
+                  <div className="flex items-center gap-3">
+                    <Mail size={16} className="text-[#1ED760]" />
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-[#6B7280]">Email</p>
+                      <p className="mt-1 text-sm text-white">{currentUser?.email ?? 'Not available'}</p>
+                    </div>
                   </div>
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-[#121212] ${accent}`}>
-                    <Icon size={22} />
+                </div>
+                <div className="rounded-[1.25rem] border border-[#262626] bg-[#121212]/90 px-4 py-4">
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck size={16} className="text-[#7C5CFF]" />
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-[#6B7280]">Verification</p>
+                      <p className="mt-1 text-sm text-white">
+                        {currentUser?.isVerified ? 'Verified account' : 'Verification pending'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-[1.25rem] border border-[#262626] bg-[#121212]/90 px-4 py-4">
+                  <div className="flex items-center gap-3">
+                    <User size={16} className="text-[#1ED760]" />
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-[#6B7280]">Default Role</p>
+                      <p className="mt-1 text-sm capitalize text-white">{currentUser?.role ?? 'buyer'}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
+
+            <div className="grid gap-4">
+              {profileHighlights.map((item) => (
+                <div key={item.label} className="glass rounded-[1.6rem] border border-[#262626] p-6">
+                  <p className="text-sm uppercase tracking-[0.24em] text-[#1ED760]">{item.label}</p>
+                  <h3 className="mt-3 text-2xl font-bold text-white">{item.value}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-[#B3B3B3]">{item.hint}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </main>
@@ -251,4 +249,4 @@ const SellerDashboardPage: React.FC = () => {
   );
 };
 
-export default SellerDashboardPage;
+export default ProfilePage;

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Music2, ShoppingBag } from 'lucide-react';
+import { Menu, X, Music2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../ui/Button';
+import { getAuthSession, hydrateAuthSession, subscribeToAuthChanges } from '../../utils/auth';
+import UserQuickActions from './UserQuickActions';
 
 const navLinks = [
   { label: 'Beats', href: '#trending' },
@@ -13,6 +15,7 @@ const navLinks = [
 const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(Boolean(getAuthSession()));
   const location = useLocation();
   const hideAuthCta = location.pathname === '/sign-in' || location.pathname === '/sign-up';
 
@@ -22,6 +25,28 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => subscribeToAuthChanges(() => {
+    setIsSignedIn(Boolean(getAuthSession()));
+  }), []);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      return;
+    }
+
+    let isMounted = true;
+
+    void hydrateAuthSession().then((session) => {
+      if (isMounted && session) {
+        setIsSignedIn(true);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isSignedIn]);
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
@@ -29,7 +54,7 @@ const Navbar: React.FC = () => {
         : 'bg-transparent'
         }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
@@ -56,11 +81,15 @@ const Navbar: React.FC = () => {
           </nav>
 
           {/* CTA Buttons */}
-          {!hideAuthCta ? (
+          {!hideAuthCta && isSignedIn ? (
+            <div className="hidden md:flex items-center gap-3">
+              <UserQuickActions />
+            </div>
+          ) : !hideAuthCta ? (
             <div className="hidden md:flex items-center gap-3">
               <Link to="/sign-in">
                 <Button variant="primary" size="sm">
-                  <ShoppingBag size={14} />
+                  <Music2 size={14} />
                   Sign In
                 </Button>
               </Link>
@@ -94,7 +123,9 @@ const Navbar: React.FC = () => {
               {link.label}
             </a>
           ))}
-          {!hideAuthCta ? (
+          {!hideAuthCta && isSignedIn ? (
+            <UserQuickActions mobile />
+          ) : !hideAuthCta ? (
             <div className="flex gap-3 pt-3">
               <Link to="/sign-in" className="flex-1" onClick={() => setMobileOpen(false)}>
                 <Button variant="secondary" size="sm" className="w-full">Sign In</Button>

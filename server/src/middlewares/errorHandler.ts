@@ -36,6 +36,16 @@ const errorHandlerMiddleware = (
     });
   }
 
+  // Handle MongoDB authorization errors
+  if (err.name === "MongoServerError" && err.code === 13) {
+    error = new AppError(
+      "Database user is missing write permission for this action. Grant readWrite access to the beathaven database for the configured MongoDB user.",
+      500,
+      "DATABASE_AUTHORIZATION_ERROR",
+      err.message
+    );
+  }
+
   // Handle Mongoose CastError
   if (err.name === "CastError") {
     error = new AppError(

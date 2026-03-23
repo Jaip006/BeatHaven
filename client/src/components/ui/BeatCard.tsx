@@ -4,6 +4,7 @@ import type { Beat } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { formatPrice, formatCount } from '../../utils/formatters';
+import { useCart } from '../../context/CartContext';
 
 interface BeatCardProps {
   beat: Beat;
@@ -13,6 +14,8 @@ interface BeatCardProps {
 const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [liked, setLiked] = useState(false);
+  const { addToCart, getItemQuantity } = useCart();
+  const itemQuantity = getItemQuantity(beat.id);
 
   const handlePlay = () => {
     setIsPlaying(!isPlaying);
@@ -88,9 +91,9 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
         {/* Price + Cart */}
         <div className="flex items-center justify-between">
           <span className="text-[#1ED760] font-bold text-lg">{formatPrice(beat.price)}</span>
-          <Button size="sm" variant="primary" className="gap-1.5">
+          <Button size="sm" variant="primary" className="gap-1.5" onClick={() => addToCart(beat)}>
             <ShoppingCart size={13} />
-            Buy
+            {itemQuantity > 0 ? 'In Cart' : 'Add to Cart'}
           </Button>
         </div>
       </div>
