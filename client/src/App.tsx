@@ -4,6 +4,7 @@ import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import BuyerDashboardPage from './pages/BuyerDashboardPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
+import SellerUploadPage from './pages/SellerUploadPage';
 import SellerAgreementPage from './pages/SellerAgreementPage';
 import ProfilePage from './pages/ProfilePage';
 import CartPage from './pages/CartPage';
@@ -20,6 +21,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard/buyer" element={<BuyerDashboardPage />} />
           <Route path="/dashboard/seller" element={<SellerDashboardPage />} />
+          <Route path="/dashboard/seller/upload" element={<SellerUploadPage />} />
           <Route path="/seller-agreement" element={<SellerAgreementPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/cart" element={<CartPage />} />

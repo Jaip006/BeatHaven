@@ -49,7 +49,7 @@ const sellerStats = [
   },
   {
     title: 'Total Earnings',
-    value: '₹8,420',
+    value: 'Rs 8,420',
     note: 'Up 14% from last month',
     icon: IndianRupee,
     accent: 'text-[#1ED760]',
@@ -201,8 +201,8 @@ const SellerDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <section className="relative z-0 mx-auto max-w-7xl space-y-8 px-4 pt-[11.5rem] pb-6 sm:px-5 sm:pt-[12rem] sm:pb-8 lg:px-7">
-          <div className="glass rounded-[2rem] border border-[#262626] mb-20 p-6 sm:p-8">
+        <section className="relative z-0 mx-auto max-w-7xl space-y-8 px-4 pb-6 pt-[11.5rem] sm:px-5 sm:pb-8 sm:pt-[12rem] lg:px-7">
+          <div className="glass mb-20 rounded-[2rem] border border-[#262626] p-6 sm:p-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl">
                 <h1 className="mt-3 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
@@ -214,14 +214,17 @@ const SellerDashboardPage: React.FC = () => {
                 </p>
               </div>
               <div className="flex flex-col items-center gap-6">
-               <Button variant="accent" size="lg">
-                <Home size={16} />
-                My Studio
-              </Button>
-              <Button variant="accent" size="lg">
-                <Upload size={16} />
-                New Upload
-              </Button>
+                <Button variant="accent" size="lg">
+                  <Home size={16} />
+                  My Studio
+                </Button>
+                <Link
+                  to="/dashboard/seller/upload"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#7C5CFF] px-8 py-3.5 text-base font-semibold text-white transition-all duration-200 hover:scale-105 hover:bg-[#6a4de0] active:scale-100"
+                >
+                  <Upload size={16} />
+                  New Upload
+                </Link>
               </div>
             </div>
           </div>
