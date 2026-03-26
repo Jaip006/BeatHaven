@@ -14,6 +14,10 @@ import UserQuickActions from '../components/layout/UserQuickActions';
 import { authFetch } from '../utils/authFetch';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
+type StudioStats = {
+  totalBeats?: number;
+  plays?: number;
+};
 
 const dashboardOptions = ['Seller Dashboard', 'Buyer Dashboard'];
 const beatOptions = ['My Beats', 'Draft Uploads'];
@@ -37,7 +41,7 @@ const browseSections = [
 const SellerDashboardPage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
   const dropdownContainerRef = useRef<HTMLDivElement | null>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<StudioStats | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {

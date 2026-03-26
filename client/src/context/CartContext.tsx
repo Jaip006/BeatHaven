@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Beat } from '../types';
 
 const CART_STORAGE_KEY = 'beathaven_cart_v1';
 
-export interface CartItem {
+interface CartItem {
   beat: Beat;
   quantity: 1;
 }
@@ -52,7 +52,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (beat: Beat) => {
+  const addToCart = useCallback((beat: Beat) => {
     setItems((currentItems) => {
       const existingItem = currentItems.find((item) => item.beat.id === beat.id);
       if (existingItem) {
@@ -61,22 +61,28 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return [...currentItems, { beat, quantity: 1 as const }];
     });
-  };
+  }, []);
 
-  const removeFromCart = (beatId: string) => {
+  const removeFromCart = useCallback((beatId: string) => {
     setItems((currentItems) => currentItems.filter((item) => item.beat.id !== beatId));
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setItems([]);
-  };
+  }, []);
 
-  const isInCart = (beatId: string) => items.some((item) => item.beat.id === beatId);
+  const isInCart = useCallback(
+    (beatId: string) => items.some((item) => item.beat.id === beatId),
+    [items],
+  );
 
-  const getItemQuantity = (beatId: string) => {
-    const foundItem = items.find((item) => item.beat.id === beatId);
-    return foundItem?.quantity ?? 0;
-  };
+  const getItemQuantity = useCallback(
+    (beatId: string) => {
+      const foundItem = items.find((item) => item.beat.id === beatId);
+      return foundItem?.quantity ?? 0;
+    },
+    [items],
+  );
 
   const value = useMemo<CartContextValue>(() => {
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -92,11 +98,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isInCart,
       getItemQuantity,
     };
-  }, [items]);
+  }, [addToCart, clearCart, getItemQuantity, isInCart, items, removeFromCart]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCart = (): CartContextValue => {
   const context = useContext(CartContext);
 

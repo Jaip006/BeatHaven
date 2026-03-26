@@ -7,6 +7,8 @@ interface WaveformPlayerProps {
   trackTitle?: string;
 }
 
+const PLACEHOLDER_BARS = Array.from({ length: 40 }, (_, i) => `${20 + ((i * 17) % 61)}%`);
+
 const WaveformPlayer: React.FC<WaveformPlayerProps> = ({ audioUrl, trackTitle }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -54,11 +56,11 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({ audioUrl, trackTitle })
         <div ref={containerRef} className="w-full" />
         {!isReady && (
           <div className="flex gap-0.5 items-end h-12">
-            {Array.from({ length: 40 }).map((_, i) => (
+            {PLACEHOLDER_BARS.map((height, i) => (
               <div
                 key={i}
                 className="flex-1 bg-[#262626] rounded-sm"
-                style={{ height: `${Math.random() * 60 + 20}%` }}
+                style={{ height }}
               />
             ))}
           </div>

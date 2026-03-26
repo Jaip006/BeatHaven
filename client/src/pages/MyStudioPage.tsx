@@ -537,4 +537,3 @@ const MyStudioPage: React.FC = () => {
 };
 
 export default MyStudioPage;
-
