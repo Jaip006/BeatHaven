@@ -10,7 +10,6 @@ import {
   Home,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
 import UserQuickActions from '../components/layout/UserQuickActions';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
@@ -32,33 +31,54 @@ const browseSections = [
   },
 ];
 
-const sellerStats = [
-  {
-    title: 'Active Beats',
-    value: '48',
-    note: '12 uploaded this month',
-    icon: Waves,
-    accent: 'text-[#1ED760]',
-  },
-  {
-    title: 'Beats Sold',
-    value: '186',
-    note: '23 sales in the last 30 days',
-    icon: FolderOpen,
-    accent: 'text-[#7C5CFF]',
-  },
-  {
-    title: 'Total Earnings',
-    value: 'Rs 8,420',
-    note: 'Up 14% from last month',
-    icon: IndianRupee,
-    accent: 'text-[#1ED760]',
-  },
-];
+
 
 const SellerDashboardPage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
   const dropdownContainerRef = useRef<HTMLDivElement | null>(null);
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const res = await fetch("http://localhost:5000/api/v1/beats/studio", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          setStats(data.data.stats);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const computedStats = [
+    {
+      title: 'Active Beats',
+      value: stats?.totalBeats?.toString() || '0',
+      note: 'Total uploaded beats',
+      icon: Waves,
+      accent: 'text-[#1ED760]',
+    },
+    {
+      title: 'Total Plays',
+      value: stats?.plays?.toString() || '0',
+      note: 'Total plays across all beats',
+      icon: FolderOpen,
+      accent: 'text-[#7C5CFF]',
+    },
+    {
+      title: 'Total Earnings',
+      value: 'Rs 8,420',
+      note: 'Up 14% from last month',
+      icon: IndianRupee,
+      accent: 'text-[#1ED760]',
+    },
+  ];
 
   const toggleDropdown = (key: Exclude<DropdownKey, null>) => {
     setOpenDropdown((current) => (current === key ? null : key));
@@ -214,10 +234,13 @@ const SellerDashboardPage: React.FC = () => {
                 </p>
               </div>
               <div className="flex flex-col items-center gap-6">
-                <Button variant="accent" size="lg">
+                <Link
+                  to="/studio"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1ED760] px-8 py-3.5 text-base font-semibold text-black transition-all duration-200 hover:scale-105 hover:bg-[#1db954] active:scale-100"
+                >
                   <Home size={16} />
                   My Studio
-                </Button>
+                </Link>
                 <Link
                   to="/dashboard/seller/upload"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-[#7C5CFF] px-8 py-3.5 text-base font-semibold text-white transition-all duration-200 hover:scale-105 hover:bg-[#6a4de0] active:scale-100"
@@ -230,7 +253,7 @@ const SellerDashboardPage: React.FC = () => {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {sellerStats.map(({ title, value, note, icon: Icon, accent }) => (
+            {computedStats.map(({ title, value, note, icon: Icon, accent }) => (
               <div
                 key={title}
                 className="glass rounded-[1.75rem] border border-[#262626] p-6 transition-all duration-200 hover:-translate-y-1 hover:border-[#1ED760]/40 hover:bg-[#121212]/90"

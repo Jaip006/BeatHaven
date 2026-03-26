@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, FileText, LogOut, ShoppingCart, Upload, User } from 'lucide-react';
+import { ChevronDown, FileText, LogOut, ShoppingCart, Upload, User, LayoutDashboard, HomeIcon } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../../utils/api';
 import { clearAuthSession, getAuthSession, getUserInitials, hydrateAuthSession, subscribeToAuthChanges, type AuthUser } from '../../utils/auth';
@@ -97,14 +97,20 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) =
           </div>
           <Link to={dashboardPath}>
             <Button variant="secondary" size="sm" className="w-full justify-start">
-              <User size={14} />
-              Account
+              <LayoutDashboard size={14} />
+              My Dashboard
             </Button>
           </Link>
           <Link to="/profile">
             <Button variant="secondary" size="sm" className="w-full justify-start">
               <User size={14} />
               Profile
+            </Button>
+          </Link>
+          <Link to="/studio-setup">
+            <Button variant="secondary" size="sm" className="w-full justify-start">
+              <HomeIcon size={14} />
+              Studio Setup
             </Button>
           </Link>
           <Link to="/seller-agreement">
@@ -158,7 +164,7 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) =
               onClick={() => setMenuOpen(false)}
               className="mt-2 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
             >
-              <User size={16} />
+              <LayoutDashboard size={16} />
               My Dashboard
             </Link>
             <Link
@@ -170,10 +176,20 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) =
               Profile
             </Link>
             <Link
+              to="/studio-setup"
+              onClick={() => setMenuOpen(false)}
+              className="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
+            >
+
+              <HomeIcon size={16} />
+              Studio Setup
+            </Link>
+            <Link
               to="/seller-agreement"
               onClick={() => setMenuOpen(false)}
               className="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
             >
+
               <FileText size={16} />
               Seller Agreement
             </Link>

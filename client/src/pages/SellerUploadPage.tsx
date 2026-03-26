@@ -50,9 +50,12 @@ type LicenseForm = {
   freeMp3Enabled: boolean;
   wavEnabled: boolean;
   wavStemsEnabled: boolean;
+  exclusiveEnabled: boolean;
   publishingRights: string;
   masterRecordings: string;
   licensePeriod: string;
+  exclusivePublishingRights: string;
+  exclusiveNegotiable: boolean;
   agreementAccepted: boolean;
 };
 
@@ -101,15 +104,19 @@ const createEmptyUploadedFiles = (): Record<UploadAssetKey, string> => ({
 const createDefaultLicensePricing = (): Record<string, string> => ({
   basic: '',
   premium: '',
+  exclusive: '',
 });
 const createDefaultLicenseForm = (): LicenseForm => ({
   mode: 'manual',
   freeMp3Enabled: false,
   wavEnabled: true,
   wavStemsEnabled: true,
+  exclusiveEnabled: true,
   publishingRights: '',
   masterRecordings: '',
   licensePeriod: '',
+  exclusivePublishingRights: '',
+  exclusiveNegotiable: false,
   agreementAccepted: false,
 });
 
@@ -181,6 +188,7 @@ const SellerUploadPage: React.FC = () => {
   const [sampleUsed, setSampleUsed] = useState(false);
   const [sampleDetails, setSampleDetails] = useState<SampleDetail[]>(createDefaultSampleDetails);
   const [uploadedFiles, setUploadedFiles] = useState<Record<UploadAssetKey, string>>(createEmptyUploadedFiles);
+  const [actualFiles, setActualFiles] = useState<Record<UploadAssetKey, File | null>>({ previewMp3: null, coverArt: null, wavFile: null, stemsZip: null });
   const [mediaInputResetKey, setMediaInputResetKey] = useState(0);
   const [licensePricing, setLicensePricing] = useState<Record<string, string>>(createDefaultLicensePricing);
   const [licenseForm, setLicenseForm] = useState<LicenseForm>(createDefaultLicenseForm);
@@ -321,6 +329,7 @@ const SellerUploadPage: React.FC = () => {
     const file = fileList?.[0];
     if (!file) return;
     setUploadedFiles((current) => ({ ...current, [key]: file.name }));
+    setActualFiles((current) => ({ ...current, [key]: file }));
   };
 
   const updateMetadataField = <K extends keyof MetadataForm>(field: K, value: MetadataForm[K]) => {
@@ -472,6 +481,74 @@ const SellerUploadPage: React.FC = () => {
     setDraftStatus('Section cleared');
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!actualFiles.coverArt || !actualFiles.previewMp3) {
+      alert("Please upload Cover Art and MP3.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append("artwork", actualFiles.coverArt);
+      formData.append("untaggedMp3", actualFiles.previewMp3);
+      if (actualFiles.wavFile) formData.append("untaggedWav", actualFiles.wavFile);
+      if (actualFiles.stemsZip) formData.append("stems", actualFiles.stemsZip);
+
+      formData.append("title", metadataForm.title);
+      formData.append("beatType", metadataForm.beatType);
+      formData.append("genre", metadataForm.genre);
+      formData.append("instruments", JSON.stringify(metadataForm.instruments));
+      formData.append("tempo", metadataForm.tempo.toString());
+      formData.append("musicalKey", metadataForm.musicalKey);
+      formData.append("moods", JSON.stringify(selectedMoods));
+      formData.append("tags", JSON.stringify(selectedTags));
+
+      formData.append("isSampleUsed", String(sampleUsed));
+      formData.append("sampleDetails", JSON.stringify(sampleDetails));
+
+      formData.append("freeMp3Enabled", String(licenseForm.freeMp3Enabled));
+      formData.append("wavEnabled", String(licenseForm.wavEnabled));
+      if (licensePricing.basic) formData.append("basicPrice", licensePricing.basic);
+      formData.append("wavStemsEnabled", String(licenseForm.wavStemsEnabled));
+      if (licensePricing.premium) formData.append("premiumPrice", licensePricing.premium);
+      if (licenseForm.publishingRights) formData.append("publishingRights", licenseForm.publishingRights);
+      if (licenseForm.masterRecordings) formData.append("masterRecordings", licenseForm.masterRecordings);
+      if (licenseForm.licensePeriod) formData.append("licensePeriod", licenseForm.licensePeriod);
+
+      formData.append("exclusiveEnabled", String(licenseForm.exclusiveEnabled));
+      if (licensePricing.exclusive) formData.append("exclusivePrice", licensePricing.exclusive);
+      formData.append("exclusiveNegotiable", String(licenseForm.exclusiveNegotiable));
+      if (licenseForm.exclusivePublishingRights) formData.append("exclusivePublishingRights", licenseForm.exclusivePublishingRights);
+
+      const token = localStorage.getItem("accessToken") || ""; // Simplified, adjust if stored in cookies
+
+      const response = await fetch("http://localhost:5000/api/v1/beats", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert("Beat uploaded successfully!");
+        handleClearAll();
+        // Option to redirect to Studio
+      } else {
+        alert("Upload failed: " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading beat");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const renderMetadataSection = () => (
     <div className="mt-8 space-y-8">
       <div className="grid gap-5 md:grid-cols-2">
@@ -522,11 +599,10 @@ const SellerUploadPage: React.FC = () => {
                       key={instrument}
                       type="button"
                       onClick={() => toggleInstrument(instrument)}
-                      className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition-colors duration-200 ${
-                        isSelected
-                          ? 'bg-[#161616] text-white'
-                          : 'text-[#B3B3B3] hover:bg-[#161616] hover:text-white'
-                      }`}
+                      className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition-colors duration-200 ${isSelected
+                        ? 'bg-[#161616] text-white'
+                        : 'text-[#B3B3B3] hover:bg-[#161616] hover:text-white'
+                        }`}
                     >
                       <span>{instrument}</span>
                       {isSelected ? <Check size={14} className="text-[#1ED760]" /> : null}
@@ -585,11 +661,10 @@ const SellerUploadPage: React.FC = () => {
                       key={mood}
                       type="button"
                       onClick={() => toggleMood(mood)}
-                      className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition-colors duration-200 ${
-                        isSelected
-                          ? 'bg-[#161616] text-white'
-                          : 'text-[#B3B3B3] hover:bg-[#161616] hover:text-white'
-                      }`}
+                      className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition-colors duration-200 ${isSelected
+                        ? 'bg-[#161616] text-white'
+                        : 'text-[#B3B3B3] hover:bg-[#161616] hover:text-white'
+                        }`}
                     >
                       <span>{mood}</span>
                       {isSelected ? <Check size={14} className="text-[#1ED760]" /> : null}
@@ -629,16 +704,14 @@ const SellerUploadPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setSampleUsed((current) => !current)}
-            className={`relative h-7 w-12 shrink-0 rounded-full transition-colors duration-200 ${
-              sampleUsed ? 'bg-[#1ED760]' : 'bg-[#2A2A2A]'
-            }`}
+            className={`relative h-7 w-12 shrink-0 rounded-full transition-colors duration-200 ${sampleUsed ? 'bg-[#1ED760]' : 'bg-[#2A2A2A]'
+              }`}
             aria-pressed={sampleUsed}
             aria-label="Toggle sample used"
           >
             <span
-              className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition-transform duration-200 ${
-                sampleUsed ? 'translate-x-5' : 'translate-x-0'
-              }`}
+              className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition-transform duration-200 ${sampleUsed ? 'translate-x-5' : 'translate-x-0'
+                }`}
             />
           </button>
         </div>
@@ -749,64 +822,8 @@ const SellerUploadPage: React.FC = () => {
 
   const renderLicenseSection = () => (
     <div className="mt-8 space-y-6">
-      <div className="rounded-[1.5rem] border border-[#4A4A4A] bg-[#2B2B2B] px-5 py-5">
-        <div className="flex items-start gap-4">
-          <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#FFCC33] text-sm font-bold text-[#111111]">
-            !
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-white">Add Account &amp; Bank Details</h3>
-            <p className="mt-1 text-sm text-[#D1D5DB]">
-              You can upload and draft beats, but updating your account &amp; bank details is required to start selling. To update details{' '}
-              <span className="text-[#FFCC33] underline">click here.</span>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <p className="text-[1.05rem] font-medium text-white">License Details</p>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-4">
-            <h3 className="text-[2rem] font-semibold tracking-tight text-white">Commercials Mode</h3>
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => setLicenseForm((current) => ({ ...current, mode: 'manual' }))}
-                className={`text-xl transition-colors ${
-                  licenseForm.mode === 'manual' ? 'text-white' : 'text-[#F5A524]'
-                }`}
-              >
-                Manual
-              </button>
-              <button
-                type="button"
-                onClick={() => setLicenseForm((current) => ({ ...current, mode: 'presets' }))}
-                className={`relative h-7 w-12 rounded-full transition-colors duration-200 ${
-                  licenseForm.mode === 'presets' ? 'bg-[#6D00FF]' : 'bg-[#5A5A5A]'
-                }`}
-                aria-label="Toggle presets mode"
-                aria-pressed={licenseForm.mode === 'presets'}
-              >
-                <span
-                  className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-[#1A1A1A] transition-transform duration-200 ${
-                    licenseForm.mode === 'presets' ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-              <span className={`text-xl ${licenseForm.mode === 'presets' ? 'text-[#F5A524]' : 'text-white'}`}>
-                Presets
-              </span>
-            </div>
-          </div>
-          <button type="button" className="text-xl text-[#9F7AEA] transition-colors hover:text-white">
-            Upgrade to Premium
-          </button>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between rounded-[1.5rem] bg-[#242424] px-8 py-6">
-        <p className="text-lg font-medium text-white">Enable Free MP3 Download?</p>
+      <div className="flex items-center gap-4 rounded-[0.8rem] bg-[#1E1E1E] px-6 py-5">
+        <span className="text-sm font-medium text-white">Enable Free MP3 Download?</span>
         <button
           type="button"
           onClick={() =>
@@ -815,175 +832,280 @@ const SellerUploadPage: React.FC = () => {
               freeMp3Enabled: !current.freeMp3Enabled,
             }))
           }
-          className={`relative h-7 w-12 shrink-0 rounded-full transition-colors duration-200 ${
-            licenseForm.freeMp3Enabled ? 'bg-[#6D00FF]' : 'bg-[#4A4A4A]'
-          }`}
+          className={`relative h-[1.125rem] w-8 shrink-0 rounded-full transition-colors duration-200 ${licenseForm.freeMp3Enabled ? 'bg-[#5B10FF]' : 'bg-[#333333]'
+            }`}
           aria-label="Toggle free mp3 download"
           aria-pressed={licenseForm.freeMp3Enabled}
         >
           <span
-            className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition-transform duration-200 ${
-              licenseForm.freeMp3Enabled ? 'translate-x-5' : 'translate-x-0'
-            }`}
+            className={`absolute left-[0.125rem] top-[0.125rem] h-[0.875rem] w-[0.875rem] rounded-full bg-[#1A1A1A] transition-transform duration-200 ${licenseForm.freeMp3Enabled ? 'translate-x-[0.875rem]' : 'translate-x-0'
+              }`}
           />
         </button>
       </div>
 
-      <div className="rounded-[1.8rem] bg-[#242424] p-8">
-        <h3 className="text-[2rem] font-medium text-white">Non Exclusive License</h3>
-        <div className="mt-8 grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="rounded-[0.8rem] bg-[#1E1E1E] p-6 lg:p-8">
+        <h3 className="text-xl font-medium text-white mb-6">Non Exclusive License</h3>
+        <div className="grid gap-x-12 gap-y-6 lg:grid-cols-2">
+          {/* Left Column: License Fee */}
           <div className="space-y-4">
-            <div>
-              <p className="mb-3 text-lg font-medium text-white">License Fee</p>
-              <div className="space-y-3">
-                <div className="rounded-[0.9rem] bg-[#333333] p-3">
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <span className="text-[1.05rem] font-medium text-white">WAV</span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setLicenseForm((current) => ({ ...current, wavEnabled: !current.wavEnabled }))
-                      }
-                      className={`relative h-7 w-12 rounded-full transition-colors duration-200 ${
-                        licenseForm.wavEnabled ? 'bg-[#6D00FF]' : 'bg-[#4A4A4A]'
-                      }`}
-                      aria-label="Toggle WAV license"
-                      aria-pressed={licenseForm.wavEnabled}
-                    >
-                      <span
-                        className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition-transform duration-200 ${
-                          licenseForm.wavEnabled ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                  <div className="rounded-[0.8rem] bg-[#171717] px-4 py-4">
-                    <span className="text-3xl font-medium text-[#7B7B7B]">₹</span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={licensePricing.basic}
-                      onChange={(event) =>
-                        setLicensePricing((current) => ({ ...current, basic: event.target.value }))
-                      }
-                      placeholder="0"
-                      disabled={!licenseForm.wavEnabled}
-                      className="mt-2 w-full bg-transparent text-2xl text-white outline-none disabled:text-[#666666]"
-                    />
-                  </div>
-                </div>
+            <h4 className="text-[13px] font-medium text-white mb-1">License Fee</h4>
 
-                <div className="rounded-[0.9rem] bg-[#333333] p-3">
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <span className="text-[1.05rem] font-medium text-white">WAV + STEMS</span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setLicenseForm((current) => ({
-                          ...current,
-                          wavStemsEnabled: !current.wavStemsEnabled,
-                        }))
-                      }
-                      className={`relative h-7 w-12 rounded-full transition-colors duration-200 ${
-                        licenseForm.wavStemsEnabled ? 'bg-[#6D00FF]' : 'bg-[#4A4A4A]'
+            {/* WAV Block */}
+            <div className="rounded-[0.6rem] bg-[#292929] overflow-hidden">
+              <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                <span className="text-sm font-medium text-white">WAV</span>
+                <button
+                  type="button"
+                  onClick={() => setLicenseForm(c => ({ ...c, wavEnabled: !c.wavEnabled }))}
+                  className={`relative h-[1.125rem] w-8 rounded-full transition-colors duration-200 ${licenseForm.wavEnabled ? 'bg-[#5B10FF]' : 'bg-[#4A4A4A]'
+                    }`}
+                >
+                  <span
+                    className={`absolute left-[0.125rem] top-[0.125rem] h-[0.875rem] w-[0.875rem] rounded-full bg-[#1A1A1A] transition-transform duration-200 ${licenseForm.wavEnabled ? 'translate-x-[0.875rem]' : 'translate-x-0'
                       }`}
-                      aria-label="Toggle WAV and stems license"
-                      aria-pressed={licenseForm.wavStemsEnabled}
-                    >
-                      <span
-                        className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition-transform duration-200 ${
-                          licenseForm.wavStemsEnabled ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                  <div className="rounded-[0.8rem] bg-[#171717] px-4 py-4">
-                    <span className="text-3xl font-medium text-[#7B7B7B]">₹</span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={licensePricing.premium}
-                      onChange={(event) =>
-                        setLicensePricing((current) => ({ ...current, premium: event.target.value }))
-                      }
-                      placeholder="0"
-                      disabled={!licenseForm.wavStemsEnabled}
-                      className="mt-2 w-full bg-transparent text-2xl text-white outline-none disabled:text-[#666666]"
-                    />
-                  </div>
+                  />
+                </button>
+              </div>
+              <div className="px-4 pb-4">
+                <div className="flex items-center rounded-lg bg-[#141414] px-3 py-2.5">
+                  <span className="text-sm font-medium text-[#7B7B7B]">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={licensePricing.basic}
+                    onChange={(event) =>
+                      setLicensePricing((current) => ({ ...current, basic: event.target.value }))
+                    }
+                    placeholder="0"
+                    disabled={!licenseForm.wavEnabled}
+                    className="ml-1 w-full bg-transparent text-sm font-medium text-white outline-none disabled:text-[#666666]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* WAV + STEMS Block */}
+            <div className="rounded-[0.6rem] bg-[#292929] overflow-hidden">
+              <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                <span className="text-sm font-medium text-white">WAV + STEMS</span>
+                <button
+                  type="button"
+                  onClick={() => setLicenseForm(c => ({ ...c, wavStemsEnabled: !c.wavStemsEnabled }))}
+                  className={`relative h-[1.125rem] w-8 rounded-full transition-colors duration-200 ${licenseForm.wavStemsEnabled ? 'bg-[#5B10FF]' : 'bg-[#4A4A4A]'
+                    }`}
+                >
+                  <span
+                    className={`absolute left-[0.125rem] top-[0.125rem] h-[0.875rem] w-[0.875rem] rounded-full bg-[#1A1A1A] transition-transform duration-200 ${licenseForm.wavStemsEnabled ? 'translate-x-[0.875rem]' : 'translate-x-0'
+                      }`}
+                  />
+                </button>
+              </div>
+              <div className="px-4 pb-4">
+                <div className="flex items-center rounded-lg bg-[#141414] px-3 py-2.5">
+                  <span className="text-sm font-medium text-[#7B7B7B]">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={licensePricing.premium}
+                    onChange={(event) =>
+                      setLicensePricing((current) => ({ ...current, premium: event.target.value }))
+                    }
+                    placeholder="0"
+                    disabled={!licenseForm.wavStemsEnabled}
+                    className="ml-1 w-full bg-transparent text-sm font-medium text-white outline-none disabled:text-[#666666]"
+                  />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="grid content-start gap-5 sm:grid-cols-2">
-            <label className="space-y-3">
-              <span className="text-lg font-medium text-white">Publishing Rights (%)</span>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={licenseForm.publishingRights}
-                onChange={(event) =>
-                  setLicenseForm((current) => ({
-                    ...current,
-                    publishingRights: event.target.value,
-                  }))
-                }
-                placeholder="Select Publishing Rights"
-                className="w-full rounded-[1rem] bg-[#171717] px-4 py-4 text-base text-white outline-none placeholder:text-[#7B7B7B]"
-              />
+          {/* Right Column */}
+          <div className="space-y-5 mt-1">
+            <label className="block space-y-2">
+              <span className="text-[13px] font-medium text-white">Publishing Rights (%)</span>
+              <div className="relative">
+                <select
+                  value={licenseForm.publishingRights}
+                  onChange={(event) =>
+                    setLicenseForm((current) => ({
+                      ...current,
+                      publishingRights: event.target.value,
+                    }))
+                  }
+                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-4 py-3 text-sm text-[#9CA3AF] outline-none"
+                >
+                  <option value="" disabled hidden>Select Publishing Rights</option>
+                  <option value="0">0%</option>
+                  <option value="10">10%</option>
+                  <option value="20">20%</option>
+                  <option value="30">30%</option>
+                </select>
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white">
+                  <ChevronDown size={16} />
+                </div>
+              </div>
             </label>
 
-            <label className="space-y-3">
-              <span className="text-lg font-medium text-white">No. of master recordings</span>
-              <input
-                type="number"
-                min="0"
-                value={licenseForm.masterRecordings}
-                onChange={(event) =>
-                  setLicenseForm((current) => ({
-                    ...current,
-                    masterRecordings: event.target.value,
-                  }))
-                }
-                placeholder="Enter quantity"
-                className="w-full rounded-[1rem] bg-[#171717] px-4 py-4 text-base text-white outline-none placeholder:text-[#7B7B7B]"
-              />
+            <label className="block space-y-2">
+              <span className="text-[13px] font-medium text-white">No. of master recordings</span>
+              <div className="relative">
+                <select
+                  value={licenseForm.masterRecordings}
+                  onChange={(event) =>
+                    setLicenseForm((current) => ({
+                      ...current,
+                      masterRecordings: event.target.value,
+                    }))
+                  }
+                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-4 py-3 text-sm text-[#9CA3AF] outline-none"
+                >
+                  <option value="" disabled hidden>Select Master Recording</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white">
+                  <ChevronDown size={16} />
+                </div>
+              </div>
             </label>
 
-            <label className="space-y-3 sm:col-span-2">
-              <span className="text-lg font-medium text-white">License Period</span>
-              <input
-                type="text"
-                value={licenseForm.licensePeriod}
-                onChange={(event) =>
-                  setLicenseForm((current) => ({
-                    ...current,
-                    licensePeriod: event.target.value,
-                  }))
-                }
-                placeholder="Enter license period"
-                className="w-full rounded-[1rem] bg-[#171717] px-4 py-4 text-base text-white outline-none placeholder:text-[#7B7B7B]"
-              />
+            <label className="block space-y-2">
+              <span className="text-[13px] font-medium text-white">License Period</span>
+              <div className="relative">
+                <select
+                  value={licenseForm.licensePeriod}
+                  onChange={(event) =>
+                    setLicenseForm((current) => ({
+                      ...current,
+                      licensePeriod: event.target.value,
+                    }))
+                  }
+                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-4 py-3 text-sm text-[#9CA3AF] outline-none"
+                >
+                  <option value="" disabled hidden>Select License Period</option>
+                  <option value="5 Years">5 Years</option>
+                  <option value="6 Years">6 Years</option>
+                  <option value="7 Years">7 Years</option>
+                  <option value="8 Years">8 Years</option>
+                  <option value="9 Years">9 Years</option>
+                  <option value="10 Years">10 Years</option>
+                  <option value="15 Years">15 Years</option>
+                  <option value="20 Years">20 Years</option>
+                  <option value="25 Years">25 Years</option>
+                  <option value="30 Years">30 Years</option>
+                  <option value="99 Years">99 Years</option>
+                </select>
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white">
+                  <ChevronDown size={16} />
+                </div>
+              </div>
             </label>
           </div>
         </div>
       </div>
 
-      <label className="flex items-start gap-4 px-2">
-        <input
-          type="checkbox"
-          checked={licenseForm.agreementAccepted}
-          onChange={(event) =>
-            setLicenseForm((current) => ({
-              ...current,
-              agreementAccepted: event.target.checked,
-            }))
-          }
-          className="mt-1 h-4 w-4 rounded border-[#666666] bg-transparent text-[#6D00FF] focus:ring-[#6D00FF]"
-        />
-        <span className="text-sm text-[#BFBFBF]">
+      <div className="rounded-[0.8rem] bg-[#1E1E1E] p-6 lg:p-8">
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="text-xl font-medium text-white">Exclusive License</h3>
+          <button
+            type="button"
+            onClick={() => setLicenseForm(c => ({ ...c, exclusiveEnabled: !c.exclusiveEnabled }))}
+            className={`relative h-[1.125rem] w-10 rounded-full transition-colors duration-200 ${licenseForm.exclusiveEnabled ? 'bg-[#5B10FF]' : 'bg-[#4A4A4A]'
+              }`}
+          >
+            <span
+              className={`absolute left-[0.125rem] top-[0.125rem] h-[0.875rem] w-[0.875rem] rounded-full bg-[#1A1A1A] transition-transform duration-200 ${licenseForm.exclusiveEnabled ? 'translate-x-[1.375rem]' : 'translate-x-0'
+                }`}
+            />
+          </button>
+        </div>
+
+        <div className="grid gap-x-12 gap-y-6 lg:grid-cols-2">
+          {/* Left Column: License Fee */}
+          <div className="space-y-4">
+            <h4 className="text-[13px] font-medium text-white mb-2">License Fee</h4>
+            <div className="flex items-center rounded-lg bg-[#292929] px-3 py-3">
+              <span className="text-sm font-medium text-[#7B7B7B]">₹</span>
+              <input
+                type="number"
+                min="0"
+                value={licensePricing.exclusive}
+                onChange={(event) =>
+                  setLicensePricing((current) => ({ ...current, exclusive: event.target.value }))
+                }
+                placeholder="0"
+                disabled={!licenseForm.exclusiveEnabled}
+                className="ml-1 w-full bg-transparent text-sm font-medium text-white outline-none disabled:text-[#666666]"
+              />
+            </div>
+
+            <div className={`pt-4 mt-2 flex items-center gap-3 ${!licenseForm.exclusiveEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
+              <span className="text-[13px] font-medium text-white">Is it negotiable?</span>
+              <button
+                type="button"
+                disabled={!licenseForm.exclusiveEnabled}
+                onClick={() => setLicenseForm(c => ({ ...c, exclusiveNegotiable: !c.exclusiveNegotiable }))}
+                className={`relative h-[1.125rem] w-8 rounded-full transition-colors duration-200 ${licenseForm.exclusiveNegotiable ? 'bg-[#D1D5DB]' : 'bg-[#292929] border border-[#A1A1AA]'
+                  }`}
+              >
+                <span
+                  className={`absolute left-[0.125rem] top-[0.125rem] h-[0.875rem] w-[0.875rem] rounded-full bg-[#1E1E1E] transition-transform duration-200 ${licenseForm.exclusiveNegotiable ? 'translate-x-[0.875rem]' : 'translate-x-0'
+                    }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* Right Column: Publishing Rights */}
+          <div className="space-y-2 mt-1">
+            <label className={`block space-y-2 ${!licenseForm.exclusiveEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
+              <span className="text-[13px] font-medium text-white">Publishing Rights (%)</span>
+              <div className="relative">
+                <select
+                  disabled={!licenseForm.exclusiveEnabled}
+                  value={licenseForm.exclusivePublishingRights}
+                  onChange={(event) =>
+                    setLicenseForm((current) => ({
+                      ...current,
+                      exclusivePublishingRights: event.target.value,
+                    }))
+                  }
+                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-4 py-3 text-sm text-[#9CA3AF] outline-none"
+                >
+                  <option value="" disabled hidden>Select Publishing Rights</option>
+                  <option value="0">0%</option>
+                  <option value="10">10%</option>
+                  <option value="20">20%</option>
+                  <option value="30">30%</option>
+                </select>
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white">
+                  <ChevronDown size={16} />
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <label className="flex items-start gap-3 px-1 pt-4 cursor-pointer">
+        <div className="pt-0.5">
+          <input
+            type="checkbox"
+            checked={licenseForm.agreementAccepted}
+            onChange={(event) =>
+              setLicenseForm((current) => ({
+                ...current,
+                agreementAccepted: event.target.checked,
+              }))
+            }
+            className="h-4 w-4 shrink-0 rounded border-[#5A5A5A] bg-transparent text-[#5B10FF] focus:ring-[#5B10FF] cursor-pointer"
+          />
+        </div>
+        <span className="text-[13px] text-[#A1A1AA] leading-relaxed">
           I hereby state that the Instrumental being uploaded by me on the Beat Store does not contain any pornographic or seditious content in audio/visual manner.
         </span>
       </label>
@@ -1085,23 +1207,23 @@ const SellerUploadPage: React.FC = () => {
                     Clear All
                   </Button>
                   <Button variant="accent" size="lg" className="justify-center sm:min-w-[180px]" onClick={handleSaveDraft}>
-                  Save Draft
+                    Save Draft
                   </Button>
                 </div>
                 <Button
                   variant="accent"
                   size="lg"
                   className="justify-center sm:min-w-[180px]"
-                  onClick={handleNextSection}
+                  onClick={isLastSection ? handleSubmit : handleNextSection}
+                  disabled={isSubmitting}
                 >
-                  {isLastSection ? 'Submit' : 'Next'}
+                  {isSubmitting ? 'Submitting...' : isLastSection ? 'Submit' : 'Next'}
                 </Button>
               </div>
               {draftStatus ? (
                 <p
-                  className={`text-sm text-[#B3B3B3] transition-all duration-500 ${
-                    isDraftStatusVisible ? 'translate-y-0 opacity-100' : '-translate-y-1 opacity-0'
-                  }`}
+                  className={`text-sm text-[#B3B3B3] transition-all duration-500 ${isDraftStatusVisible ? 'translate-y-0 opacity-100' : '-translate-y-1 opacity-0'
+                    }`}
                 >
                   {draftStatus}
                 </p>
