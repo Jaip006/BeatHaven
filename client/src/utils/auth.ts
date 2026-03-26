@@ -4,6 +4,10 @@ export type AuthUser = {
   id: string;
   email: string;
   displayName: string;
+  avatar?: string;
+  mobileNumber?: string;
+  mobileVerified?: boolean;
+  aadhaarVerified?: boolean;
   role: 'buyer' | 'seller';
   isVerified: boolean;
 };
@@ -41,10 +45,10 @@ export function clearAuthSession() {
   window.dispatchEvent(new Event(AUTH_EVENT_NAME));
 }
 
-export async function hydrateAuthSession() {
+export async function hydrateAuthSession(forceRefresh = false) {
   const existingSession = getAuthSession();
 
-  if (existingSession) {
+  if (existingSession && !forceRefresh) {
     return existingSession;
   }
 
@@ -61,6 +65,9 @@ export async function hydrateAuthSession() {
     saveAuthSession(session);
     return session;
   } catch {
+    if (forceRefresh) {
+      clearAuthSession();
+    }
     return null;
   }
 }

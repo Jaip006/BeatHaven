@@ -20,6 +20,7 @@ import {
 import { Link } from 'react-router-dom';
 import UserQuickActions from '../components/layout/UserQuickActions';
 import { getAuthSession, getUserInitials, type AuthUser } from '../utils/auth';
+import { authFetch } from '../utils/authFetch';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
 
@@ -75,6 +76,13 @@ interface SocialPlatform {
   placeholder: string;
   prefix: string;
   color: string;
+}
+
+interface StudioProfile {
+  studioName?: string;
+  handle?: string;
+  bio?: string;
+  socials?: Record<string, string>;
 }
 
 const platforms: SocialPlatform[] = [
@@ -152,6 +160,10 @@ const StudioSetupPage: React.FC = () => {
 
   /* social links */
   const [socials, setSocials] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saveMessage, setSaveMessage] = useState('');
 
   const toggleDropdown = (key: Exclude<DropdownKey, null>) =>
     setOpenDropdown((c) => (c === key ? null : key));
@@ -163,6 +175,29 @@ const StudioSetupPage: React.FC = () => {
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  useEffect(() => {
+    const fetchStudioProfile = async () => {
+      try {
+        const res = await authFetch(`${import.meta.env.VITE_API_URL}/beats/studio`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const profile: StudioProfile = data.data?.profile ?? {};
+        setStudioName(profile.studioName ?? '');
+        setTempName(profile.studioName ?? '');
+        setHandle(profile.handle ?? '');
+        setHandleSaved(Boolean(profile.handle));
+        setBio(profile.bio ?? '');
+        setSocials(profile.socials ?? {});
+      } catch (err) {
+        console.error('Failed to fetch studio profile', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    void fetchStudioProfile();
   }, []);
 
   /* derived */
@@ -177,12 +212,56 @@ const StudioSetupPage: React.FC = () => {
   const validateHandle = (val: string) => /^[a-z0-9._-]{3,30}$/.test(val);
 
   const handleSaveHandle = () => {
-    if (!validateHandle(handle)) {
+    if (handle && !validateHandle(handle)) {
       setHandleError('Handle must be 3–30 chars: lowercase letters, numbers, _ . -');
       return;
     }
     setHandleError('');
     setHandleSaved(true);
+  };
+
+  const handleSaveStudioSettings = async () => {
+    if (handle && !validateHandle(handle)) {
+      setHandleError('Handle must be 3-30 chars: lowercase letters, numbers, _ . -');
+      return;
+    }
+
+    setSaveError('');
+    setSaveMessage('');
+    setIsSaving(true);
+
+    try {
+      const res = await authFetch(`${import.meta.env.VITE_API_URL}/beats/studio/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studioName: studioName.trim(),
+          handle: handle.trim().toLowerCase(),
+          bio: bio.trim(),
+          socials,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setSaveError(data.message || 'Failed to save studio settings.');
+        return;
+      }
+
+      const profile: StudioProfile = data.data?.profile ?? {};
+      setStudioName(profile.studioName ?? '');
+      setTempName(profile.studioName ?? '');
+      setHandle(profile.handle ?? '');
+      setHandleSaved(Boolean(profile.handle));
+      setBio(profile.bio ?? '');
+      setSocials(profile.socials ?? {});
+      setSaveMessage('Studio settings updated successfully.');
+    } catch (err) {
+      console.error('Failed to save studio settings', err);
+      setSaveError('Failed to save studio settings.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCopy = () => {
@@ -299,6 +378,9 @@ const StudioSetupPage: React.FC = () => {
               </p>
             </div>
           </div>
+          {isLoading && (
+            <p className="text-sm text-[#6B7280]">Loading saved studio settings...</p>
+          )}
 
           {/* Live preview pill */}
           {handle && handleSaved && (
@@ -533,10 +615,20 @@ const StudioSetupPage: React.FC = () => {
 
           {/* ── Save Footer ── */}
           <div className="pt-2 pb-4 flex justify-center">
-            <button className="rounded-[1rem] bg-gradient-to-r from-[#1ED760] to-[#17C955] px-10 py-4 text-sm font-bold text-[#0B0B0B] shadow-[0_4px_24px_rgba(30,215,96,0.3)] transition-all duration-200 hover:shadow-[0_4px_36px_rgba(30,215,96,0.45)] active:scale-[0.99] tracking-wide">
-              Save Studio Settings
+            <button
+              onClick={handleSaveStudioSettings}
+              disabled={isSaving || isLoading}
+              className="rounded-[1rem] bg-gradient-to-r from-[#1ED760] to-[#17C955] px-10 py-4 text-sm font-bold text-[#0B0B0B] shadow-[0_4px_24px_rgba(30,215,96,0.3)] transition-all duration-200 hover:shadow-[0_4px_36px_rgba(30,215,96,0.45)] active:scale-[0.99] tracking-wide disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isSaving ? 'Saving...' : 'Save Studio Settings'}
             </button>
           </div>
+          {saveError && (
+            <p className="text-center text-sm text-red-400 pb-6">{saveError}</p>
+          )}
+          {saveMessage && !saveError && (
+            <p className="text-center text-sm text-[#1ED760] pb-6">{saveMessage}</p>
+          )}
         </section>
       </main>
     </div>

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import UserQuickActions from '../components/layout/UserQuickActions';
+import { authFetch } from '../utils/authFetch';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
 
@@ -41,10 +42,7 @@ const SellerDashboardPage: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem("accessToken");
-        const res = await fetch("http://localhost:5000/api/v1/beats/studio", {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
+        const res = await authFetch(`${import.meta.env.VITE_API_URL}/beats/studio`);
         const data = await res.json();
         if (data.success) {
           setStats(data.data.stats);

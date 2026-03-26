@@ -22,7 +22,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import UserQuickActions from '../components/layout/UserQuickActions';
-import { getAuthSession, getUserInitials, type AuthUser } from '../utils/auth';
+import { authFetch } from '../utils/authFetch';
+import { getAuthSession, getUserInitials, saveAuthSession, type AuthUser } from '../utils/auth';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
 
@@ -65,13 +66,6 @@ const SectionCard: React.FC<{
       : accent === 'purple'
         ? 'text-[#7C5CFF]'
         : 'text-blue-400';
-  const dividerColor =
-    accent === 'green'
-      ? 'from-[#1ED760]/40'
-      : accent === 'purple'
-        ? 'from-[#7C5CFF]/40'
-        : 'from-blue-400/40';
-
   return (
     <div className="rounded-[1.6rem] border border-[#262626] bg-[#0F0F0F]/80 backdrop-blur-sm overflow-hidden">
       <div className="px-6 pt-6 pb-4 flex items-start gap-3 border-b border-[#1E1E1E]">
@@ -129,11 +123,13 @@ const InputField: React.FC<{
 
 const ProfilePage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
-  const [currentUser] = useState<AuthUser | null>(getAuthSession()?.user ?? null);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(getAuthSession()?.user ?? null);
   const dropdownContainerRef = useRef<HTMLDivElement | null>(null);
 
   // ── profile photo ──
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(currentUser?.avatar ?? null);
+  const [isPhotoUploading, setIsPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   // ── name edits ──
@@ -143,14 +139,14 @@ const ProfilePage: React.FC = () => {
 
   // ── mobile ──
   const [mobile, setMobile] = useState('');
-  const [mobileVerified, setMobileVerified] = useState(false);
+  const [mobileVerified, setMobileVerified] = useState(Boolean(currentUser?.mobileVerified));
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState('');
 
   // ── aadhaar ──
-  const [aadhaarVerified, setAadhaarVerified] = useState(false);
+  const [aadhaarVerified, setAadhaarVerified] = useState(Boolean(currentUser?.aadhaarVerified));
 
   // ── gender & dob ──
   const [gender, setGender] = useState('');
@@ -184,12 +180,64 @@ const ProfilePage: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Please select a valid image file.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('Image size should be 5 MB or less.');
+      return;
+    }
+
+    setPhotoError('');
     const reader = new FileReader();
     reader.onloadend = () => setPhotoPreview(reader.result as string);
     reader.readAsDataURL(file);
+
+    setIsPhotoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      const response = await authFetch(`${import.meta.env.VITE_API_URL}/auth/avatar`, {
+        method: 'PUT',
+        body: formData,
+      });
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data?.success) {
+        setPhotoError(data?.message || 'Failed to upload profile photo.');
+        return;
+      }
+
+      const avatarUrl = data?.data?.avatar as string | undefined;
+      if (!avatarUrl) {
+        setPhotoError('Failed to receive uploaded photo URL.');
+        return;
+      }
+
+      setPhotoPreview(avatarUrl);
+      if (currentUser) {
+        const updatedUser: AuthUser = { ...currentUser, avatar: avatarUrl };
+        setCurrentUser(updatedUser);
+        const session = getAuthSession();
+        if (session) {
+          saveAuthSession({
+            ...session,
+            user: updatedUser,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to upload profile photo', error);
+      setPhotoError('Failed to upload profile photo.');
+    } finally {
+      setIsPhotoUploading(false);
+    }
   };
 
   const handleSendOtp = () => {
@@ -211,8 +259,41 @@ const ProfilePage: React.FC = () => {
       setMobileVerified(true);
       setOtpSent(false);
       setOtp('');
+      void saveVerificationDetails({ mobileNumber: mobile, mobileVerified: true });
     } else {
       setOtpError('Invalid OTP. Please try again.');
+    }
+  };
+
+  const saveVerificationDetails = async (payload: {
+    mobileNumber?: string;
+    mobileVerified?: boolean;
+    aadhaarVerified?: boolean;
+  }) => {
+    try {
+      const response = await authFetch(`${import.meta.env.VITE_API_URL}/auth/verification`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.success) {
+        return;
+      }
+
+      const updatedUser = data?.data?.user as AuthUser | undefined;
+      if (updatedUser) {
+        setCurrentUser(updatedUser);
+        const session = getAuthSession();
+        if (session) {
+          saveAuthSession({
+            ...session,
+            user: updatedUser,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save verification details', error);
     }
   };
 
@@ -413,10 +494,14 @@ const ProfilePage: React.FC = () => {
                 <p className="text-xs text-[#6B7280]">JPG, PNG or WebP · Max 5 MB</p>
                 <button
                   onClick={() => photoInputRef.current?.click()}
-                  className="w-fit rounded-xl border border-[#262626] bg-[#161616] px-4 py-2 text-xs font-medium text-[#B3B3B3] transition-all duration-200 hover:border-[#1ED760]/50 hover:text-[#1ED760]"
+                  disabled={isPhotoUploading}
+                  className="w-fit rounded-xl border border-[#262626] bg-[#161616] px-4 py-2 text-xs font-medium text-[#B3B3B3] transition-all duration-200 hover:border-[#1ED760]/50 hover:text-[#1ED760] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {photoPreview ? 'Change Photo' : 'Upload Photo'}
+                  {isPhotoUploading ? 'Uploading...' : photoPreview ? 'Change Photo' : 'Upload Photo'}
                 </button>
+                {photoError && (
+                  <p className="text-xs text-red-400">{photoError}</p>
+                )}
               </div>
             </div>
           </SectionCard>
@@ -544,14 +629,20 @@ const ProfilePage: React.FC = () => {
               </div>
               {!aadhaarVerified ? (
                 <button
-                  onClick={() => setAadhaarVerified(true)}   // demo toggle; replace with real DigiLocker flow
+                  onClick={() => {
+                    setAadhaarVerified(true);
+                    void saveVerificationDetails({ aadhaarVerified: true });
+                  }}
                   className="w-full sm:w-auto rounded-[0.85rem] bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(59,130,246,0.25)] transition-all duration-200 hover:shadow-[0_4px_24px_rgba(59,130,246,0.4)] active:scale-95"
                 >
                   Verify via DigiLocker
                 </button>
               ) : (
                 <button
-                  onClick={() => setAadhaarVerified(false)}
+                  onClick={() => {
+                    setAadhaarVerified(false);
+                    void saveVerificationDetails({ aadhaarVerified: false });
+                  }}
                   className="w-full sm:w-auto rounded-[0.85rem] border border-[#262626] bg-[#161616] px-5 py-3 text-sm font-medium text-[#B3B3B3] transition-all duration-200 hover:border-blue-400/40 hover:text-blue-400"
                 >
                   Re-verify

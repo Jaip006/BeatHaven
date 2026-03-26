@@ -1,10 +1,14 @@
 import { Router } from "express";
 import { z } from "zod";
+import multer from "multer";
 import User from "../../models/user.model";
 import asyncHandler from "../../utils/asyncHandler";
 import AppError from "../../utils/appError";
 import { sendVerificationOtpEmail } from "../../utils/email.utils";
 import { generateOtp, hashOtp } from "../../utils/otp.utils";
+import cloudinary from "../../config/cloudinary.config";
+import { requireAuth } from "../../middlewares/auth.middleware";
+import { env } from "../../config/env.config";
 import {
   signAccessToken,
   signRefreshToken,
@@ -12,6 +16,7 @@ import {
 } from "../../utils/jwt.utils";
 
 const authRouter = Router();
+const avatarUpload = multer({ storage: multer.memoryStorage() });
 
 const registerSchema = z.object({
   displayName: z.string().trim().min(2).max(50),
@@ -33,6 +38,50 @@ const loginSchema = z.object({
   email: z.string().trim().email(),
   password: z.string().min(8),
 });
+
+const verificationSchema = z.object({
+  mobileNumber: z.string().trim().max(20).optional(),
+  mobileVerified: z.boolean().optional(),
+  aadhaarVerified: z.boolean().optional(),
+});
+
+const ensureCloudinaryConfigured = () => {
+  if (!env.CLOUDINARY_CLOUD_NAME || !env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET) {
+    throw new AppError(
+      "Cloudinary is not configured on the server. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in server/.env.",
+      500,
+      "CLOUDINARY_NOT_CONFIGURED"
+    );
+  }
+};
+
+const derivePublicIdFromUrl = (url?: string | null): string | null => {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const uploadSegment = "/upload/";
+    const uploadIndex = parsed.pathname.indexOf(uploadSegment);
+    if (uploadIndex === -1) return null;
+    const afterUpload = parsed.pathname.slice(uploadIndex + uploadSegment.length);
+    const withoutVersion = afterUpload.replace(/^v\d+\//, "");
+    const withoutExtension = withoutVersion.replace(/\.[^/.]+$/, "");
+    return withoutExtension || null;
+  } catch {
+    return null;
+  }
+};
+
+const uploadAvatarToCloudinary = (buffer: Buffer): Promise<{ secureUrl: string; publicId: string }> =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "users/avatars", resource_type: "image" },
+      (error, result) => {
+        if (error || !result) return reject(error || new Error("Cloudinary error"));
+        resolve({ secureUrl: result.secure_url, publicId: result.public_id });
+      }
+    );
+    stream.end(buffer);
+  });
 
 authRouter.post(
   "/register",
@@ -228,6 +277,10 @@ authRouter.post(
           id: user.id,
           email: user.email,
           displayName: user.displayName,
+          avatar: user.avatar,
+          mobileNumber: user.mobileNumber,
+          mobileVerified: user.mobileVerified,
+          aadhaarVerified: user.aadhaarVerified,
           role: user.role,
           isVerified: user.isVerified,
         },
@@ -265,6 +318,10 @@ authRouter.post(
           id: user.id,
           email: user.email,
           displayName: user.displayName,
+          avatar: user.avatar,
+          mobileNumber: user.mobileNumber,
+          mobileVerified: user.mobileVerified,
+          aadhaarVerified: user.aadhaarVerified,
           role: user.role,
           isVerified: user.isVerified,
         },
@@ -303,5 +360,89 @@ authRouter.post(
 authRouter.get("/me", (_req, res) => {
   res.status(501).json({ message: "Not implemented yet" });
 });
+
+authRouter.put(
+  "/verification",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const parsed = verificationSchema.parse(req.body);
+    const user = await User.findById(req.user!.userId);
+
+    if (!user) {
+      throw new AppError("User not found", 404, "USER_NOT_FOUND");
+    }
+
+    if (typeof parsed.mobileNumber === "string") {
+      user.mobileNumber = parsed.mobileNumber;
+    }
+    if (typeof parsed.mobileVerified === "boolean") {
+      user.mobileVerified = parsed.mobileVerified;
+    }
+    if (typeof parsed.aadhaarVerified === "boolean") {
+      user.aadhaarVerified = parsed.aadhaarVerified;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Verification details updated.",
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          displayName: user.displayName,
+          avatar: user.avatar,
+          mobileNumber: user.mobileNumber,
+          mobileVerified: user.mobileVerified,
+          aadhaarVerified: user.aadhaarVerified,
+          role: user.role,
+          isVerified: user.isVerified,
+        },
+      },
+    });
+  })
+);
+
+authRouter.put(
+  "/avatar",
+  requireAuth,
+  avatarUpload.single("avatar"),
+  asyncHandler(async (req, res) => {
+    ensureCloudinaryConfigured();
+
+    const file = req.file;
+    if (!file) {
+      throw new AppError("Avatar image is required.", 400);
+    }
+
+    const user = await User.findById(req.user!.userId);
+    if (!user) {
+      throw new AppError("User not found", 404, "USER_NOT_FOUND");
+    }
+
+    const oldAvatarPublicId = user.avatarPublicId || derivePublicIdFromUrl(user.avatar);
+    if (oldAvatarPublicId) {
+      try {
+        await cloudinary.uploader.destroy(oldAvatarPublicId, { resource_type: "image", invalidate: true });
+      } catch (error) {
+        console.error("Failed to delete old avatar from Cloudinary:", oldAvatarPublicId, error);
+      }
+    }
+
+    const uploadedAvatar = await uploadAvatarToCloudinary(file.buffer);
+    user.avatar = uploadedAvatar.secureUrl;
+    user.avatarPublicId = uploadedAvatar.publicId;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile photo updated successfully.",
+      data: {
+        avatar: user.avatar,
+      },
+    });
+  })
+);
 
 export default authRouter;

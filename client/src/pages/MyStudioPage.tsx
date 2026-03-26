@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Play, TrendingUp, ShieldCheck, Share2, Expand, ChevronDown, Music2, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Play, ShieldCheck, Share2, Expand, ChevronDown, Music2, Search, Trash2 } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
 import UserQuickActions from '../components/layout/UserQuickActions';
+import { getAuthSession } from '../utils/auth';
+import { authFetch } from '../utils/authFetch';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
 
@@ -37,12 +39,33 @@ interface Stats {
   verified: boolean;
 }
 
+interface StudioProfile {
+  ownerId: string;
+  studioName: string;
+  handle: string;
+  bio: string;
+  socials: Record<string, string>;
+  avatar: string;
+  joinedAt: string | null;
+  displayName: string;
+  mobileVerified?: boolean;
+  aadhaarVerified?: boolean;
+  isFollowing?: boolean;
+}
+
 const MyStudioPage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
   const dropdownContainerRef = useRef<HTMLDivElement | null>(null);
   const [beats, setBeats] = useState<Beat[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [profile, setProfile] = useState<StudioProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [playingBeatId, setPlayingBeatId] = useState<string | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [copiedShareUrl, setCopiedShareUrl] = useState(false);
+  const currentUserId = getAuthSession()?.user?.id;
+  const [searchParams] = useSearchParams();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const toggleDropdown = (key: Exclude<DropdownKey, null>) => {
     setOpenDropdown((current) => (current === key ? null : key));
@@ -59,25 +82,195 @@ const MyStudioPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const fetchStudioData = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        const res = await fetch("http://localhost:5000/api/v1/beats/studio", {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        const data = await res.json();
-        if (data.success) {
-          setBeats(data.data.beats);
-          setStats(data.data.stats);
-        }
-      } catch (err) {
-        console.error("Failed to fetch studio data", err);
-      } finally {
-        setLoading(false);
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
       }
     };
-    fetchStudioData();
   }, []);
+
+  const fetchStudioData = useCallback(async () => {
+    try {
+      const handle = (searchParams.get('handle') || '').trim().toLowerCase();
+      const studioEndpoint = handle
+        ? `${import.meta.env.VITE_API_URL}/beats/studio?handle=${encodeURIComponent(handle)}`
+        : `${import.meta.env.VITE_API_URL}/beats/studio`;
+      const res = await authFetch(studioEndpoint);
+      const data = await res.json();
+      if (data.success) {
+        setBeats(data.data.beats);
+        setStats(data.data.stats);
+        setProfile(data.data.profile);
+      }
+    } catch (err) {
+      console.error("Failed to fetch studio data", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    void fetchStudioData();
+  }, [fetchStudioData]);
+
+  useEffect(() => {
+    const handleBeatUploaded = () => {
+      void fetchStudioData();
+    };
+    const handleWindowFocus = () => {
+      void fetchStudioData();
+    };
+
+    window.addEventListener('beathaven-beat-uploaded', handleBeatUploaded);
+    window.addEventListener('focus', handleWindowFocus);
+    return () => {
+      window.removeEventListener('beathaven-beat-uploaded', handleBeatUploaded);
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, [fetchStudioData]);
+
+  const joinedDate = profile?.joinedAt
+    ? new Date(profile.joinedAt).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+    : '';
+
+  const studioTitle = profile?.studioName || profile?.displayName || 'My Studio';
+  const socialEntries = Object.entries(profile?.socials ?? {}).filter(([, value]) => Boolean(value?.trim()));
+  const canFollowStudio = Boolean(profile?.ownerId && currentUserId && profile.ownerId !== currentUserId);
+  const canDeleteBeats = Boolean(profile?.ownerId && currentUserId && profile.ownerId === currentUserId);
+  const isStudioVerified = Boolean(profile?.mobileVerified && profile?.aadhaarVerified);
+  const [isFollowSubmitting, setIsFollowSubmitting] = useState(false);
+  const shareUrl = profile?.handle
+    ? `${window.location.origin}/studio?handle=${encodeURIComponent(profile.handle)}`
+    : `${window.location.origin}/studio`;
+
+  const handleToggleFollowStudio = async () => {
+    if (!profile?.ownerId || !canFollowStudio || isFollowSubmitting) return;
+
+    setIsFollowSubmitting(true);
+    try {
+      const endpoint = profile.isFollowing
+        ? `${import.meta.env.VITE_API_URL}/beats/studio/unfollow`
+        : `${import.meta.env.VITE_API_URL}/beats/studio/follow`;
+
+      const res = await authFetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: profile.ownerId }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        alert(data?.message || 'Failed to update follow status.');
+        return;
+      }
+
+      const followers = Number(data?.data?.followers ?? stats?.followers ?? 0);
+      const following = Boolean(data?.data?.following);
+
+      setProfile((prev) => (prev ? { ...prev, isFollowing: following } : prev));
+      setStats((prev) =>
+        prev
+          ? {
+            ...prev,
+            followers,
+          }
+          : prev
+      );
+    } catch (error) {
+      console.error('Failed to update follow status', error);
+      alert('Failed to update follow status.');
+    } finally {
+      setIsFollowSubmitting(false);
+    }
+  };
+
+  const handleDeleteBeat = async (beatId: string) => {
+    const shouldDelete = window.confirm('Delete this beat? This action cannot be undone.');
+    if (!shouldDelete) return;
+
+    try {
+      const res = await authFetch(`${import.meta.env.VITE_API_URL}/beats/${beatId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.success) {
+        alert(data?.message || 'Failed to delete beat.');
+        return;
+      }
+
+      setBeats((prev) => prev.filter((beat) => beat._id !== beatId));
+      setStats((prev) =>
+        prev
+          ? {
+            ...prev,
+            totalBeats: Math.max(0, prev.totalBeats - 1),
+          }
+          : prev
+      );
+    } catch (error) {
+      console.error('Failed to delete beat', error);
+      alert('Failed to delete beat.');
+    }
+  };
+
+  const handleCopyShareUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedShareUrl(true);
+      window.setTimeout(() => setCopiedShareUrl(false), 1800);
+    } catch (error) {
+      console.error('Failed to copy share URL', error);
+      alert('Failed to copy URL.');
+    }
+  };
+
+  const handlePlayBeat = async (beat: Beat) => {
+    try {
+      if (audioRef.current && playingBeatId === beat._id) {
+        audioRef.current.pause();
+        setPlayingBeatId(null);
+        return;
+      }
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      const audio = new Audio(beat.untaggedMp3Url);
+      audioRef.current = audio;
+      setPlayingBeatId(beat._id);
+
+      audio.onended = () => {
+        setPlayingBeatId((current) => (current === beat._id ? null : current));
+      };
+
+      await audio.play();
+
+      const playRes = await authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat._id}/play`, {
+        method: 'POST',
+      });
+      const playData = await playRes.json().catch(() => null);
+      if (playRes.ok && playData?.success && playData?.data?.incremented) {
+        setStats((prev) =>
+          prev
+            ? {
+              ...prev,
+              plays: prev.plays + 1,
+            }
+            : prev
+        );
+      }
+    } catch (error) {
+      console.error('Failed to play beat', error);
+      setPlayingBeatId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0B0B0B] text-white">
@@ -183,67 +376,73 @@ const MyStudioPage: React.FC = () => {
                 {/* Profile Card */}
                 <div className="bg-[#151515] border border-[#262626] rounded-2xl p-6 text-center">
                   <div className="w-32 h-32 mx-auto rounded-xl overflow-hidden mb-4 bg-[#2A2A2A]">
-                    <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=400&q=80" alt="Avatar" className="w-full h-full object-cover" />
+                    <img src={profile?.avatar } alt="Avatar" className="w-full h-full object-cover" />
                   </div>
                   <h2 className="text-xl font-bold flex items-center justify-center gap-2">
-                    Level On The Beat
-                    <ShieldCheck className="w-5 h-5 text-blue-500 fill-blue-500/20" />
-                    <span className="bg-[#F5A623] text-black text-[10px] font-black px-1.5 py-0.5 rounded uppercase leading-none">Pro</span>
+                    {studioTitle}
+                    {isStudioVerified && (
+                      <ShieldCheck className="w-5 h-5 text-blue-500 fill-blue-500/20" />
+                    )}
                   </h2>
-                  <p className="text-[#8B5CF6] text-sm mt-1">Versatile Music Producer</p>
-                  <p className="text-gray-400 text-xs mt-2">Joined 12 Feb 2024</p>
+                  <p className="text-[#8B5CF6] text-sm mt-1">
+                    {profile?.handle ? `@${profile.handle}` : 'Versatile Music Producer'}
+                  </p>
+                  {joinedDate && (
+                    <p className="text-gray-400 text-xs mt-2">Joined {joinedDate}</p>
+                  )}
 
                   <div className="flex justify-between mt-6 px-4">
                     <div className="text-center">
-                      <p className="text-lg font-bold">{stats?.followers || 333}</p>
+                      <p className="text-lg font-bold">{stats?.followers || 0}</p>
                       <p className="text-xs text-gray-500">Followers</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-lg font-bold">67.5k</p>
+                      <p className="text-lg font-bold">{stats?.plays || 0}</p>
                       <p className="text-xs text-gray-500">Plays</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-lg font-bold">{stats?.totalBeats || 0}</p>
+                      <p className="text-lg font-bold">{beats.length}</p>
                       <p className="text-xs text-gray-500">Tracks</p>
                     </div>
-                  </div>
-
-                  <div className="mt-6 flex gap-2">
-                    <button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl font-semibold transition-colors">
-                      Follow
-                    </button>
-                    <button className="p-2 border border-[#262626] rounded-xl hover:bg-[#202020] transition-colors text-white">
+                    <button
+                      onClick={() => setIsShareModalOpen(true)}
+                      className="p-2 border border-[#262626] rounded-xl hover:bg-[#202020] transition-colors text-white"
+                    >
                       <Share2 className="w-5 h-5" />
                     </button>
                   </div>
-                </div>
 
-                {/* Recognition Card */}
-                <div className="bg-[#151515] border border-[#262626] rounded-2xl p-6">
-                  <h3 className="text-xs font-bold text-gray-500 mb-4 uppercase tracking-wider">Recognition</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center border border-[#333] text-xs font-bold">10K</div>
-                      <span className="text-sm font-medium">67.5k+ Plays</span>
-                    </div>
-                    <div className="flex items-center gap-3 justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">🔥</span>
-                        <span className="text-sm font-medium">Trending Now</span>
-                      </div>
-                      <TrendingUp className="w-4 h-4 text-gray-500" />
-                    </div>
+                  <div className="mt-6 flex gap-2">
+                    {canFollowStudio && (
+                      <button
+                        onClick={handleToggleFollowStudio}
+                        disabled={isFollowSubmitting}
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {isFollowSubmitting ? 'Please wait...' : profile?.isFollowing ? 'Following' : 'Follow'}
+                      </button>
+                    )}
                   </div>
                 </div>
 
                 {/* About Me Card */}
                 <div className="bg-[#151515] border border-[#262626] rounded-2xl p-6 relative">
-                  <Expand className="w-4 h-4 absolute top-4 right-4 text-gray-500" />
                   <h3 className="font-bold mb-2">About me</h3>
                   <p className="text-sm text-gray-400">
-                    Hello I'm Level Contact :-<br />
-                    levelonthebeat@gmail.com
+                    {profile?.bio || 'Add your bio from Studio Setup to show buyers your style and vibe.'}
                   </p>
+                  {socialEntries.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {socialEntries.map(([key, value]) => (
+                        <span
+                          key={key}
+                          className="text-xs text-[#B3B3B3] bg-[#1F1F1F] border border-[#2A2A2A] rounded-full px-2.5 py-1"
+                        >
+                          {key}: {value}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -258,7 +457,10 @@ const MyStudioPage: React.FC = () => {
                   {beats.map((beat) => (
                     <div key={beat._id} className="group flex items-center justify-between p-3 hover:bg-[#1A1A1A] rounded-xl transition-colors">
                       <div className="flex items-center gap-4">
-                        <button className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform shrink-0">
+                        <button
+                          onClick={() => handlePlayBeat(beat)}
+                          className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform shrink-0"
+                        >
                           <Play className="w-5 h-5 ml-1" />
                         </button>
                         <img
@@ -280,7 +482,15 @@ const MyStudioPage: React.FC = () => {
                         <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5">
                           🛒 ₹{beat.basicPrice || 799}
                         </button>
-                        <button className="p-2 text-gray-500 hover:text-white transition-colors">⋮</button>
+                        {canDeleteBeats && (
+                          <button
+                            onClick={() => handleDeleteBeat(beat._id)}
+                            className="p-2 text-gray-500 hover:text-red-400 transition-colors"
+                            title="Delete beat"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -292,9 +502,39 @@ const MyStudioPage: React.FC = () => {
             </div>
           )}
         </section>
+        {isShareModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 px-4">
+            <div className="w-full max-w-xl rounded-2xl border border-[#2A2A2A] bg-[#121212] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
+              <div className="flex items-center justify-between gap-4">
+                <h3 className="text-lg font-semibold text-white">Share Studio Link</h3>
+                <button
+                  onClick={() => setIsShareModalOpen(false)}
+                  className="rounded-lg border border-[#2A2A2A] px-2.5 py-1.5 text-sm text-[#B3B3B3] hover:text-white"
+                >
+                  Close
+                </button>
+              </div>
+              <p className="mt-2 text-sm text-[#9CA3AF]">
+                Anyone can paste this URL in a browser to view the studio page.
+              </p>
+              <div className="mt-4 rounded-xl border border-[#2A2A2A] bg-[#0E0E0E] px-4 py-3 text-sm text-[#E5E7EB] break-all">
+                {shareUrl}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={handleCopyShareUrl}
+                  className="rounded-xl bg-[#1ED760] px-4 py-2 text-sm font-semibold text-black hover:bg-[#19c453]"
+                >
+                  {copiedShareUrl ? 'Copied!' : 'Copy URL'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
 };
 
 export default MyStudioPage;
+

@@ -21,9 +21,13 @@ export interface IBeat extends Document {
 
   // Media
   artworkUrl: string;
+  artworkPublicId?: string;
   untaggedMp3Url: string;
+  untaggedMp3PublicId?: string;
   untaggedWavUrl: string;
+  untaggedWavPublicId?: string;
   stemsUrl?: string;
+  stemsPublicId?: string;
 
   // Non-Exclusive Licensing
   freeMp3Enabled: boolean;
@@ -71,9 +75,13 @@ const beatSchema = new Schema<IBeat>(
     ],
 
     artworkUrl: { type: String, required: true },
+    artworkPublicId: { type: String, required: false },
     untaggedMp3Url: { type: String, required: true },
+    untaggedMp3PublicId: { type: String, required: false },
     untaggedWavUrl: { type: String, required: false },
+    untaggedWavPublicId: { type: String, required: false },
     stemsUrl: { type: String, required: false },
+    stemsPublicId: { type: String, required: false },
 
     freeMp3Enabled: { type: Boolean, default: false },
     wavEnabled: { type: Boolean, default: false },
@@ -96,6 +104,10 @@ const beatSchema = new Schema<IBeat>(
     timestamps: true,
   }
 );
+
+beatSchema.index({ sellerId: 1 });
+beatSchema.index({ createdAt: -1 });
+beatSchema.index({ sellerId: 1, createdAt: -1 });
 
 const Beat = mongoose.model<IBeat>("Beat", beatSchema);
 export default Beat;

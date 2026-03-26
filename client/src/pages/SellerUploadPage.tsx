@@ -15,6 +15,8 @@ import {
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import UserQuickActions from '../components/layout/UserQuickActions';
+import { getAuthSession, hydrateAuthSession } from '../utils/auth';
+import { authFetch } from '../utils/authFetch';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
 type UploadAssetKey = 'previewMp3' | 'coverArt' | 'wavFile' | 'stemsZip';
@@ -523,27 +525,41 @@ const SellerUploadPage: React.FC = () => {
       formData.append("exclusiveNegotiable", String(licenseForm.exclusiveNegotiable));
       if (licenseForm.exclusivePublishingRights) formData.append("exclusivePublishingRights", licenseForm.exclusivePublishingRights);
 
-      const token = localStorage.getItem("accessToken") || ""; // Simplified, adjust if stored in cookies
+      let session = getAuthSession();
+      if (!session) {
+        session = await hydrateAuthSession();
+      }
 
-      const response = await fetch("http://localhost:5000/api/v1/beats", {
+      if (!session?.accessToken) {
+        alert("Your session expired. Please sign in again.");
+        return;
+      }
+      if (session?.user?.role !== "seller") {
+        alert("Only seller accounts can upload beats.");
+        return;
+      }
+      const response = await authFetch(`${import.meta.env.VITE_API_URL}/beats`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
         body: formData,
       });
 
-      const data = await response.json();
-      if (data.success) {
+      const data = await response.json().catch(() => null);
+      if (response.ok && data?.success) {
+        window.dispatchEvent(new Event('beathaven-beat-uploaded'));
         alert("Beat uploaded successfully!");
         handleClearAll();
         // Option to redirect to Studio
       } else {
-        alert("Upload failed: " + data.message);
+        const message =
+          data?.message ||
+          data?.error?.details ||
+          `Upload failed with status ${response.status}`;
+        alert("Upload failed: " + message);
       }
     } catch (err) {
       console.error(err);
-      alert("Error uploading beat");
+      const message = err instanceof Error ? err.message : "Unknown error";
+      alert("Error uploading beat: " + message);
     } finally {
       setIsSubmitting(false);
     }

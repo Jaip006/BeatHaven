@@ -3,16 +3,38 @@ import bcrypt from "bcryptjs";
 
 export type UserRole = "buyer" | "seller";
 
+export interface IStudioProfileSocials {
+  instagram?: string;
+  youtube?: string;
+  twitter?: string;
+  spotify?: string;
+  soundcloud?: string;
+  website?: string;
+}
+
+export interface IStudioProfile {
+  studioName?: string;
+  handle?: string;
+  bio?: string;
+  socials?: IStudioProfileSocials;
+}
+
 export interface IUser extends Document {
   email: string;
   password: string;
   role: UserRole;
   displayName: string;
   avatar?: string;
+  avatarPublicId?: string;
+  mobileNumber?: string;
+  mobileVerified: boolean;
+  aadhaarVerified: boolean;
+  followers: mongoose.Types.ObjectId[];
   isVerified: boolean;
   emailVerificationOtp?: string | null;
   emailVerificationOtpExpires?: Date | null;
   refreshToken?: string;
+  studioProfile?: IStudioProfile;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -50,6 +72,29 @@ const userSchema = new Schema<IUser>(
       type: String,
       default: null,
     },
+    avatarPublicId: {
+      type: String,
+      default: null,
+    },
+    mobileNumber: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    mobileVerified: {
+      type: Boolean,
+      default: false,
+    },
+    aadhaarVerified: {
+      type: Boolean,
+      default: false,
+    },
+    followers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     isVerified: {
       type: Boolean,
       default: false,
@@ -67,9 +112,39 @@ const userSchema = new Schema<IUser>(
       type: String,
       select: false, // Not returned by default
     },
+    studioProfile: {
+      studioName: { type: String, trim: true, maxlength: 60, default: "" },
+      handle: {
+        type: String,
+        trim: true,
+        lowercase: true,
+        maxlength: 30,
+        default: "",
+        match: [/^[a-z0-9._-]{3,30}$|^$/, "Invalid studio handle format"],
+      },
+      bio: { type: String, trim: true, maxlength: 280, default: "" },
+      socials: {
+        instagram: { type: String, trim: true, default: "" },
+        youtube: { type: String, trim: true, default: "" },
+        twitter: { type: String, trim: true, default: "" },
+        spotify: { type: String, trim: true, default: "" },
+        soundcloud: { type: String, trim: true, default: "" },
+        website: { type: String, trim: true, default: "" },
+      },
+    },
   },
   {
     timestamps: true,
+  }
+);
+
+// Enforce unique handle only when non-empty, and keep lookups fast.
+userSchema.index(
+  { "studioProfile.handle": 1 },
+  {
+    unique: true,
+    sparse: true,
+    partialFilterExpression: { "studioProfile.handle": { $type: "string", $ne: "" } },
   }
 );
 

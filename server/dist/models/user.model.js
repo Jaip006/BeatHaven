@@ -69,6 +69,29 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         default: null,
     },
+    avatarPublicId: {
+        type: String,
+        default: null,
+    },
+    mobileNumber: {
+        type: String,
+        default: "",
+        trim: true,
+    },
+    mobileVerified: {
+        type: Boolean,
+        default: false,
+    },
+    aadhaarVerified: {
+        type: Boolean,
+        default: false,
+    },
+    followers: [
+        {
+            type: mongoose_1.Schema.Types.ObjectId,
+            ref: "User",
+        },
+    ],
     isVerified: {
         type: Boolean,
         default: false,
@@ -86,8 +109,34 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         select: false, // Not returned by default
     },
+    studioProfile: {
+        studioName: { type: String, trim: true, maxlength: 60, default: "" },
+        handle: {
+            type: String,
+            trim: true,
+            lowercase: true,
+            maxlength: 30,
+            default: "",
+            match: [/^[a-z0-9._-]{3,30}$|^$/, "Invalid studio handle format"],
+        },
+        bio: { type: String, trim: true, maxlength: 280, default: "" },
+        socials: {
+            instagram: { type: String, trim: true, default: "" },
+            youtube: { type: String, trim: true, default: "" },
+            twitter: { type: String, trim: true, default: "" },
+            spotify: { type: String, trim: true, default: "" },
+            soundcloud: { type: String, trim: true, default: "" },
+            website: { type: String, trim: true, default: "" },
+        },
+    },
 }, {
     timestamps: true,
+});
+// Enforce unique handle only when non-empty, and keep lookups fast.
+userSchema.index({ "studioProfile.handle": 1 }, {
+    unique: true,
+    sparse: true,
+    partialFilterExpression: { "studioProfile.handle": { $type: "string", $ne: "" } },
 });
 // ─── Pre-save hook: hash password ─────────────────────────
 userSchema.pre("save", async function () {
