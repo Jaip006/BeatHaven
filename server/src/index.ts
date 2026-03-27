@@ -24,14 +24,34 @@ if (env.NODE_ENV === "development") {
 }
 
 // CORS Configuration
+const allowedOrigins = new Set(
+  [env.FRONTEND_URL, env.FRONTEND_URLS]
+    .filter(Boolean)
+    .flatMap((value) => String(value).split(","))
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+);
+
 const corsOptions = {
-  origin: env.FRONTEND_URL,
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow non-browser and same-origin requests (no Origin header)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.has(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(null, false);
+  },
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization", "X-VERIFY", "x-verify"],
 };
 
 app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 // Middlewares
 app.use(cookieParser());

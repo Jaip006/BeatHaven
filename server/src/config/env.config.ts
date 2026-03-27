@@ -24,6 +24,7 @@ const envSchema = z.object({
 
   MONGO_URI: z.string().default("mongodb://localhost:27017/beathaven"),
   FRONTEND_URL: z.string().default("http://localhost:5173"),
+  FRONTEND_URLS: z.string().optional(),
 
   JWT_ACCESS_SECRET: z
     .string()

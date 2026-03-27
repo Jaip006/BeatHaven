@@ -17,6 +17,9 @@ const SignInPage: React.FC = () => {
 
   const getApiErrorMessage = (apiError: unknown, fallback: string) => {
     if (axios.isAxiosError(apiError)) {
+      if (!apiError.response) {
+        return 'Cannot reach the server. If you are running locally, start the backend and use VITE_API_URL=http://localhost:8000.';
+      }
       return apiError.response?.data?.message ?? fallback;
     }
 

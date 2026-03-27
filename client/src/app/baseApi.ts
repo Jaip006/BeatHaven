@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { BaseQueryFn, FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import { API_BASE_URL } from '../utils/apiBaseUrl';
 // import { logout } from "@/features/auth/authSlice";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_URL,
+  baseUrl: API_BASE_URL,
   credentials: "include",
 });
 

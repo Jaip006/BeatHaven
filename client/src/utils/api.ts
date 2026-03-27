@@ -1,10 +1,11 @@
 import axios from "axios";
+import { API_BASE_URL } from './apiBaseUrl';
 
 type AuthPayload = Record<string, unknown>;
 
 // Create a pre-configured Axios instance
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1",
+  baseURL: API_BASE_URL,
   withCredentials: true, // Required for setting/getting secure cookies (Refresh Tokens)
   headers: {
     "Content-Type": "application/json",
