@@ -6,6 +6,19 @@ export type AuthUser = {
   displayName: string;
   avatar?: string;
   mobileNumber?: string;
+  gender?: 'male' | 'female' | 'other';
+  dateOfBirth?: string | null;
+  billingAddress?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    pin?: string;
+  };
+  payoutBank?: {
+    accountName?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+  };
   mobileVerified?: boolean;
   aadhaarVerified?: boolean;
   role: 'buyer' | 'seller';

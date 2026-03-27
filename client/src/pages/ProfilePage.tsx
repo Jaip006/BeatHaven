@@ -143,6 +143,7 @@ const ProfilePage: React.FC = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
   const [otpError, setOtpError] = useState('');
 
   // ── aadhaar ──
@@ -151,6 +152,9 @@ const ProfilePage: React.FC = () => {
   // ── gender & dob ──
   const [gender, setGender] = useState('');
   const [dob, setDob] = useState('');
+  const [profileSaveLoading, setProfileSaveLoading] = useState(false);
+  const [profileSaveMessage, setProfileSaveMessage] = useState('');
+  const [profileSaveError, setProfileSaveError] = useState('');
 
   // ── billing ──
   const [billingAddress, setBillingAddress] = useState('');
@@ -166,6 +170,36 @@ const ProfilePage: React.FC = () => {
   const toggleDropdown = (key: Exclude<DropdownKey, null>) => {
     setOpenDropdown((current) => (current === key ? null : key));
   };
+
+  useEffect(() => {
+    const sessionUser = getAuthSession()?.user ?? null;
+    if (!sessionUser) return;
+
+    setCurrentUser(sessionUser);
+    setMobileVerified(Boolean(sessionUser.mobileVerified));
+    const rawMobile = String(sessionUser.mobileNumber ?? '');
+    const digits = rawMobile.replace(/\D/g, '');
+    if (digits.length >= 10) {
+      setMobile(digits.slice(-10));
+    }
+    if (sessionUser.gender) {
+      setGender(sessionUser.gender);
+    }
+    if (sessionUser.dateOfBirth) {
+      setDob(String(sessionUser.dateOfBirth).slice(0, 10));
+    }
+    if (sessionUser.billingAddress) {
+      setBillingAddress(sessionUser.billingAddress.street ?? '');
+      setBillingCity(sessionUser.billingAddress.city ?? '');
+      setBillingState(sessionUser.billingAddress.state ?? '');
+      setBillingPin(sessionUser.billingAddress.pin ?? '');
+    }
+    if (sessionUser.payoutBank) {
+      setAccountName(sessionUser.payoutBank.accountName ?? '');
+      setAccountNumber(sessionUser.payoutBank.accountNumber ?? '');
+      setIfscCode(sessionUser.payoutBank.ifscCode ?? '');
+    }
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -240,44 +274,56 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (mobile.length !== 10) {
       setOtpError('Please enter a valid 10-digit mobile number.');
       return;
     }
     setOtpError('');
     setOtpLoading(true);
-    // Simulate OTP send
-    setTimeout(() => {
-      setOtpLoading(false);
-      setOtpSent(true);
-    }, 1200);
-  };
 
-  const handleVerifyOtp = () => {
-    if (otp === '123456') {
-      setMobileVerified(true);
-      setOtpSent(false);
+    try {
+      const response = await authFetch(`${import.meta.env.VITE_API_URL}/auth/mobile/send-otp`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobileNumber: mobile }),
+      });
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data?.success) {
+        setOtpError(data?.message || 'Failed to send OTP. Please try again.');
+        return;
+      }
+
       setOtp('');
-      void saveVerificationDetails({ mobileNumber: mobile, mobileVerified: true });
-    } else {
-      setOtpError('Invalid OTP. Please try again.');
+      setOtpSent(true);
+    } catch (error) {
+      console.error('Failed to send mobile OTP', error);
+      setOtpError('Failed to send OTP. Please check your connection and retry.');
+    } finally {
+      setOtpLoading(false);
     }
   };
 
-  const saveVerificationDetails = async (payload: {
-    mobileNumber?: string;
-    mobileVerified?: boolean;
-    aadhaarVerified?: boolean;
-  }) => {
+  const handleVerifyOtp = async () => {
+    if (otp.length !== 6) {
+      setOtpError('Please enter a valid 6-digit OTP.');
+      return;
+    }
+
+    setOtpError('');
+    setOtpVerifying(true);
+
     try {
-      const response = await authFetch(`${import.meta.env.VITE_API_URL}/auth/verification`, {
-        method: 'PUT',
+      const response = await authFetch(`${import.meta.env.VITE_API_URL}/auth/mobile/verify-otp`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ mobileNumber: mobile, otp }),
       });
       const data = await response.json().catch(() => null);
+
       if (!response.ok || !data?.success) {
+        setOtpError(data?.message || 'Invalid OTP. Please try again.');
         return;
       }
 
@@ -292,9 +338,99 @@ const ProfilePage: React.FC = () => {
           });
         }
       }
+
+      setMobileVerified(true);
+      setOtpSent(false);
+      setOtp('');
+    } catch (error) {
+      console.error('Failed to verify mobile OTP', error);
+      setOtpError('Failed to verify OTP. Please try again.');
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
+  const saveVerificationDetails = async (payload: {
+    aadhaarVerified?: boolean;
+    gender?: 'male' | 'female' | 'other';
+    dateOfBirth?: string;
+    billingAddress?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      pin?: string;
+    };
+    payoutBank?: {
+      accountName?: string;
+      accountNumber?: string;
+      ifscCode?: string;
+    };
+  }): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const response = await authFetch(`${import.meta.env.VITE_API_URL}/auth/verification`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.success) {
+        return { success: false, message: data?.message || 'Failed to save profile details.' };
+      }
+
+      const updatedUser = data?.data?.user as AuthUser | undefined;
+      if (updatedUser) {
+        setCurrentUser(updatedUser);
+        const session = getAuthSession();
+        if (session) {
+          saveAuthSession({
+            ...session,
+            user: updatedUser,
+          });
+        }
+      }
+      return { success: true };
     } catch (error) {
       console.error('Failed to save verification details', error);
+      return { success: false, message: 'Failed to save profile details.' };
     }
+  };
+
+  const handleSaveProfileChanges = async () => {
+    setProfileSaveError('');
+    setProfileSaveMessage('');
+    setProfileSaveLoading(true);
+
+    const normalizedGender = (gender || '').toLowerCase();
+    if (normalizedGender && !['male', 'female', 'other'].includes(normalizedGender)) {
+      setProfileSaveError('Please select a valid gender.');
+      setProfileSaveLoading(false);
+      return;
+    }
+
+    const result = await saveVerificationDetails({
+      gender: (normalizedGender || undefined) as 'male' | 'female' | 'other' | undefined,
+      dateOfBirth: dob || undefined,
+      billingAddress: {
+        street: billingAddress.trim(),
+        city: billingCity.trim(),
+        state: billingState.trim(),
+        pin: billingPin.trim(),
+      },
+      payoutBank: {
+        accountName: accountName.trim(),
+        accountNumber: accountNumber.trim(),
+        ifscCode: ifscCode.trim().toUpperCase(),
+      },
+    });
+
+    if (!result.success) {
+      setProfileSaveError(result.message || 'Failed to save profile details.');
+      setProfileSaveLoading(false);
+      return;
+    }
+
+    setProfileSaveMessage('Profile details saved successfully.');
+    setProfileSaveLoading(false);
   };
 
   const handleSaveName = () => {
@@ -555,7 +691,12 @@ const ProfilePage: React.FC = () => {
                   )}
                   {mobileVerified && (
                     <button
-                      onClick={() => { setMobileVerified(false); setMobile(''); setOtpSent(false); }}
+                      onClick={() => {
+                        setMobileVerified(false);
+                        setOtpSent(false);
+                        setOtp('');
+                        setOtpError('');
+                      }}
                       className="flex-shrink-0 rounded-[0.85rem] border border-[#262626] bg-[#161616] px-4 py-3 text-xs font-medium text-[#B3B3B3] transition-all duration-200 hover:border-[#7C5CFF]/40 hover:text-[#7C5CFF]"
                     >
                       Change
@@ -576,9 +717,10 @@ const ProfilePage: React.FC = () => {
                   />
                   <button
                     onClick={handleVerifyOtp}
+                    disabled={otpVerifying}
                     className="flex-shrink-0 rounded-[0.85rem] bg-[#1ED760] px-4 py-3 text-sm font-semibold text-[#0B0B0B] transition-all duration-200 hover:bg-[#17C955]"
                   >
-                    Verify
+                    {otpVerifying ? 'Verifying…' : 'Verify'}
                   </button>
                 </div>
               )}
@@ -731,7 +873,7 @@ const ProfilePage: React.FC = () => {
                   Gender
                 </label>
                 <div className="flex gap-2">
-                  {['Male', 'Female', 'Other'].map((g) => (
+                  {(['male', 'female', 'other'] as const).map((g) => (
                     <button
                       key={g}
                       onClick={() => setGender(g)}
@@ -740,7 +882,7 @@ const ProfilePage: React.FC = () => {
                         : 'border-[#262626] bg-[#121212] text-[#6B7280] hover:border-[#1ED760]/30 hover:text-white'
                         }`}
                     >
-                      {g}
+                      {g.charAt(0).toUpperCase() + g.slice(1)}
                     </button>
                   ))}
                 </div>
@@ -825,8 +967,7 @@ const ProfilePage: React.FC = () => {
               <div className="flex items-center gap-2 rounded-[0.9rem] border border-yellow-500/20 bg-yellow-500/5 px-4 py-3">
                 <FileText size={14} className="text-yellow-400 flex-shrink-0" />
                 <p className="text-xs text-yellow-300/80 leading-relaxed">
-                  Aadhaar verification is required before adding bank details. Funds will only be
-                  released to a verified account.
+                  Funds will only be released after Aadhaar verification.
                 </p>
               </div>
 
@@ -852,18 +993,32 @@ const ProfilePage: React.FC = () => {
                 />
               </div>
 
-              <button className="mt-1 w-full rounded-[0.9rem] bg-gradient-to-r from-[#7C5CFF] to-[#5B37E6] py-3.5 text-sm font-semibold text-white shadow-[0_4px_20px_rgba(124,92,255,0.25)] transition-all duration-200 hover:shadow-[0_4px_32px_rgba(124,92,255,0.4)] active:scale-[0.99]">
-                Save Bank Details
+              <button
+                onClick={handleSaveProfileChanges}
+                disabled={profileSaveLoading}
+                className="mt-1 w-full rounded-[0.9rem] bg-gradient-to-r from-[#7C5CFF] to-[#5B37E6] py-3.5 text-sm font-semibold text-white shadow-[0_4px_20px_rgba(124,92,255,0.25)] transition-all duration-200 hover:shadow-[0_4px_32px_rgba(124,92,255,0.4)] active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {profileSaveLoading ? 'Saving...' : 'Save Bank Details'}
               </button>
             </div>
           </SectionCard>
 
           {/* ── Save All Footer ── */}
           <div className="pt-2 pb-4 flex justify-center">
-            <button className="rounded-[1rem] bg-gradient-to-r from-[#1ED760] to-[#17C955] px-10 py-4 text-sm font-bold text-[#0B0B0B] shadow-[0_4px_24px_rgba(30,215,96,0.3)] transition-all duration-200 hover:shadow-[0_4px_36px_rgba(30,215,96,0.45)] active:scale-[0.99] tracking-wide">
-              Save Profile Changes
+            <button
+              onClick={handleSaveProfileChanges}
+              disabled={profileSaveLoading}
+              className="rounded-[1rem] bg-gradient-to-r from-[#1ED760] to-[#17C955] px-10 py-4 text-sm font-bold text-[#0B0B0B] shadow-[0_4px_24px_rgba(30,215,96,0.3)] transition-all duration-200 hover:shadow-[0_4px_36px_rgba(30,215,96,0.45)] active:scale-[0.99] tracking-wide disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {profileSaveLoading ? 'Saving...' : 'Save Profile Changes'}
             </button>
           </div>
+          {profileSaveError && (
+            <p className="text-center text-sm text-red-400 pb-2">{profileSaveError}</p>
+          )}
+          {profileSaveMessage && !profileSaveError && (
+            <p className="text-center text-sm text-[#1ED760] pb-2">{profileSaveMessage}</p>
+          )}
         </section>
       </main>
     </div>

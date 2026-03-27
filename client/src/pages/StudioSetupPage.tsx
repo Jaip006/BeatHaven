@@ -225,6 +225,7 @@ const StudioSetupPage: React.FC = () => {
       setHandleError('Handle must be 3-30 chars: lowercase letters, numbers, _ . -');
       return;
     }
+    const resolvedStudioName = (editingName ? tempName : studioName).trim();
 
     setSaveError('');
     setSaveMessage('');
@@ -235,16 +236,25 @@ const StudioSetupPage: React.FC = () => {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          studioName: studioName.trim(),
+          studioName: resolvedStudioName,
           handle: handle.trim().toLowerCase(),
           bio: bio.trim(),
           socials,
         }),
       });
 
-      const data = await res.json();
+      const raw = await res.text();
+      let data: { success?: boolean; message?: string; error?: { code?: string }; data?: { profile?: StudioProfile } } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw) as { success?: boolean; message?: string; error?: { code?: string }; data?: { profile?: StudioProfile } };
+        } catch {
+          data = {};
+        }
+      }
       if (!res.ok || !data.success) {
-        setSaveError(data.message || 'Failed to save studio settings.');
+        const fallback = `Failed to save studio settings (HTTP ${res.status}).`;
+        setSaveError(data.message || fallback);
         return;
       }
 
@@ -255,10 +265,19 @@ const StudioSetupPage: React.FC = () => {
       setHandleSaved(Boolean(profile.handle));
       setBio(profile.bio ?? '');
       setSocials(profile.socials ?? {});
+      setEditingName(false);
       setSaveMessage('Studio settings updated successfully.');
     } catch (err) {
       console.error('Failed to save studio settings', err);
-      setSaveError('Failed to save studio settings.');
+      if (err instanceof Error && err.message === 'AUTH_REQUIRED') {
+        setSaveError('Your session expired. Please sign in again and retry.');
+        return;
+      }
+      if (err instanceof Error && err.message.trim()) {
+        setSaveError(err.message);
+        return;
+      }
+      setSaveError('Failed to save studio settings. Please check server connection and retry.');
     } finally {
       setIsSaving(false);
     }

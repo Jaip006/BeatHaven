@@ -27,12 +27,28 @@ export interface IUser extends Document {
   avatar?: string;
   avatarPublicId?: string;
   mobileNumber?: string;
+  gender?: "male" | "female" | "other" | "";
+  dateOfBirth?: Date | null;
+  billingAddress?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    pin?: string;
+  };
+  payoutBank?: {
+    accountName?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+  };
   mobileVerified: boolean;
   aadhaarVerified: boolean;
   followers: mongoose.Types.ObjectId[];
   isVerified: boolean;
   emailVerificationOtp?: string | null;
   emailVerificationOtpExpires?: Date | null;
+  mobileVerificationPendingNumber?: string | null;
+  mobileVerificationOtp?: string | null;
+  mobileVerificationOtpExpires?: Date | null;
   refreshToken?: string;
   studioProfile?: IStudioProfile;
   createdAt: Date;
@@ -81,6 +97,26 @@ const userSchema = new Schema<IUser>(
       default: "",
       trim: true,
     },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other", ""],
+      default: "",
+    },
+    dateOfBirth: {
+      type: Date,
+      default: null,
+    },
+    billingAddress: {
+      street: { type: String, trim: true, default: "" },
+      city: { type: String, trim: true, default: "" },
+      state: { type: String, trim: true, default: "" },
+      pin: { type: String, trim: true, default: "" },
+    },
+    payoutBank: {
+      accountName: { type: String, trim: true, default: "" },
+      accountNumber: { type: String, trim: true, default: "" },
+      ifscCode: { type: String, trim: true, uppercase: true, default: "" },
+    },
     mobileVerified: {
       type: Boolean,
       default: false,
@@ -107,6 +143,22 @@ const userSchema = new Schema<IUser>(
     emailVerificationOtpExpires: {
       type: Date,
       default: null,
+    },
+    mobileVerificationPendingNumber: {
+      type: String,
+      default: null,
+      trim: true,
+      select: false,
+    },
+    mobileVerificationOtp: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    mobileVerificationOtpExpires: {
+      type: Date,
+      default: null,
+      select: false,
     },
     refreshToken: {
       type: String,

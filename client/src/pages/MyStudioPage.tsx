@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Play, ShieldCheck, Share2, Expand, ChevronDown, Music2, Search, Trash2 } from 'lucide-react';
+import { Play, ShieldCheck, Share2, Expand, ChevronDown, Music2, Search, Trash2, Instagram, Youtube, Twitter, Disc3, Cloud, Globe } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import UserQuickActions from '../components/layout/UserQuickActions';
 import { getAuthSession } from '../utils/auth';
@@ -52,6 +52,46 @@ interface StudioProfile {
   aadhaarVerified?: boolean;
   isFollowing?: boolean;
 }
+
+type SupportedSocialKey = 'instagram' | 'youtube' | 'twitter' | 'spotify' | 'soundcloud' | 'website';
+
+const SOCIAL_META: Record<SupportedSocialKey, { label: string; base?: string; icon: React.ReactNode }> = {
+  instagram: { label: 'Instagram', base: 'https://instagram.com/', icon: <Instagram className="h-4 w-4" /> },
+  youtube: { label: 'YouTube', base: 'https://youtube.com/', icon: <Youtube className="h-4 w-4" /> },
+  twitter: { label: 'X', base: 'https://x.com/', icon: <Twitter className="h-4 w-4" /> },
+  spotify: { label: 'Spotify', base: 'https://open.spotify.com/', icon: <Disc3 className="h-4 w-4" /> },
+  soundcloud: { label: 'SoundCloud', base: 'https://soundcloud.com/', icon: <Cloud className="h-4 w-4" /> },
+  website: { label: 'Website', icon: <Globe className="h-4 w-4" /> },
+};
+
+const toSocialHref = (key: SupportedSocialKey, value: string): string => {
+  const raw = value.trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+
+  if (key === 'website') {
+    return `https://${raw.replace(/^\/+/, '')}`;
+  }
+
+  const noAt = raw.replace(/^@/, '');
+  const cleaned = noAt
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '');
+
+  if (key === 'instagram') {
+    return `https://instagram.com/${cleaned.replace(/^instagram\.com\//i, '')}`;
+  }
+  if (key === 'youtube') {
+    return `https://youtube.com/${cleaned.replace(/^youtube\.com\//i, '')}`;
+  }
+  if (key === 'twitter') {
+    return `https://x.com/${cleaned.replace(/^(x\.com|twitter\.com)\//i, '')}`;
+  }
+  if (key === 'spotify') {
+    return `https://open.spotify.com/${cleaned.replace(/^open\.spotify\.com\//i, '')}`;
+  }
+  return `https://soundcloud.com/${cleaned.replace(/^soundcloud\.com\//i, '')}`;
+};
 
 const MyStudioPage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
@@ -139,7 +179,14 @@ const MyStudioPage: React.FC = () => {
     : '';
 
   const studioTitle = profile?.studioName || profile?.displayName || 'My Studio';
-  const socialEntries = Object.entries(profile?.socials ?? {}).filter(([, value]) => Boolean(value?.trim()));
+  const socialLinks = (Object.entries(profile?.socials ?? []) as Array<[SupportedSocialKey, string]>)
+    .map(([key, value]) => ({
+      key,
+      label: SOCIAL_META[key]?.label ?? key,
+      icon: SOCIAL_META[key]?.icon ?? null,
+      href: toSocialHref(key, value ?? ''),
+    }))
+    .filter((item) => Boolean(item.icon && item.href));
   const canFollowStudio = Boolean(profile?.ownerId && currentUserId && profile.ownerId !== currentUserId);
   const canDeleteBeats = Boolean(profile?.ownerId && currentUserId && profile.ownerId === currentUserId);
   const isStudioVerified = Boolean(profile?.mobileVerified && profile?.aadhaarVerified);
@@ -431,15 +478,20 @@ const MyStudioPage: React.FC = () => {
                   <p className="text-sm text-gray-400">
                     {profile?.bio || 'Add your bio from Studio Setup to show buyers your style and vibe.'}
                   </p>
-                  {socialEntries.length > 0 && (
+                  {socialLinks.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {socialEntries.map(([key, value]) => (
-                        <span
-                          key={key}
-                          className="text-xs text-[#B3B3B3] bg-[#1F1F1F] border border-[#2A2A2A] rounded-full px-2.5 py-1"
+                      {socialLinks.map((social) => (
+                        <a
+                          key={social.key}
+                          href={social.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={social.label}
+                          title={social.label}
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1F1F1F] text-[#B3B3B3] transition-colors hover:border-[#1ED760]/50 hover:text-[#1ED760]"
                         >
-                          {key}: {value}
-                        </span>
+                          {social.icon}
+                        </a>
                       ))}
                     </div>
                   )}

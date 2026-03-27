@@ -147,9 +147,19 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) =
           onClick={() => setMenuOpen((current) => !current)}
           className="inline-flex items-center gap-3 rounded-full border border-[#262626] bg-[#121212]/95 px-2 py-1 text-sm font-small text-white transition-colors duration-200 hover:border-[#1ED760]"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] text-xs font-bold text-[#0B0B0B]">
-            {getUserInitials(currentUser.displayName)}
-          </span>
+          {currentUser.avatar ? (
+            <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-[#2A2A2A] bg-[#0F0F0F]">
+              <img
+                src={currentUser.avatar}
+                alt={`${currentUser.displayName} avatar`}
+                className="h-full w-full object-cover"
+              />
+            </span>
+          ) : (
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] text-xs font-bold text-[#0B0B0B]">
+              {getUserInitials(currentUser.displayName)}
+            </span>
+          )}
           <span className="max-w-[8rem] truncate">{currentUser.displayName}</span>
           <ChevronDown size={16} className={menuOpen ? 'rotate-180 transition-transform duration-200' : 'transition-transform duration-200'} />
         </button>

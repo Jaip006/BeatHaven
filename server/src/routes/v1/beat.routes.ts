@@ -252,7 +252,6 @@ beatRouter.get(
 beatRouter.put(
   "/studio/profile",
   requireAuth,
-  requireSeller,
   asyncHandler(async (req, res) => {
     const studioName = String(req.body?.studioName ?? "").trim();
     const handle = String(req.body?.handle ?? "").trim().toLowerCase();
@@ -269,7 +268,7 @@ beatRouter.put(
       throw new AppError("Handle must be 3-30 chars: lowercase letters, numbers, _ . -", 400);
     }
 
-    const seller = await User.findById(req.user!.userId);
+    const seller = await User.findById(req.user!.userId).select("_id");
     if (!seller) {
       throw new AppError("User not found", 404);
     }
@@ -285,28 +284,38 @@ beatRouter.put(
       }
     }
 
-    seller.studioProfile = {
-      ...(seller.studioProfile ?? {}),
-      studioName,
-      handle,
-      bio,
-      socials,
-    };
+    const updatedSeller = await User.findByIdAndUpdate(
+      req.user!.userId,
+      {
+        $set: {
+          "studioProfile.studioName": studioName,
+          "studioProfile.handle": handle,
+          "studioProfile.bio": bio,
+          "studioProfile.socials": socials,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("displayName avatar createdAt studioProfile");
 
-    await seller.save();
+    if (!updatedSeller) {
+      throw new AppError("User not found", 404);
+    }
 
     res.status(200).json({
       success: true,
       data: {
         profile: {
-          ownerId: seller._id?.toString() || "",
-          studioName: seller.studioProfile.studioName || seller.displayName || "",
-          handle: seller.studioProfile.handle || "",
-          bio: seller.studioProfile.bio || "",
-          socials: normalizeStudioSocials(seller.studioProfile.socials ?? {}),
-          avatar: seller.avatar || "",
-          joinedAt: seller.createdAt,
-          displayName: seller.displayName,
+          ownerId: updatedSeller._id?.toString() || "",
+          studioName: updatedSeller.studioProfile?.studioName || updatedSeller.displayName || "",
+          handle: updatedSeller.studioProfile?.handle || "",
+          bio: updatedSeller.studioProfile?.bio || "",
+          socials: normalizeStudioSocials(updatedSeller.studioProfile?.socials ?? {}),
+          avatar: updatedSeller.avatar || "",
+          joinedAt: updatedSeller.createdAt,
+          displayName: updatedSeller.displayName,
         },
       },
     });
