@@ -48,20 +48,6 @@ app.use("/api/v1", v1Routes);
 
 app.use("/api", notFoundMiddleware);
 
-//  FRONTEND (PRODUCTION)
-
-if (env.NODE_ENV === "production") {
-  const buildPath = path.join(__dirname, "..", "..", "client", "dist");
-
-  // Serve static frontend files
-  app.use(express.static(buildPath));
-
-  // Fix for React/Vite routing
-  app.use((req, res) => {
-    res.sendFile(path.resolve(buildPath, "index.html"));
-  });
-}
-
 
 //  GLOBAL ERROR HANDLER
 
