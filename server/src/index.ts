@@ -13,14 +13,17 @@ import cookieParser from "cookie-parser";
 
 dotenv.config();
 
+// Connect Database
 connectDB();
 
 const app = express();
 
+// Logging (only in development)
 if (env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
+// CORS Configuration
 const corsOptions = {
   origin: env.FRONTEND_URL,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -30,29 +33,46 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Middlewares
 app.use(cookieParser());
-
-// Apply express.json() to all other routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
+//  API ROUTES
+
 app.use("/api/v1", v1Routes);
+
+
+// API NOT FOUND
+
+app.use("/api", notFoundMiddleware);
+
+//  FRONTEND (PRODUCTION)
 
 if (env.NODE_ENV === "production") {
   const buildPath = path.join(__dirname, "..", "..", "client", "dist");
+
+  // Serve static frontend files
   app.use(express.static(buildPath));
 
-  app.get("*", (req, res) => {
+  // Fix for React/Vite routing
+  app.get("/*", (req, res) => {
     res.sendFile(path.resolve(buildPath, "index.html"));
   });
 }
 
-app.use(notFoundMiddleware);
+
+//  GLOBAL ERROR HANDLER
+
 app.use(errorHandlerMiddleware);
+
+// SERVER START
 
 const args = process.argv.slice(2);
 const portArgIndex = args.indexOf("--port");
-const PORT = portArgIndex !== -1 ? Number(args[portArgIndex + 1]) : env.PORT;
+const PORT =
+  portArgIndex !== -1 ? Number(args[portArgIndex + 1]) : env.PORT;
 
 const server = createServer(app);
 
