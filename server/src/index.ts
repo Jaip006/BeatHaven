@@ -57,7 +57,7 @@ if (env.NODE_ENV === "production") {
   app.use(express.static(buildPath));
 
   // Fix for React/Vite routing
-  app.get("/*", (req, res) => {
+  app.use((req, res) => {
     res.sendFile(path.resolve(buildPath, "index.html"));
   });
 }
