@@ -58,6 +58,14 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Health checks for uptime pings
+app.get("/health", (_req, res) => {
+  res.status(200).json({ ok: true, service: "beathaven-api" });
+});
+
+app.get("/api/v1/health", (_req, res) => {
+  res.status(200).json({ ok: true, service: "beathaven-api" });
+});
 
 //  API ROUTES
 
