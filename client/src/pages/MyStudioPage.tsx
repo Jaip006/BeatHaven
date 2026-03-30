@@ -329,20 +329,20 @@ const MyStudioPage: React.FC = () => {
         {/* ── Header ── */}
         <div className="fixed inset-x-0 top-0 z-[100]">
           <div className="relative z-[120] border-b border-[#262626] bg-[#0B0B0B]/85 backdrop-blur-xl">
-            <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-5 lg:px-7 lg:flex-row lg:items-center lg:justify-between">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                <Link to="/" className="flex items-center gap-2.5 group">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]">
+                <Link to="/" className="flex items-center gap-1.5 sm:gap-2.5 group">
+                  <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]">
                     <Music2 size={18} className="text-[#0B0B0B]" />
                   </div>
-                  <span className="text-xl font-bold tracking-tight text-white">Beat<span className="text-[#1ED760]">Haven</span></span>
+                  <span className="text-base font-bold tracking-tight text-white sm:text-xl">Beat<span className="text-[#1ED760]">Haven</span></span>
                 </Link>
-                <div className="flex items-center gap-3 rounded-full border border-[#262626] bg-[#121212]/95 px-4 py-3 text-sm text-[#B3B3B3] lg:min-w-[360px]">
+                <div className="hidden lg:flex items-center gap-3 rounded-full border border-[#262626] bg-[#121212]/95 px-4 py-3 text-sm text-[#B3B3B3] lg:min-w-[360px]">
                   <Search size={16} className="text-[#6B7280]" />
                   <span>Search beats, licenses, producers, lyrics</span>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                 <UserQuickActions />
               </div>
             </div>
@@ -352,7 +352,7 @@ const MyStudioPage: React.FC = () => {
           <div className="relative z-[110] border-b border-[#262626] bg-[#090909]/80 backdrop-blur-xl">
             <div ref={dropdownContainerRef} className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-5 lg:px-7">
               <div className="relative">
-                <button onClick={() => toggleDropdown('dashboard')} className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/95 px-4 py-2.5 text-sm text-white transition-colors duration-200 hover:border-[#1ED760]">
+                <button onClick={() => toggleDropdown('dashboard')} className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/95 px-2.5 py-1.5 text-[11px] text-white transition-colors duration-200 hover:border-[#1ED760] sm:px-4 sm:py-2.5 sm:text-sm">
                   Dashboard
                   <ChevronDown size={16} className={openDropdown === 'dashboard' ? 'rotate-180 transition-transform duration-200' : 'transition-transform duration-200'} />
                 </button>
@@ -369,7 +369,7 @@ const MyStudioPage: React.FC = () => {
               </div>
 
               <div className="relative">
-                <button onClick={() => toggleDropdown('beats')} className="inline-flex items-center gap-2 rounded-full border border-[#1ED760] bg-[#121212] px-4 py-2.5 text-sm text-white transition-colors duration-200">
+                <button onClick={() => toggleDropdown('beats')} className="inline-flex items-center gap-2 rounded-full border border-[#1ED760] bg-[#121212] px-2.5 py-1.5 text-[11px] text-white transition-colors duration-200 sm:px-4 sm:py-2.5 sm:text-sm">
                   Beats
                   <ChevronDown size={16} className={openDropdown === 'beats' ? 'rotate-180 transition-transform duration-200' : 'transition-transform duration-200'} />
                 </button>
@@ -385,12 +385,12 @@ const MyStudioPage: React.FC = () => {
               </div>
 
               <div className="relative">
-                <button onClick={() => toggleDropdown('browse')} className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/100 px-4 py-2.5 text-sm text-white transition-colors duration-200 hover:border-[#1ED760]">
+                <button onClick={() => toggleDropdown('browse')} className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/100 px-2.5 py-1.5 text-[11px] text-white transition-colors duration-200 hover:border-[#1ED760] sm:px-4 sm:py-2.5 sm:text-sm">
                   Browse
                   <ChevronDown size={16} className={openDropdown === 'browse' ? 'rotate-180 transition-transform duration-200' : 'transition-transform duration-200'} />
                 </button>
                 {openDropdown === 'browse' ? (
-                  <div className="absolute left-0 top-full z-[120] mt-3 w-[320px] rounded-[1.4rem] border border-[#262626] bg-[#101010] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:w-[420px]">
+                  <div className="absolute left-0 top-full z-[120] mt-3 w-[min(20rem,calc(100vw-2rem))] rounded-[1.4rem] border border-[#262626] bg-[#101010] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:w-[420px]">
                     <div className="grid gap-5 sm:grid-cols-2">
                       {browseSections.map((section) => (
                         <div key={section.title}>
@@ -412,7 +412,7 @@ const MyStudioPage: React.FC = () => {
         </div>
 
         {/* ── Page Content ── */}
-        <section className="relative z-0 mx-auto max-w-7xl px-4 pb-10 pt-[11.5rem] sm:px-5 sm:pb-12 sm:pt-[12rem] lg:px-7">
+        <section className="relative z-0 mx-auto max-w-7xl px-4 pb-10 pt-[11rem] sm:px-5 sm:pb-12 sm:pt-[12rem] lg:px-7">
           {loading ? (
             <div className="text-center text-[#B3B3B3] py-20">Loading your studio...</div>
           ) : (
@@ -438,7 +438,7 @@ const MyStudioPage: React.FC = () => {
                     <p className="text-gray-400 text-xs mt-2">Joined {joinedDate}</p>
                   )}
 
-                  <div className="flex justify-between mt-6 px-4">
+                  <div className="mt-6 flex flex-wrap items-start justify-between gap-4 px-2 sm:px-4">
                     <div className="text-center">
                       <p className="text-lg font-bold">{stats?.followers || 0}</p>
                       <p className="text-xs text-gray-500">Followers</p>
@@ -453,7 +453,7 @@ const MyStudioPage: React.FC = () => {
                     </div>
                     <button
                       onClick={() => setIsShareModalOpen(true)}
-                      className="p-2 border border-[#262626] rounded-xl hover:bg-[#202020] transition-colors text-white"
+                      className="ml-auto rounded-xl border border-[#262626] p-2 text-white transition-colors hover:bg-[#202020]"
                     >
                       <Share2 className="w-5 h-5" />
                     </button>
@@ -464,7 +464,7 @@ const MyStudioPage: React.FC = () => {
                       <button
                         onClick={handleToggleFollowStudio}
                         disabled={isFollowSubmitting}
-                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full rounded-xl bg-purple-600 py-2 font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isFollowSubmitting ? 'Please wait...' : profile?.isFollowing ? 'Following' : 'Follow'}
                       </button>
@@ -507,8 +507,8 @@ const MyStudioPage: React.FC = () => {
 
                 <div className="space-y-2">
                   {beats.map((beat) => (
-                    <div key={beat._id} className="group flex items-center justify-between p-3 hover:bg-[#1A1A1A] rounded-xl transition-colors">
-                      <div className="flex items-center gap-4">
+                    <div key={beat._id} className="group flex flex-col gap-3 rounded-xl p-3 transition-colors hover:bg-[#1A1A1A] sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                         <button
                           onClick={() => handlePlayBeat(beat)}
                           className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform shrink-0"
@@ -521,18 +521,18 @@ const MyStudioPage: React.FC = () => {
                           className="w-12 h-12 rounded-lg object-cover"
                         />
                         <div>
-                          <h4 className="font-bold text-sm tracking-tight">{beat.title}</h4>
-                          <div className="flex items-center text-xs text-gray-400 gap-3 mt-0.5">
-                            <span className="text-orange-500">{beat.sellerId?.displayName || "Level on the Beat"} ✪</span>
-                            <span>ıll {beat.tempo} BPM</span>
-                            <span>♪ {beat.musicalKey}</span>
+                          <h4 className="truncate text-sm font-bold tracking-tight">{beat.title}</h4>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-gray-400 sm:gap-3">
+                            <span className="text-orange-500">{beat.sellerId?.displayName || "Level on the Beat"}</span>
+                            <span>{beat.tempo} BPM</span>
+                            <span>{beat.musicalKey}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5">
-                          🛒 ₹{beat.basicPrice || 799}
+                      <div className="flex items-center justify-end gap-3">
+                        <button className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-purple-700">
+                          Buy Rs {beat.basicPrice || 799}
                         </button>
                         {canDeleteBeats && (
                           <button
@@ -589,3 +589,11 @@ const MyStudioPage: React.FC = () => {
 };
 
 export default MyStudioPage;
+
+
+
+
+
+
+
+

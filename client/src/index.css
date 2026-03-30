@@ -14,6 +14,13 @@
     scroll-behavior: smooth;
   }
 
+  @media (max-width: 640px) {
+    html {
+      /* Global compact scale for mobile so components feel less oversized */
+      font-size: 14px;
+    }
+  }
+
   body {
     background-color: theme('colors.bg');
     color: theme('colors.textPrimary');

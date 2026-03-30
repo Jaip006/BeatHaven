@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Music2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../ui/Button';
@@ -16,6 +16,7 @@ const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(Boolean(getAuthSession()));
+  const mobileContainerRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
   const hideAuthCta = location.pathname === '/sign-in' || location.pathname === '/sign-up';
 
@@ -47,6 +48,30 @@ const Navbar: React.FC = () => {
     };
   }, [isSignedIn]);
 
+  useEffect(() => {
+    if (!mobileOpen) {
+      return;
+    }
+
+    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+      if (mobileContainerRef.current && !mobileContainerRef.current.contains(event.target as Node)) {
+        setMobileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
@@ -54,8 +79,9 @@ const Navbar: React.FC = () => {
         : 'bg-transparent'
         }`}
     >
-      <div className="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div ref={mobileContainerRef}>
+        <div className="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] flex items-center justify-center shadow-[0_0_20px_rgba(30,215,96,0.3)] group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)] transition-all duration-300">
@@ -96,44 +122,46 @@ const Navbar: React.FC = () => {
             </div>
           ) : null}
 
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden text-[#B3B3B3] hover:text-white transition-colors p-2"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <div
-        className={`md:hidden transition-all duration-300 overflow-hidden ${mobileOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}
-      >
-        <div className="bg-[#0B0B0B]/95 backdrop-blur-xl border-t border-[#262626] px-4 py-4 space-y-1">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="block py-3 text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200 border-b border-[#1A1A1A] last:border-0"
-              onClick={() => setMobileOpen(false)}
+            {/* Mobile hamburger */}
+            <button
+              className="md:hidden text-[#B3B3B3] hover:text-white transition-colors p-2"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle menu"
             >
-              {link.label}
-            </a>
-          ))}
-          {!hideAuthCta && isSignedIn ? (
-            <UserQuickActions mobile />
-          ) : !hideAuthCta ? (
-            <div className="flex gap-3 pt-3">
-              <Link to="/sign-in" className="flex-1" onClick={() => setMobileOpen(false)}>
-                <Button variant="secondary" size="sm" className="w-full">Sign In</Button>
-              </Link>
-              <Button variant="primary" size="sm" className="flex-1">Start Selling</Button>
-            </div>
-          ) : null}
+              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileOpen ? (
+          <div className="md:hidden px-3 pb-2">
+            <div className="max-h-[78vh] overflow-y-auto rounded-2xl border border-[#262626] bg-[#0B0B0B]/95 px-4 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl space-y-1">
+              {navLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="block py-3 text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200 border-b border-[#1A1A1A] last:border-0"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {link.label}
+                </a>
+              ))}
+              {!hideAuthCta && isSignedIn ? (
+                <UserQuickActions mobile />
+              ) : !hideAuthCta ? (
+                <div className="flex gap-3 pt-3">
+                  <Link to="/sign-in" className="flex-1" onClick={() => setMobileOpen(false)}>
+                    <Button variant="secondary" size="sm" className="w-full">Sign In</Button>
+                  </Link>
+                  <Link to="/sign-up" className="flex-1" onClick={() => setMobileOpen(false)}>
+                    <Button variant="primary" size="sm" className="w-full">Start Selling</Button>
+                  </Link>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </div>
     </header>
   );

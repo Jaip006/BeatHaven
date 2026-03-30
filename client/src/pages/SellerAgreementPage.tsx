@@ -105,24 +105,24 @@ const SellerAgreementPage: React.FC = () => {
 
         <div className="fixed inset-x-0 top-0 z-[100]">
           <div className="relative z-[120] border-b border-[#262626] bg-[#0B0B0B]/85 backdrop-blur-xl">
-            <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-5 lg:px-7 lg:flex-row lg:items-center lg:justify-between">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                <Link to="/" className="flex items-center gap-2.5 group">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]">
+                <Link to="/" className="flex items-center gap-1.5 sm:gap-2.5 group">
+                  <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]">
                     <Music2 size={18} className="text-[#0B0B0B]" />
                   </div>
-                  <span className="text-xl font-bold tracking-tight text-white">
+                  <span className="text-base font-bold tracking-tight text-white sm:text-xl">
                     Beat<span className="text-[#1ED760]">Haven</span>
                   </span>
                 </Link>
 
-                <div className="flex items-center gap-3 rounded-full border border-[#262626] bg-[#121212]/95 px-4 py-3 text-sm text-[#B3B3B3] lg:min-w-[360px]">
+                <div className="hidden lg:flex items-center gap-3 rounded-full border border-[#262626] bg-[#121212]/95 px-4 py-3 text-sm text-[#B3B3B3] lg:min-w-[360px]">
                   <Search size={16} className="text-[#6B7280]" />
                   <span>Search beats, licenses, producers, lyrics</span>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                 <UserQuickActions />
               </div>
             </div>
@@ -136,7 +136,7 @@ const SellerAgreementPage: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown('dashboard')}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/95 px-4 py-2.5 text-sm text-white transition-colors duration-200 hover:border-[#1ED760]"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/95 px-2.5 py-1.5 text-[11px] text-white transition-colors duration-200 hover:border-[#1ED760] sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   Dashboard
                   <ChevronDown size={16} className={openDropdown === 'dashboard' ? 'rotate-180 transition-transform duration-200' : 'transition-transform duration-200'} />
@@ -160,7 +160,7 @@ const SellerAgreementPage: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown('beats')}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/100 px-4 py-2.5 text-sm text-white transition-colors duration-200 hover:border-[#1ED760]"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/100 px-2.5 py-1.5 text-[11px] text-white transition-colors duration-200 hover:border-[#1ED760] sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   Beats
                   <ChevronDown size={16} className={openDropdown === 'beats' ? 'rotate-180 transition-transform duration-200' : 'transition-transform duration-200'} />
@@ -182,13 +182,13 @@ const SellerAgreementPage: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown('browse')}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/100 px-4 py-2.5 text-sm text-white transition-colors duration-200 hover:border-[#1ED760]"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/100 px-2.5 py-1.5 text-[11px] text-white transition-colors duration-200 hover:border-[#1ED760] sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   Browse
                   <ChevronDown size={16} className={openDropdown === 'browse' ? 'rotate-180 transition-transform duration-200' : 'transition-transform duration-200'} />
                 </button>
                 {openDropdown === 'browse' ? (
-                  <div className="absolute left-0 top-full z-[120] mt-3 w-[320px] rounded-[1.4rem] border border-[#262626] bg-[#101010] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:w-[420px]">
+                  <div className="absolute left-0 top-full z-[120] mt-3 w-[min(20rem,calc(100vw-2rem))] rounded-[1.4rem] border border-[#262626] bg-[#101010] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:w-[420px]">
                     <div className="grid gap-5 sm:grid-cols-2">
                       {browseSections.map((section) => (
                         <div key={section.title}>
@@ -212,7 +212,7 @@ const SellerAgreementPage: React.FC = () => {
           </div>
         </div>
 
-        <section className="relative z-0 mx-auto max-w-7xl space-y-8 px-4 pb-8 pt-[11.5rem] sm:px-5 sm:pb-10 sm:pt-[12rem] lg:px-7">
+        <section className="relative z-0 mx-auto max-w-7xl space-y-8 px-4 pb-8 pt-[11rem] sm:px-5 sm:pb-10 sm:pt-[12rem] lg:px-7">
           <div className="glass rounded-[2rem] border border-[#262626] p-6 sm:p-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-3xl">
@@ -254,3 +254,11 @@ const SellerAgreementPage: React.FC = () => {
 };
 
 export default SellerAgreementPage;
+
+
+
+
+
+
+
+

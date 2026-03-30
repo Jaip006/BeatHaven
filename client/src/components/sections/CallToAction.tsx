@@ -64,7 +64,7 @@ const CallToAction: React.FC = () => {
             <p className="text-[#6B7280] text-sm mb-6 leading-relaxed">
               Upload your beats, set your prices, and start earning. Reach thousands of artists looking for your unique sound.
             </p>
-            <Link to="/sign-in">
+            <Link to="/sign-up">
               <Button variant="accent" size="md">
                 Start Selling <ArrowRight size={14} />
               </Button>

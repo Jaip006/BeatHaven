@@ -78,7 +78,12 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) =
   if (mobile) {
     return (
       <div className="pt-3">
-        <div className="grid gap-3">
+        <div className="rounded-2xl border border-[#262626] bg-[#121212] px-4 py-3">
+          <p className="text-sm font-semibold text-white">{currentUser.displayName}</p>
+          <p className="mt-1 truncate text-xs text-[#B3B3B3]">{currentUser.email}</p>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <Link to="/cart">
             <Button variant="secondary" size="sm" className="w-full justify-start">
               <ShoppingCart size={14} />
@@ -91,61 +96,56 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) =
               Upload
             </Button>
           </Link>
-          <div className="rounded-2xl border border-[#262626] bg-[#121212] px-4 py-3">
-            <p className="text-sm font-semibold text-white">{currentUser.displayName}</p>
-            <p className="mt-1 text-xs text-[#B3B3B3]">{currentUser.email}</p>
-          </div>
-          <Link to={dashboardPath}>
-            <Button variant="secondary" size="sm" className="w-full justify-start">
-              <LayoutDashboard size={14} />
-              My Dashboard
-            </Button>
+        </div>
+
+        <div className="mt-3 rounded-2xl border border-[#262626] bg-[#101010] p-2">
+          <Link to={dashboardPath} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
+            <LayoutDashboard size={14} />
+            My Dashboard
           </Link>
-          <Link to="/profile">
-            <Button variant="secondary" size="sm" className="w-full justify-start">
-              <User size={14} />
-              Profile
-            </Button>
+          <Link to="/profile" className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
+            <User size={14} />
+            Profile
           </Link>
-          <Link to="/studio-setup">
-            <Button variant="secondary" size="sm" className="w-full justify-start">
-              <HomeIcon size={14} />
-              Studio Setup
-            </Button>
+          <Link to="/studio-setup" className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
+            <HomeIcon size={14} />
+            Studio Setup
           </Link>
-          <Link to="/seller-agreement">
-            <Button variant="secondary" size="sm" className="w-full justify-start">
-              <FileText size={14} />
-              Seller Agreement
-            </Button>
+          <Link to="/seller-agreement" className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
+            <FileText size={14} />
+            Seller Agreement
           </Link>
-          <Button variant="ghost" size="sm" className="w-full justify-start text-[#FFB4C0]" onClick={handleLogout}>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#FFB4C0] transition-colors duration-200 hover:bg-[#2A1015]"
+          >
             <LogOut size={14} />
             Sign Out
-          </Button>
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex items-center gap-2 sm:gap-3">
       <Link to="/cart" aria-label="Open cart">
-        <button className="flex h-11 w-11 items-center justify-center rounded-full border border-[#262626] bg-[#121212]/95 text-[#B3B3B3] transition-colors duration-200 hover:text-white">
+        <button className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-[#262626] bg-[#121212]/95 text-[#B3B3B3] transition-colors duration-200 hover:text-white">
           <ShoppingCart size={18} />
         </button>
       </Link>
       <Link to="/dashboard/seller">
-        <Button variant="primary" size="md">
+        <Button variant="primary" size="sm" className="px-2.5 sm:px-4">
           <Upload size={16} />
-          Upload
+          <span className="hidden sm:inline">Upload</span>
         </Button>
       </Link>
       <div className="relative" ref={menuRef}>
         <button
           type="button"
           onClick={() => setMenuOpen((current) => !current)}
-          className="inline-flex items-center gap-3 rounded-full border border-[#262626] bg-[#121212]/95 px-2 py-1 text-sm font-small text-white transition-colors duration-200 hover:border-[#1ED760]"
+          className="inline-flex items-center gap-2 sm:gap-3 rounded-full border border-[#262626] bg-[#121212]/95 px-1.5 sm:px-2 py-1 text-sm font-small text-white transition-colors duration-200 hover:border-[#1ED760]"
         >
           {currentUser.avatar ? (
             <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-[#2A2A2A] bg-[#0F0F0F]">
@@ -160,7 +160,7 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) =
               {getUserInitials(currentUser.displayName)}
             </span>
           )}
-          <span className="max-w-[8rem] truncate">{currentUser.displayName}</span>
+          <span className="hidden max-w-[8rem] truncate sm:inline">{currentUser.displayName}</span>
           <ChevronDown size={16} className={menuOpen ? 'rotate-180 transition-transform duration-200' : 'transition-transform duration-200'} />
         </button>
 

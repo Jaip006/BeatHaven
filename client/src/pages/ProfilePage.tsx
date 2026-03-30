@@ -448,22 +448,22 @@ const ProfilePage: React.FC = () => {
         {/* ── Navbar ── */}
         <div className="fixed inset-x-0 top-0 z-[100]">
           <div className="relative z-[120] border-b border-[#262626] bg-[#0B0B0B]/85 backdrop-blur-xl">
-            <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-5 lg:px-7 lg:flex-row lg:items-center lg:justify-between">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                <Link to="/" className="flex items-center gap-2.5 group">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]">
+                <Link to="/" className="flex items-center gap-1.5 sm:gap-2.5 group">
+                  <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]">
                     <Music2 size={18} className="text-[#0B0B0B]" />
                   </div>
-                  <span className="text-xl font-bold tracking-tight text-white">
+                  <span className="text-base font-bold tracking-tight text-white sm:text-xl">
                     Beat<span className="text-[#1ED760]">Haven</span>
                   </span>
                 </Link>
-                <div className="flex items-center gap-3 rounded-full border border-[#262626] bg-[#121212]/95 px-4 py-3 text-sm text-[#B3B3B3] lg:min-w-[360px]">
+                <div className="hidden lg:flex items-center gap-3 rounded-full border border-[#262626] bg-[#121212]/95 px-4 py-3 text-sm text-[#B3B3B3] lg:min-w-[360px]">
                   <Search size={16} className="text-[#6B7280]" />
                   <span>Search beats, licenses, producers, lyrics</span>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                 <UserQuickActions />
               </div>
             </div>
@@ -478,7 +478,7 @@ const ProfilePage: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown('dashboard')}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/95 px-4 py-2.5 text-sm text-white transition-colors duration-200 hover:border-[#1ED760]"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/95 px-2.5 py-1.5 text-[11px] text-white transition-colors duration-200 hover:border-[#1ED760] sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   Dashboard
                   <ChevronDown
@@ -510,7 +510,7 @@ const ProfilePage: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown('beats')}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/100 px-4 py-2.5 text-sm text-white transition-colors duration-200 hover:border-[#1ED760]"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/100 px-2.5 py-1.5 text-[11px] text-white transition-colors duration-200 hover:border-[#1ED760] sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   Beats
                   <ChevronDown
@@ -540,7 +540,7 @@ const ProfilePage: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown('browse')}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/100 px-4 py-2.5 text-sm text-white transition-colors duration-200 hover:border-[#1ED760]"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/100 px-2.5 py-1.5 text-[11px] text-white transition-colors duration-200 hover:border-[#1ED760] sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   Browse
                   <ChevronDown
@@ -553,7 +553,7 @@ const ProfilePage: React.FC = () => {
                   />
                 </button>
                 {openDropdown === 'browse' && (
-                  <div className="absolute left-0 top-full z-[120] mt-3 w-[320px] rounded-[1.4rem] border border-[#262626] bg-[#101010] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:w-[420px]">
+                  <div className="absolute left-0 top-full z-[120] mt-3 w-[min(20rem,calc(100vw-2rem))] rounded-[1.4rem] border border-[#262626] bg-[#101010] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:w-[420px]">
                     <div className="grid gap-5 sm:grid-cols-2">
                       {browseSections.map((section) => (
                         <div key={section.title}>
@@ -578,7 +578,7 @@ const ProfilePage: React.FC = () => {
         </div>
 
         {/* ── Page Content ── */}
-        <section className="relative z-0 mx-auto max-w-3xl space-y-5 px-4 pb-16 pt-[11.5rem] sm:px-5 sm:pt-[12rem] lg:px-7">
+        <section className="relative z-0 mx-auto max-w-3xl space-y-5 px-4 pb-16 pt-[11rem] sm:px-5 sm:pt-[12rem] lg:px-7">
 
           {/* ── Page Header ── */}
           <div className="mb-2">
@@ -659,8 +659,8 @@ const ProfilePage: React.FC = () => {
                   </label>
                   {mobileVerified ? <VerifiedBadge /> : <UnverifiedBadge />}
                 </div>
-                <div className="flex gap-2">
-                  <div className="flex items-center gap-2 rounded-[0.85rem] border border-[#262626] bg-[#121212] px-4 py-3 text-sm text-[#6B7280] flex-shrink-0">
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <div className="flex w-full items-center justify-center gap-2 rounded-[0.85rem] border border-[#262626] bg-[#121212] px-4 py-3 text-sm text-[#6B7280] sm:w-auto sm:justify-start">
                     🇮🇳 +91
                   </div>
                   <input
@@ -684,7 +684,7 @@ const ProfilePage: React.FC = () => {
                     <button
                       onClick={handleSendOtp}
                       disabled={otpLoading || otpSent}
-                      className="flex-shrink-0 rounded-[0.85rem] bg-[#7C5CFF] px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#6D4FF5] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full rounded-[0.85rem] bg-[#7C5CFF] px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#6D4FF5] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                     >
                       {otpLoading ? 'Sending…' : otpSent ? 'OTP Sent' : 'Send OTP'}
                     </button>
@@ -697,7 +697,7 @@ const ProfilePage: React.FC = () => {
                         setOtp('');
                         setOtpError('');
                       }}
-                      className="flex-shrink-0 rounded-[0.85rem] border border-[#262626] bg-[#161616] px-4 py-3 text-xs font-medium text-[#B3B3B3] transition-all duration-200 hover:border-[#7C5CFF]/40 hover:text-[#7C5CFF]"
+                      className="w-full rounded-[0.85rem] border border-[#262626] bg-[#161616] px-4 py-3 text-xs font-medium text-[#B3B3B3] transition-all duration-200 hover:border-[#7C5CFF]/40 hover:text-[#7C5CFF] sm:w-auto"
                     >
                       Change
                     </button>
@@ -706,7 +706,7 @@ const ProfilePage: React.FC = () => {
               </div>
 
               {otpSent && !mobileVerified && (
-                <div className="flex gap-2 animate-[fade-in-up_0.3s_ease-out_forwards]">
+                <div className="flex flex-col gap-2 animate-[fade-in-up_0.3s_ease-out_forwards] sm:flex-row">
                   <input
                     type="text"
                     maxLength={6}
@@ -718,7 +718,7 @@ const ProfilePage: React.FC = () => {
                   <button
                     onClick={handleVerifyOtp}
                     disabled={otpVerifying}
-                    className="flex-shrink-0 rounded-[0.85rem] bg-[#1ED760] px-4 py-3 text-sm font-semibold text-[#0B0B0B] transition-all duration-200 hover:bg-[#17C955]"
+                    className="w-full rounded-[0.85rem] bg-[#1ED760] px-4 py-3 text-sm font-semibold text-[#0B0B0B] transition-all duration-200 hover:bg-[#17C955] sm:w-auto"
                   >
                     {otpVerifying ? 'Verifying…' : 'Verify'}
                   </button>
@@ -872,7 +872,7 @@ const ProfilePage: React.FC = () => {
                 <label className="text-[11px] uppercase tracking-[0.18em] text-[#6B7280] font-medium">
                   Gender
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   {(['male', 'female', 'other'] as const).map((g) => (
                     <button
                       key={g}
@@ -1026,3 +1026,11 @@ const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
+
+
+
+
+
+
+
+
