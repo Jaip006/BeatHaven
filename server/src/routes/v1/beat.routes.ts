@@ -210,7 +210,9 @@ beatRouter.get(
       throw new AppError("Studio not found", 404);
     }
 
-    const beats = await Beat.find({ sellerId: seller._id }).sort({ createdAt: -1 });
+    const beats = await Beat.find({ sellerId: seller._id })
+      .populate("sellerId", "displayName avatar")
+      .sort({ createdAt: -1 });
 
     // Dummy stats for now, later sum up real values
     const stats = {

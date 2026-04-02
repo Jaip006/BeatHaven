@@ -12,7 +12,7 @@ import {
   Sparkles,
   Waves,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import UserQuickActions from '../components/layout/UserQuickActions';
 import { getAuthSession, hydrateAuthSession } from '../utils/auth';
@@ -46,6 +46,10 @@ type SellerUploadDraft = {
   uploadedFiles: Record<UploadAssetKey, string>;
   licensePricing: Record<string, string>;
   licenseForm: LicenseForm;
+};
+type UploadNotice = {
+  tone: 'success' | 'error';
+  message: string;
 };
 type LicenseForm = {
   mode: 'manual' | 'presets';
@@ -179,6 +183,7 @@ const uploadSections = [
 ];
 
 const SellerUploadPage: React.FC = () => {
+  const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
   const [isMoodDropdownOpen, setIsMoodDropdownOpen] = useState(false);
   const [isInstrumentDropdownOpen, setIsInstrumentDropdownOpen] = useState(false);
@@ -196,6 +201,8 @@ const SellerUploadPage: React.FC = () => {
   const [licenseForm, setLicenseForm] = useState<LicenseForm>(createDefaultLicenseForm);
   const [draftStatus, setDraftStatus] = useState('');
   const [isDraftStatusVisible, setIsDraftStatusVisible] = useState(false);
+  const [uploadNotice, setUploadNotice] = useState<UploadNotice | null>(null);
+  const [isUploadNoticeVisible, setIsUploadNoticeVisible] = useState(false);
   const dropdownContainerRef = useRef<HTMLDivElement | null>(null);
   const moodDropdownRef = useRef<HTMLDivElement | null>(null);
   const instrumentDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -250,6 +257,27 @@ const SellerUploadPage: React.FC = () => {
   }, [draftStatus]);
 
   useEffect(() => {
+    if (!uploadNotice) {
+      return;
+    }
+
+    setIsUploadNoticeVisible(true);
+
+    const fadeTimeoutId = window.setTimeout(() => {
+      setIsUploadNoticeVisible(false);
+    }, 2600);
+
+    const timeoutId = window.setTimeout(() => {
+      setUploadNotice(null);
+    }, 3200);
+
+    return () => {
+      window.clearTimeout(fadeTimeoutId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [uploadNotice]);
+
+  useEffect(() => {
     const savedDraft = window.localStorage.getItem(SELLER_UPLOAD_DRAFT_STORAGE_KEY);
 
     if (!savedDraft) {
@@ -271,7 +299,8 @@ const SellerUploadPage: React.FC = () => {
         restoredTags.length === legacyDefaultTags.length &&
         legacyDefaultTags.every((tag) => restoredTags.includes(tag));
 
-      setActiveSection(parsedDraft.activeSection ?? 'metadata');
+      // Always open Meta Data first when entering upload flow.
+      setActiveSection('metadata');
       const restoredMetadataForm = parsedDraft.metadataForm ?? createDefaultMetadataForm();
       setMetadataForm({
         ...createDefaultMetadataForm(),
@@ -485,9 +514,25 @@ const SellerUploadPage: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const clearEntireUploadForm = () => {
+    setActiveSection('metadata');
+    setMetadataForm(createDefaultMetadataForm());
+    setSelectedMoods([]);
+    setSelectedTags([]);
+    setTagInput('');
+    setSampleUsed(false);
+    setSampleDetails(createDefaultSampleDetails());
+    setUploadedFiles(createEmptyUploadedFiles());
+    setActualFiles({ previewMp3: null, coverArt: null, wavFile: null, stemsZip: null });
+    setMediaInputResetKey((current) => current + 1);
+    setLicensePricing(createDefaultLicensePricing());
+    setLicenseForm(createDefaultLicenseForm());
+    window.localStorage.removeItem(SELLER_UPLOAD_DRAFT_STORAGE_KEY);
+  };
+
   const handleSubmit = async () => {
     if (!actualFiles.coverArt || !actualFiles.previewMp3) {
-      alert("Please upload Cover Art and MP3.");
+      setUploadNotice({ tone: 'error', message: 'Please upload Cover Art and MP3 before submitting.' });
       return;
     }
 
@@ -531,11 +576,11 @@ const SellerUploadPage: React.FC = () => {
       }
 
       if (!session?.accessToken) {
-        alert("Your session expired. Please sign in again.");
+        setUploadNotice({ tone: 'error', message: 'Your session expired. Please sign in again.' });
         return;
       }
       if (session?.user?.role !== "seller") {
-        alert("Only seller accounts can upload beats.");
+        setUploadNotice({ tone: 'error', message: 'Only seller accounts can upload beats.' });
         return;
       }
       const response = await authFetch(`${import.meta.env.VITE_API_URL}/beats`, {
@@ -546,20 +591,19 @@ const SellerUploadPage: React.FC = () => {
       const data = await response.json().catch(() => null);
       if (response.ok && data?.success) {
         window.dispatchEvent(new Event('beathaven-beat-uploaded'));
-        alert("Beat uploaded successfully!");
-        handleClearAll();
-        // Option to redirect to Studio
+        clearEntireUploadForm();
+        navigate('/studio');
       } else {
         const message =
           data?.message ||
           data?.error?.details ||
           `Upload failed with status ${response.status}`;
-        alert("Upload failed: " + message);
+        setUploadNotice({ tone: 'error', message: `Upload failed: ${message}` });
       }
     } catch (err) {
       console.error(err);
       const message = err instanceof Error ? err.message : "Unknown error";
-      alert("Error uploading beat: " + message);
+      setUploadNotice({ tone: 'error', message: `Error uploading beat: ${message}` });
     } finally {
       setIsSubmitting(false);
     }
@@ -1248,6 +1292,22 @@ const SellerUploadPage: React.FC = () => {
           </div>
         </section>
       </main>
+      {uploadNotice ? (
+        <div
+          className={`pointer-events-none fixed left-1/2 top-1/2 z-[220] w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border px-5 py-4 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-500 ${isUploadNoticeVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${uploadNotice.tone === 'success'
+            ? 'border-[#1ED760]/40 bg-[#0f2217] text-[#dbffe9]'
+            : 'border-[#ff6b81]/40 bg-[#2a1015] text-[#ffd1d8]'
+            }`}
+        >
+          <div className="flex items-start gap-3">
+            <span className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${uploadNotice.tone === 'success' ? 'bg-[#1ED760]/20 text-[#1ED760]' : 'bg-[#ff6b81]/20 text-[#ff9aac]'
+              }`}>
+              <Check size={16} />
+            </span>
+            <p className="text-sm leading-relaxed">{uploadNotice.message}</p>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

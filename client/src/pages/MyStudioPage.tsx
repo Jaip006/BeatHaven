@@ -26,10 +26,12 @@ interface Beat {
   basicPrice?: number;
   artworkUrl: string;
   untaggedMp3Url: string;
-  sellerId: {
-    displayName: string;
-    avatar?: string;
-  };
+  sellerId:
+    | string
+    | {
+      displayName?: string;
+      avatar?: string;
+    };
 }
 
 interface Stats {
@@ -506,7 +508,13 @@ const MyStudioPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  {beats.map((beat) => (
+                  {beats.map((beat) => {
+                    const studioNameLabel =
+                      profile?.studioName?.trim() ||
+                      profile?.displayName ||
+                      'Unknown Studio';
+
+                    return (
                     <div key={beat._id} className="group flex flex-col gap-3 rounded-xl p-3 transition-colors hover:bg-[#1A1A1A] sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                         <button
@@ -523,7 +531,7 @@ const MyStudioPage: React.FC = () => {
                         <div>
                           <h4 className="truncate text-sm font-bold tracking-tight">{beat.title}</h4>
                           <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-gray-400 sm:gap-3">
-                            <span className="text-orange-500">{beat.sellerId?.displayName || "Level on the Beat"}</span>
+                            <span className="text-orange-500">{studioNameLabel}</span>
                             <span>{beat.tempo} BPM</span>
                             <span>{beat.musicalKey}</span>
                           </div>
@@ -545,7 +553,8 @@ const MyStudioPage: React.FC = () => {
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                   {beats.length === 0 && (
                     <div className="text-center text-gray-500 py-10">No beats uploaded yet.</div>
                   )}
