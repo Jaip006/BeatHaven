@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Play, ShieldCheck, Share2, Expand, ChevronDown, Music2, Search, Trash2, Instagram, Youtube, Twitter, Disc3, Cloud, Globe } from 'lucide-react';
+import { Play, Pause, ShieldCheck, Share2, Expand, ChevronDown, Music2, Search, Trash2, Instagram, Youtube, Twitter, Disc3, Cloud, Globe } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import UserQuickActions from '../components/layout/UserQuickActions';
 import { getAuthSession } from '../utils/auth';
 import { authFetch } from '../utils/authFetch';
+import { usePlayer } from '../context/PlayerContext';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
 
@@ -102,12 +103,11 @@ const MyStudioPage: React.FC = () => {
   const [stats, setStats] = useState<Stats | null>(null);
   const [profile, setProfile] = useState<StudioProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [playingBeatId, setPlayingBeatId] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copiedShareUrl, setCopiedShareUrl] = useState(false);
   const currentUserId = getAuthSession()?.user?.id;
   const [searchParams] = useSearchParams();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { playBeat, currentBeat, isPlaying, togglePlay } = usePlayer();
 
   const toggleDropdown = (key: Exclude<DropdownKey, null>) => {
     setOpenDropdown((current) => (current === key ? null : key));
@@ -121,15 +121,6 @@ const MyStudioPage: React.FC = () => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
   }, []);
 
   const fetchStudioData = useCallback(async () => {
@@ -278,47 +269,28 @@ const MyStudioPage: React.FC = () => {
     }
   };
 
-  const handlePlayBeat = async (beat: Beat) => {
-    try {
-      if (audioRef.current && playingBeatId === beat._id) {
-        audioRef.current.pause();
-        setPlayingBeatId(null);
-        return;
-      }
-
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-
-      const audio = new Audio(beat.untaggedMp3Url);
-      audioRef.current = audio;
-      setPlayingBeatId(beat._id);
-
-      audio.onended = () => {
-        setPlayingBeatId((current) => (current === beat._id ? null : current));
-      };
-
-      await audio.play();
-
-      const playRes = await authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat._id}/play`, {
-        method: 'POST',
-      });
-      const playData = await playRes.json().catch(() => null);
-      if (playRes.ok && playData?.success && playData?.data?.incremented) {
-        setStats((prev) =>
-          prev
-            ? {
-              ...prev,
-              plays: prev.plays + 1,
-            }
-            : prev
-        );
-      }
-    } catch (error) {
-      console.error('Failed to play beat', error);
-      setPlayingBeatId(null);
+  const handlePlayBeat = (beat: Beat) => {
+    if (currentBeat?.id === beat._id) {
+      togglePlay();
+      return;
     }
+    playBeat({
+      id: beat._id,
+      title: beat.title,
+      producerName:
+        profile?.studioName?.trim() || profile?.displayName || 'Unknown Studio',
+      coverImage: beat.artworkUrl,
+      audioUrl: beat.untaggedMp3Url,
+      bpm: beat.tempo,
+    });
+    void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat._id}/play`, { method: 'POST' })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.success && data?.data?.incremented) {
+          setStats((prev) => prev ? { ...prev, plays: prev.plays + 1 } : prev);
+        }
+      })
+      .catch(() => null);
   };
 
   return (
@@ -414,7 +386,7 @@ const MyStudioPage: React.FC = () => {
         </div>
 
         {/* ── Page Content ── */}
-        <section className="relative z-0 mx-auto max-w-7xl px-4 pb-10 pt-[11rem] sm:px-5 sm:pb-12 sm:pt-[12rem] lg:px-7">
+        <section className="relative z-0 mx-auto max-w-7xl px-4 pb-28 pt-[11rem] sm:px-5 sm:pt-[12rem] lg:px-7">
           {loading ? (
             <div className="text-center text-[#B3B3B3] py-20">Loading your studio...</div>
           ) : (
@@ -519,9 +491,15 @@ const MyStudioPage: React.FC = () => {
                       <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                         <button
                           onClick={() => handlePlayBeat(beat)}
-                          className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform shrink-0"
+                          className={`w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 transition-all shrink-0 ${
+                            currentBeat?.id === beat._id
+                              ? 'bg-[#1ED760] text-[#0B0B0B] shadow-[0_0_16px_rgba(30,215,96,0.45)]'
+                              : 'bg-white text-black'
+                          }`}
                         >
-                          <Play className="w-5 h-5 ml-1" />
+                          {currentBeat?.id === beat._id && isPlaying
+                            ? <Pause className="w-5 h-5" />
+                            : <Play className="w-5 h-5 ml-0.5" />}
                         </button>
                         <img
                           src={beat.artworkUrl || "https://images.unsplash.com/photo-1614113489855-66422ad300a4?auto=format&fit=crop&w=100&q=80"}

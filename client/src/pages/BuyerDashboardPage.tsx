@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import UserQuickActions from '../components/layout/UserQuickActions';
 import { useCart } from '../context/CartContext';
+import { usePlayer } from '../context/PlayerContext';
 import type { Beat } from '../types';
 import { formatPrice } from '../utils/formatters';
 
@@ -64,6 +65,7 @@ const BuyerDashboardPage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
   const dropdownContainerRef = useRef<HTMLDivElement | null>(null);
   const { addToCart, getItemQuantity } = useCart();
+  const { playBeat } = usePlayer();
 
   const toggleDropdown = (key: Exclude<DropdownKey, null>) => {
     setOpenDropdown((current) => (current === key ? null : key));
@@ -218,7 +220,7 @@ const BuyerDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <section className="relative z-0 mx-auto max-w-7xl space-y-8 px-4 pt-[11rem] pb-6 sm:px-5 sm:pt-[12rem] sm:pb-8 lg:px-7">
+        <section className="relative z-0 mx-auto max-w-7xl space-y-8 px-4 pt-[11rem] pb-28 sm:px-5 sm:pt-[12rem] lg:px-7">
           <div className="glass rounded-[2rem] border border-[#262626] mb-20 p-6 sm:p-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl">
@@ -304,7 +306,9 @@ const BuyerDashboardPage: React.FC = () => {
                       <h3 className="text-lg font-semibold">{beat.title}</h3>
                       <p className="mt-1 text-sm text-[#B3B3B3]">{beat.producer}</p>
                     </div>
-                    <button className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1A1A1A] text-[#1ED760] transition-colors duration-200 hover:bg-[#242424]">
+                    <button
+                      onClick={() => playBeat({ id: beat.id, title: beat.title, producerName: beat.producer, coverImage: beat.coverImage, audioUrl: '', bpm: beat.bpm, price: beat.price })}
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1A1A1A] text-[#1ED760] transition-colors duration-200 hover:bg-[#242424]">
                       <Play size={16} fill="currentColor" />
                     </button>
                   </div>
