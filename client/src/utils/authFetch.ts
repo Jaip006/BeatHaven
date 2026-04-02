@@ -1,4 +1,4 @@
-import { getAuthSession, hydrateAuthSession } from './auth';
+import { clearAuthSession, getAuthSession, hydrateAuthSession, redirectToSignIn } from './auth';
 
 type AuthFetchInput = RequestInfo | URL;
 type AuthFetchInit = RequestInit;
@@ -82,6 +82,8 @@ export async function authFetch(input: AuthFetchInput, init: AuthFetchInit = {})
     const refreshedToken = refreshedSession?.accessToken;
 
     if (!refreshedToken) {
+      clearAuthSession();
+      redirectToSignIn('session_expired');
       return response;
     }
 

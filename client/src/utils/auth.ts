@@ -1,4 +1,5 @@
 import { authService } from './api';
+import axios from 'axios';
 
 export type AuthUser = {
   id: string;
@@ -58,6 +59,21 @@ export function clearAuthSession() {
   window.dispatchEvent(new Event(AUTH_EVENT_NAME));
 }
 
+export function redirectToSignIn(reason = 'session_expired') {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const reasonParam = params.get('reason');
+
+  if (window.location.pathname === '/sign-in' && reasonParam === reason) {
+    return;
+  }
+
+  window.location.assign(`/sign-in?reason=${encodeURIComponent(reason)}`);
+}
+
 export async function hydrateAuthSession(forceRefresh = false) {
   const existingSession = getAuthSession();
 
@@ -77,9 +93,16 @@ export async function hydrateAuthSession(forceRefresh = false) {
     const session = { accessToken, user };
     saveAuthSession(session);
     return session;
-  } catch {
+  } catch (apiError) {
     if (forceRefresh) {
       clearAuthSession();
+
+      if (axios.isAxiosError(apiError)) {
+        const errorCode = apiError.response?.data?.error?.code as string | undefined;
+        if (errorCode === 'SESSION_INACTIVE') {
+          redirectToSignIn('session_expired');
+        }
+      }
     }
     return null;
   }

@@ -18,6 +18,7 @@ import {
 
 const authRouter = Router();
 const avatarUpload = multer({ storage: multer.memoryStorage() });
+const INACTIVITY_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour
 
 const registerSchema = z.object({
   displayName: z.string().trim().min(2).max(50),
@@ -321,6 +322,7 @@ authRouter.post(
     });
 
     user.refreshToken = refreshToken;
+    user.lastActivityAt = new Date();
     await user.save();
 
     res.cookie("refreshToken", refreshToken, {
@@ -365,11 +367,39 @@ authRouter.post(
     }
 
     const payload = verifyRefreshToken(refreshToken);
-    const user = await User.findById(payload.userId).select("+refreshToken");
+    const user = await User.findById(payload.userId).select("+refreshToken +lastActivityAt");
 
     if (!user || user.refreshToken !== refreshToken) {
       throw new AppError("Invalid refresh token", 401, "INVALID_REFRESH_TOKEN");
     }
+
+    const lastActivityTime = user.lastActivityAt?.getTime();
+    const isInactive =
+      typeof lastActivityTime === "number" &&
+      Date.now() - lastActivityTime > INACTIVITY_TIMEOUT_MS;
+
+    if (isInactive) {
+      user.refreshToken = undefined;
+      user.lastActivityAt = null;
+      await user.save();
+
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      });
+
+      return res.status(401).json({
+        success: false,
+        message: "Session expired due to inactivity. Please sign in again.",
+        error: {
+          code: "SESSION_INACTIVE",
+        },
+      });
+    }
+
+    user.lastActivityAt = new Date();
+    await user.save();
 
     const accessToken = signAccessToken({
       userId: user.id,
@@ -410,6 +440,7 @@ authRouter.post(
 
       if (user) {
         user.refreshToken = undefined;
+        user.lastActivityAt = null;
         await user.save();
       }
     }

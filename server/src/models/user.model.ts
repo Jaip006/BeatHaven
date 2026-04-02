@@ -50,6 +50,7 @@ export interface IUser extends Document {
   mobileVerificationOtp?: string | null;
   mobileVerificationOtpExpires?: Date | null;
   refreshToken?: string;
+  lastActivityAt?: Date | null;
   studioProfile?: IStudioProfile;
   createdAt: Date;
   updatedAt: Date;
@@ -163,6 +164,11 @@ const userSchema = new Schema<IUser>(
     refreshToken: {
       type: String,
       select: false, // Not returned by default
+    },
+    lastActivityAt: {
+      type: Date,
+      default: null,
+      select: false,
     },
     studioProfile: {
       studioName: { type: String, trim: true, maxlength: 60, default: "" },

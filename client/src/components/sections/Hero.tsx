@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Play, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { getAuthSession, hydrateAuthSession, subscribeToAuthChanges } from '../../utils/auth';
 
 // Decorative waveform bars
 const WaveformDecoration: React.FC = () => {
@@ -29,6 +30,31 @@ const WaveformDecoration: React.FC = () => {
 };
 
 const Hero: React.FC = () => {
+  const [isSignedIn, setIsSignedIn] = useState(Boolean(getAuthSession()));
+  const sellCtaTarget = isSignedIn ? '/dashboard/seller' : '/sign-in';
+
+  useEffect(() => subscribeToAuthChanges(() => {
+    setIsSignedIn(Boolean(getAuthSession()));
+  }), []);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      return;
+    }
+
+    let isMounted = true;
+
+    void hydrateAuthSession().then((session) => {
+      if (isMounted && session) {
+        setIsSignedIn(true);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isSignedIn]);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden animated-gradient pt-16">
       {/* Background Orbs */}
@@ -62,7 +88,7 @@ const Hero: React.FC = () => {
             </Button>
           </a>
   
-          <Link to="/sign-in" className="w-full sm:w-auto">
+          <Link to={sellCtaTarget} className="w-full sm:w-auto">
             <Button variant="secondary" size="lg" className="w-full sm:w-auto">
               Sell Your Beats
             </Button>

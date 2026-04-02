@@ -1,9 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Play, Upload, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { getAuthSession, hydrateAuthSession, subscribeToAuthChanges } from '../../utils/auth';
 
 const CallToAction: React.FC = () => {
+  const [isSignedIn, setIsSignedIn] = useState(Boolean(getAuthSession()));
+  const startSellingTarget = isSignedIn ? '/dashboard/seller' : '/sign-in';
+
+  useEffect(() => subscribeToAuthChanges(() => {
+    setIsSignedIn(Boolean(getAuthSession()));
+  }), []);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      return;
+    }
+
+    let isMounted = true;
+
+    void hydrateAuthSession().then((session) => {
+      if (isMounted && session) {
+        setIsSignedIn(true);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isSignedIn]);
+
   return (
     <section id="cta" className="py-24 bg-[#080808]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -64,7 +90,7 @@ const CallToAction: React.FC = () => {
             <p className="text-[#6B7280] text-sm mb-6 leading-relaxed">
               Upload your beats, set your prices, and start earning. Reach thousands of artists looking for your unique sound.
             </p>
-            <Link to="/sign-up">
+            <Link to={startSellingTarget}>
               <Button variant="accent" size="md">
                 Start Selling <ArrowRight size={14} />
               </Button>

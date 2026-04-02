@@ -19,6 +19,9 @@ const Navbar: React.FC = () => {
   const mobileContainerRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
   const hideAuthCta = location.pathname === '/sign-in' || location.pathname === '/sign-up';
+  const visibleNavLinks = isSignedIn
+    ? navLinks.filter((link) => link.label !== 'How It Works')
+    : navLinks;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -69,7 +72,10 @@ const Navbar: React.FC = () => {
   }, [mobileOpen]);
 
   useEffect(() => {
-    setMobileOpen(false);
+    const timer = setTimeout(() => {
+      setMobileOpen(false);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [location.pathname]);
 
   return (
@@ -94,7 +100,33 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
+            {isSignedIn ? (
+              <div className="relative group">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 text-sm text-[#B3B3B3] hover:text-white transition-colors duration-200"
+                >
+                  Dashboard
+                </button>
+                <div className="pointer-events-none absolute left-0 top-full z-[120] pt-3 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100">
+                  <div className="w-56 rounded-2xl border border-[#262626] bg-[#101010] p-2 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                    <Link
+                      to="/dashboard/seller"
+                      className="block rounded-xl px-3 py-2.5 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
+                    >
+                      Seller Dashboard
+                    </Link>
+                    <Link
+                      to="/dashboard/buyer"
+                      className="mt-1 block rounded-xl px-3 py-2.5 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
+                    >
+                      Buyer Dashboard
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            {visibleNavLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
@@ -137,7 +169,7 @@ const Navbar: React.FC = () => {
         {mobileOpen ? (
           <div className="md:hidden px-3 pb-2">
             <div className="max-h-[78vh] overflow-y-auto rounded-2xl border border-[#262626] bg-[#0B0B0B]/95 px-4 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl space-y-1">
-              {navLinks.map((link) => (
+              {visibleNavLinks.map((link) => (
                 <a
                   key={link.label}
                   href={link.href}
@@ -147,6 +179,25 @@ const Navbar: React.FC = () => {
                   {link.label}
                 </a>
               ))}
+              {isSignedIn ? (
+                <div className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-2">
+                  <p className="px-2 pb-2 text-xs uppercase tracking-[0.2em] text-[#6B7280]">Dashboard</p>
+                  <Link
+                    to="/dashboard/seller"
+                    className="block rounded-lg px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Seller Dashboard
+                  </Link>
+                  <Link
+                    to="/dashboard/buyer"
+                    className="mt-1 block rounded-lg px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Buyer Dashboard
+                  </Link>
+                </div>
+              ) : null}
               {!hideAuthCta && isSignedIn ? (
                 <UserQuickActions mobile />
               ) : !hideAuthCta ? (

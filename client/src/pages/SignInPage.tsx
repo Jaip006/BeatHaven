@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { authService } from '../utils/api';
@@ -9,11 +9,17 @@ import { getDefaultDashboardPath, type DashboardRole } from '../utils/dashboard'
 
 const SignInPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const reason = new URLSearchParams(location.search).get('reason');
+  const sessionExpiredMessage =
+    reason === 'session_expired'
+      ? 'Your session expired after 1 hour of inactivity. Please sign in again.'
+      : '';
 
   const getApiErrorMessage = (apiError: unknown, fallback: string) => {
     if (axios.isAxiosError(apiError)) {
@@ -83,6 +89,12 @@ const SignInPage: React.FC = () => {
                   Use your email and password to access your dashboard.
                 </p>
               </div>
+
+              {sessionExpiredMessage ? (
+                <div className="mb-5 rounded-2xl border border-[#6a4a12] bg-[#2a1f0f] px-4 py-3 text-sm text-[#ffd89b]">
+                  {sessionExpiredMessage}
+                </div>
+              ) : null}
 
               {error ? (
                 <div className="mb-5 rounded-2xl border border-[#5a1f28] bg-[#2a1015] px-4 py-3 text-sm text-[#ffb4c0]">
