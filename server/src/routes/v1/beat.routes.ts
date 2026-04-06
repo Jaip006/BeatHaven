@@ -11,6 +11,7 @@ import { env } from "../../config/env.config";
 const beatRouter = Router();
 
 const STUDIO_HANDLE_REGEX = /^[a-z0-9._-]{3,30}$/;
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const normalizeStudioSocials = (socials: unknown) => {
   const value = socials && typeof socials === "object" ? socials : {};
@@ -193,6 +194,91 @@ beatRouter.post(
     res.status(201).json({
       success: true,
       data: newBeat,
+    });
+  })
+);
+
+beatRouter.get(
+  "/search",
+  asyncHandler(async (req, res) => {
+    const rawQuery = String(req.query?.q ?? "").trim();
+    const limit = Math.min(Math.max(Number(req.query?.limit) || 6, 1), 20);
+
+    if (rawQuery.length < 2) {
+      res.status(200).json({
+        success: true,
+        data: {
+          beats: [],
+          producers: [],
+        },
+      });
+      return;
+    }
+
+    const queryRegex = new RegExp(escapeRegex(rawQuery), "i");
+
+    const [beats, producers] = await Promise.all([
+      Beat.find({
+        $or: [
+          { title: queryRegex },
+          { beatType: queryRegex },
+          { genre: queryRegex },
+          { tags: queryRegex },
+        ],
+      })
+        .populate("sellerId", "displayName avatar studioProfile.handle")
+        .select("title beatType genre tempo basicPrice artworkUrl sellerId")
+        .sort({ plays: -1, createdAt: -1 })
+        .limit(limit),
+      User.find({
+        $or: [
+          { displayName: queryRegex },
+          { "studioProfile.studioName": queryRegex },
+          { "studioProfile.handle": queryRegex },
+        ],
+        "studioProfile.handle": { $exists: true, $ne: "" },
+      })
+        .select("displayName avatar studioProfile followers")
+        .sort({ createdAt: -1 })
+        .limit(limit),
+    ]);
+
+    const beatResults = beats.map((beat) => {
+      const seller =
+        beat.sellerId && typeof beat.sellerId === "object"
+          ? (beat.sellerId as unknown as { displayName?: string; studioProfile?: { handle?: string } })
+          : null;
+      const producerHandle = String(seller?.studioProfile?.handle ?? "").trim();
+
+      return {
+        id: String(beat._id),
+        title: beat.title,
+        genre: beat.genre,
+        tempo: beat.tempo,
+        price: Number(beat.basicPrice ?? 0),
+        artworkUrl: beat.artworkUrl,
+        producerName: String(seller?.displayName ?? ""),
+        producerHandle,
+      };
+    });
+
+    const producerResults = producers.map((producer) => {
+      const handle = String(producer.studioProfile?.handle ?? "").trim();
+      return {
+        id: String(producer._id),
+        displayName: String(producer.studioProfile?.studioName || producer.displayName || ""),
+        handle,
+        avatar: String(producer.avatar ?? ""),
+        followers: Array.isArray(producer.followers) ? producer.followers.length : 0,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        beats: beatResults,
+        producers: producerResults,
+      },
     });
   })
 );

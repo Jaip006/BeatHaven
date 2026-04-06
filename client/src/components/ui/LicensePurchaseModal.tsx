@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { IndianRupee, Info, ShoppingCart, X } from 'lucide-react';
+import { IndianRupee, ShoppingCart, X } from 'lucide-react';
 import type { Beat } from '../../types';
 import { useCart } from '../../context/CartContext';
 

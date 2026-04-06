@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Play, Pause, Heart, Music } from 'lucide-react';
 import type { Beat } from '../../types';
 import { Badge } from '../ui/Badge';
@@ -6,6 +7,7 @@ import PriceButton from './PriceButton';
 import LicensePurchaseModal from './LicensePurchaseModal';
 import { formatCount } from '../../utils/formatters';
 import { getAuthSession } from '../../utils/auth';
+import { useNavigate } from 'react-router-dom';
 
 interface BeatCardProps {
   beat: Beat;
@@ -16,12 +18,22 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [liked, setLiked] = useState(false);
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
+  const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
+  const navigate = useNavigate();
   const currentUserId = getAuthSession()?.user?.id;
   const isOwnBeat = Boolean(currentUserId && currentUserId === beat.producerId);
 
   const handlePlay = () => {
     setIsPlaying(!isPlaying);
     onPlay?.(beat);
+  };
+
+  const handlePriceClick = () => {
+    if (!getAuthSession()) {
+      setIsAuthPromptOpen(true);
+      return;
+    }
+    setIsLicenseModalOpen(true);
   };
 
   return (
@@ -93,7 +105,7 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
         {/* Price + Cart */}
         {isOwnBeat ? null : (
           <div className="flex items-center justify-end">
-            <PriceButton price={beat.price} onClick={() => setIsLicenseModalOpen(true)} />
+            <PriceButton price={beat.price} onClick={handlePriceClick} />
           </div>
         )}
       </div>
@@ -105,6 +117,39 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
           onClose={() => setIsLicenseModalOpen(false)}
         />
       )}
+
+      {isAuthPromptOpen && typeof document !== 'undefined'
+        ? createPortal(
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setIsAuthPromptOpen(false)}>
+            <div
+              className="w-full max-w-sm rounded-2xl border border-[#2A2A2A] bg-[#101010] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h3 className="text-lg font-bold text-white">Sign in required</h3>
+              <p className="mt-2 text-sm text-[#B3B3B3]">
+                Please sign in or create an account to purchase beats.
+              </p>
+              <div className="mt-5 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/sign-up')}
+                  className="rounded-lg border border-[#2A2A2A] px-3 py-2 text-sm text-white transition-colors hover:bg-[#171717]"
+                >
+                  Sign Up
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/sign-in')}
+                  className="rounded-lg bg-[#1ED760] px-3 py-2 text-sm font-semibold text-[#0B0B0B] transition-colors hover:bg-[#19c453]"
+                >
+                  Sign In
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+        : null}
     </div>
   );
 };

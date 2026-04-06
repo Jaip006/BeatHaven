@@ -7,7 +7,6 @@ import UserQuickActions from './UserQuickActions';
 
 const navLinks = [
   { label: 'Beats', href: '#trending' },
-  { label: 'Producers', href: '#producers' },
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Licensing', href: '#licensing' },
 ];
@@ -90,7 +89,7 @@ const Navbar: React.FC = () => {
           <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] flex items-center justify-center shadow-[0_0_20px_rgba(30,215,96,0.3)] group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)] transition-all duration-300">
+            <div className="flex w-9 h-9 rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] flex items-center justify-center shadow-[0_0_20px_rgba(30,215,96,0.3)] group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)] transition-all duration-300">
               <Music2 size={18} className="text-[#0B0B0B]" />
             </div>
             <span className="text-xl font-bold text-white tracking-tight">
@@ -104,11 +103,12 @@ const Navbar: React.FC = () => {
               <div className="relative group">
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1 text-sm text-[#B3B3B3] hover:text-white transition-colors duration-200"
+                  className="inline-flex items-center gap-1 text-sm text-[#B3B3B3] hover:text-white transition-colors duration-200 relative"
                 >
                   Dashboard
+                  <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-[#1ED760] group-hover:w-full transition-all duration-300" />
                 </button>
-                <div className="pointer-events-none absolute left-0 top-full z-[120] pt-3 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100">
+                <div className="invisible absolute left-0 top-full z-[120] pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
                   <div className="w-56 rounded-2xl border border-[#262626] bg-[#101010] p-2 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
                     <Link
                       to="/dashboard/seller"
