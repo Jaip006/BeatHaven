@@ -2,122 +2,7 @@ import React from 'react';
 import { TrendingUp, ArrowRight } from 'lucide-react';
 import BeatCard from '../ui/BeatCard';
 import { Button } from '../ui/Button';
-import type { Beat } from '../../types';
-
-const mockBeats: Beat[] = [
-  {
-    id: '1',
-    title: 'Midnight Drip',
-    producerName: 'TrapKing808',
-    producerId: 'p1',
-    genre: 'Trap',
-    bpm: 140,
-    key: 'Am',
-    price: 999,
-    coverImage: `https://picsum.photos/seed/beat1/400/400`,
-    tags: ['trap', 'dark', '808'],
-    plays: 18400,
-    likes: 1230,
-  },
-  {
-    id: '2',
-    title: 'Neon Vibes',
-    producerName: 'SynthWave_',
-    producerId: 'p2',
-    genre: 'R&B',
-    bpm: 90,
-    key: 'Dm',
-    price: 899,
-    coverImage: `https://picsum.photos/seed/beat2/400/400`,
-    tags: ['rnb', 'chill', 'melodic'],
-    plays: 24100,
-    likes: 2050,
-  },
-  {
-    id: '3',
-    title: 'Lagos Nights',
-    producerName: 'AfroGod_',
-    producerId: 'p3',
-    genre: 'Afrobeats',
-    bpm: 105,
-    key: 'F',
-    price: 999,
-    coverImage: `https://picsum.photos/seed/beat3/400/400`,
-    tags: ['afrobeats', 'dancehall', 'party'],
-    plays: 31800,
-    likes: 3100,
-  },
-  {
-    id: '4',
-    title: 'Cold World',
-    producerName: 'DrillMaestro',
-    producerId: 'p4',
-    genre: 'Drill',
-    bpm: 144,
-    key: 'Gm',
-    price: 599,
-    coverImage: `https://picsum.photos/seed/beat4/400/400`,
-    tags: ['drill', 'uk', 'dark'],
-    plays: 15600,
-    likes: 980,
-  },
-  {
-    id: '5',
-    title: 'Lotus Dream',
-    producerName: 'ChillVibes_',
-    producerId: 'p5',
-    genre: 'Lo-Fi',
-    bpm: 75,
-    key: 'C',
-    price: 999,
-    coverImage: `https://picsum.photos/seed/beat5/400/400`,
-    tags: ['lofi', 'chill', 'study'],
-    plays: 9800,
-    likes: 720,
-  },
-  {
-    id: '6',
-    title: 'Gold Rush',
-    producerName: 'HipHopLegend',
-    producerId: 'p6',
-    genre: 'Hip-Hop',
-    bpm: 95,
-    key: 'Bb',
-    price: 999,
-    coverImage: `https://picsum.photos/seed/beat6/400/400`,
-    tags: ['hiphop', 'boom-bap', 'golden'],
-    plays: 42000,
-    likes: 4400,
-  },
-  {
-    id: '7',
-    title: 'Electric Feel',
-    producerName: 'EDMFactory',
-    producerId: 'p7',
-    genre: 'Electronic',
-    bpm: 128,
-    key: 'A',
-    price: 1299,
-    coverImage: `https://picsum.photos/seed/beat7/400/400`,
-    tags: ['edm', 'electronic', 'festival'],
-    plays: 28000,
-    likes: 2800,
-  },
-  {
-    id: '8',
-    title: 'Heartbreak Hotel',
-    producerName: 'MelancholyBeat',
-    producerId: 'p8',
-    genre: 'Pop',
-    bpm: 118,
-    key: 'Em',
-    price: 899,
-    coverImage: `https://picsum.photos/seed/beat8/400/400`,
-    tags: ['pop', 'emotional', 'melodic'],
-    plays: 19500,
-    likes: 1600,
-  },
-];
+import { trendingBeats } from '../../data/trendingBeats';
 
 const TrendingBeats: React.FC = () => {
   return (
@@ -144,7 +29,7 @@ const TrendingBeats: React.FC = () => {
 
         {/* Beats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {mockBeats.map((beat) => (
+          {trendingBeats.map((beat) => (
             <BeatCard key={beat.id} beat={beat} />
           ))}
         </div>

@@ -4,18 +4,15 @@ import {
   Download,
   Heart,
   Music2,
-  Play,
   Search,
   ShoppingCart,
   FileText,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
+import BeatCard from '../components/ui/BeatCard';
 import UserQuickActions from '../components/layout/UserQuickActions';
-import { useCart } from '../context/CartContext';
-import { usePlayer } from '../context/PlayerContext';
-import type { Beat } from '../types';
-import { formatPrice } from '../utils/formatters';
+import { trendingBeats } from '../data/trendingBeats';
 
 type DropdownKey = 'dashboard' | 'beats' | 'browse' | null;
 
@@ -34,12 +31,6 @@ const browseSections = [
     title: 'Library',
     items: ['Liked', 'Downloads', 'My Lyrics'],
   },
-];
-
-const trendingBeats = [
-  { id: 'buyer-neon-skyline', title: 'Neon Skyline', producer: 'Aaryan Waves', vibe: 'Trap Soul', bpm: 142, price: 3999, key: 'Am', genre: 'Trap Soul', coverImage: 'https://picsum.photos/seed/buyer-neon-skyline/400/400' },
-  { id: 'buyer-velvet-motion', title: 'Velvet Motion', producer: 'Riz Mixx', vibe: 'R&B', bpm: 96, price: 2999, key: 'Dm', genre: 'R&B', coverImage: 'https://picsum.photos/seed/buyer-velvet-motion/400/400' },
-  { id: 'buyer-drift-theory', title: 'Drift Theory', producer: 'Karma Keys', vibe: 'Melodic Drill', bpm: 138, price: 4499, key: 'Gm', genre: 'Drill', coverImage: 'https://picsum.photos/seed/buyer-drift-theory/400/400' },
 ];
 
 const playlists = [
@@ -64,27 +55,10 @@ const quickAccessItems = [
 const BuyerDashboardPage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
   const dropdownContainerRef = useRef<HTMLDivElement | null>(null);
-  const { addToCart, getItemQuantity } = useCart();
-  const { playBeat } = usePlayer();
 
   const toggleDropdown = (key: Exclude<DropdownKey, null>) => {
     setOpenDropdown((current) => (current === key ? null : key));
   };
-
-  const mapTrendingBeatToCartBeat = (beat: (typeof trendingBeats)[number]): Beat => ({
-    id: beat.id,
-    title: beat.title,
-    producerName: beat.producer,
-    producerId: `producer-${beat.id}`,
-    genre: beat.genre,
-    bpm: beat.bpm,
-    key: beat.key,
-    price: beat.price,
-    coverImage: beat.coverImage,
-    tags: [beat.vibe.toLowerCase().replace(/\s+/g, '-')],
-    plays: 0,
-    likes: 0,
-  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -298,35 +272,9 @@ const BuyerDashboardPage: React.FC = () => {
               <Button variant="secondary" size="sm">View All</Button>
             </div>
 
-            <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {trendingBeats.map((beat) => (
-                <div key={beat.title} className="rounded-[1.6rem] border border-[#262626] bg-[#121212]/90 p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">{beat.title}</h3>
-                      <p className="mt-1 text-sm text-[#B3B3B3]">{beat.producer}</p>
-                    </div>
-                    <button
-                      onClick={() => playBeat({ id: beat.id, title: beat.title, producerName: beat.producer, coverImage: beat.coverImage, audioUrl: '', bpm: beat.bpm, price: beat.price })}
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1A1A1A] text-[#1ED760] transition-colors duration-200 hover:bg-[#242424]">
-                      <Play size={16} fill="currentColor" />
-                    </button>
-                  </div>
-                  <p className="mt-4 text-sm text-[#6B7280]">
-                    {beat.vibe} • {beat.bpm} BPM
-                  </p>
-                  <div className="mt-5 flex items-center justify-between">
-                    <span className="text-lg font-bold text-[#1ED760]">{formatPrice(beat.price)}</span>
-                    <Button
-                      variant="accent"
-                      size="sm"
-                      onClick={() => addToCart(mapTrendingBeatToCartBeat(beat))}
-                    >
-                      <ShoppingCart size={14} fill="currentColor" />
-                      {getItemQuantity(beat.id) > 0 ? 'In Cart' : 'Add To Cart'}
-                    </Button>
-                  </div>
-                </div>
+                <BeatCard key={beat.id} beat={beat} />
               ))}
             </div>
           </div>
@@ -404,6 +352,7 @@ const BuyerDashboardPage: React.FC = () => {
 };
 
 export default BuyerDashboardPage;
+
 
 
 

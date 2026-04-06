@@ -83,7 +83,7 @@ export async function authFetch(input: AuthFetchInput, init: AuthFetchInit = {})
 
     if (!refreshedToken) {
       clearAuthSession();
-      redirectToSignIn('session_expired');
+      redirectToSignIn();
       return response;
     }
 

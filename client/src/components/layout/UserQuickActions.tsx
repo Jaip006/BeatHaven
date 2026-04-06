@@ -5,6 +5,7 @@ import { authService } from '../../utils/api';
 import { clearAuthSession, getAuthSession, getUserInitials, hydrateAuthSession, subscribeToAuthChanges, type AuthUser } from '../../utils/auth';
 import { getDefaultDashboardPath } from '../../utils/dashboard';
 import { Button } from '../ui/Button';
+import { useCart } from '../../context/CartContext';
 
 type UserQuickActionsProps = {
   mobile?: boolean;
@@ -16,6 +17,7 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) =
   const menuRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { itemCount } = useCart();
 
   useEffect(() => {
     setCurrentUser(getAuthSession()?.user ?? null);
@@ -84,11 +86,16 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) =
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <Link to="/cart">
+          <Link to="/cart" className="relative">
             <Button variant="secondary" size="sm" className="w-full justify-start">
               <ShoppingCart size={14} />
               Cart
             </Button>
+            {itemCount > 0 ? (
+              <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1ED760] px-1 text-[10px] font-bold text-[#0B0B0B]">
+                {itemCount > 99 ? '99+' : itemCount}
+              </span>
+            ) : null}
           </Link>
           <Link to="/dashboard/seller">
             <Button variant="primary" size="sm" className="w-full justify-start">
@@ -130,10 +137,15 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) =
 
   return (
     <div className="flex items-center gap-2 sm:gap-3">
-      <Link to="/cart" aria-label="Open cart">
+      <Link to="/cart" aria-label={`Open cart (${itemCount} item${itemCount === 1 ? '' : 's'})`} className="relative">
         <button className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-[#262626] bg-[#121212]/95 text-[#B3B3B3] transition-colors duration-200 hover:text-white">
           <ShoppingCart size={18} />
         </button>
+        {itemCount > 0 ? (
+          <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1ED760] px-1 text-[10px] font-bold text-[#0B0B0B] ring-2 ring-[#0B0B0B]">
+            {itemCount > 99 ? '99+' : itemCount}
+          </span>
+        ) : null}
       </Link>
       <Link to="/dashboard/seller">
         <Button variant="primary" size="sm" className="px-2.5 sm:px-4">

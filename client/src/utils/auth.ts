@@ -59,8 +59,17 @@ export function clearAuthSession() {
   window.dispatchEvent(new Event(AUTH_EVENT_NAME));
 }
 
-export function redirectToSignIn(reason = 'session_expired') {
+export function redirectToSignIn(reason?: string) {
   if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (!reason) {
+    if (window.location.pathname === '/sign-in') {
+      return;
+    }
+
+    window.location.assign('/sign-in');
     return;
   }
 
@@ -100,7 +109,7 @@ export async function hydrateAuthSession(forceRefresh = false) {
       if (axios.isAxiosError(apiError)) {
         const errorCode = apiError.response?.data?.error?.code as string | undefined;
         if (errorCode === 'SESSION_INACTIVE') {
-          redirectToSignIn('session_expired');
+          redirectToSignIn();
         }
       }
     }

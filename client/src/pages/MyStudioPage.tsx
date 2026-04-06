@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, ShieldCheck, Share2, Expand, ChevronDown, Music2, Search, Trash2, Instagram, Youtube, Twitter, Disc3, Cloud, Globe } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import UserQuickActions from '../components/layout/UserQuickActions';
+import PriceButton from '../components/ui/PriceButton';
 import { getAuthSession } from '../utils/auth';
 import { authFetch } from '../utils/authFetch';
 import { usePlayer } from '../context/PlayerContext';
@@ -105,6 +106,9 @@ const MyStudioPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copiedShareUrl, setCopiedShareUrl] = useState(false);
+  const [beatToDelete, setBeatToDelete] = useState<Beat | null>(null);
+  const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const currentUserId = getAuthSession()?.user?.id;
   const [searchParams] = useSearchParams();
   const { playBeat, currentBeat, isPlaying, togglePlay } = usePlayer();
@@ -228,22 +232,34 @@ const MyStudioPage: React.FC = () => {
     }
   };
 
-  const handleDeleteBeat = async (beatId: string) => {
-    const shouldDelete = window.confirm('Delete this beat? This action cannot be undone.');
-    if (!shouldDelete) return;
+  const handleDeleteBeat = (beat: Beat) => {
+    setDeleteError(null);
+    setBeatToDelete(beat);
+  };
+
+  const handleCancelDelete = () => {
+    if (isDeleteSubmitting) return;
+    setDeleteError(null);
+    setBeatToDelete(null);
+  };
+
+  const handleConfirmDeleteBeat = async () => {
+    if (!beatToDelete?._id) return;
+    setIsDeleteSubmitting(true);
+    setDeleteError(null);
 
     try {
-      const res = await authFetch(`${import.meta.env.VITE_API_URL}/beats/${beatId}`, {
+      const res = await authFetch(`${import.meta.env.VITE_API_URL}/beats/${beatToDelete._id}`, {
         method: 'DELETE',
       });
       const data = await res.json().catch(() => null);
 
       if (!res.ok || !data?.success) {
-        alert(data?.message || 'Failed to delete beat.');
+        setDeleteError(data?.message || 'Failed to delete beat.');
         return;
       }
 
-      setBeats((prev) => prev.filter((beat) => beat._id !== beatId));
+      setBeats((prev) => prev.filter((beat) => beat._id !== beatToDelete._id));
       setStats((prev) =>
         prev
           ? {
@@ -252,9 +268,12 @@ const MyStudioPage: React.FC = () => {
           }
           : prev
       );
+      setBeatToDelete(null);
     } catch (error) {
       console.error('Failed to delete beat', error);
-      alert('Failed to delete beat.');
+      setDeleteError('Failed to delete beat.');
+    } finally {
+      setIsDeleteSubmitting(false);
     }
   };
 
@@ -282,6 +301,7 @@ const MyStudioPage: React.FC = () => {
       coverImage: beat.artworkUrl,
       audioUrl: beat.untaggedMp3Url,
       bpm: beat.tempo,
+      price: beat.basicPrice,
     });
     void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat._id}/play`, { method: 'POST' })
       .then((r) => r.json())
@@ -517,12 +537,10 @@ const MyStudioPage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center justify-end gap-3">
-                        <button className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-purple-700">
-                          Buy Rs {beat.basicPrice || 799}
-                        </button>
+                        {!canDeleteBeats && <PriceButton price={beat.basicPrice} />}
                         {canDeleteBeats && (
                           <button
-                            onClick={() => handleDeleteBeat(beat._id)}
+                            onClick={() => handleDeleteBeat(beat)}
                             className="p-2 text-gray-500 hover:text-red-400 transition-colors"
                             title="Delete beat"
                           >
@@ -565,6 +583,39 @@ const MyStudioPage: React.FC = () => {
                   className="rounded-xl bg-[#1ED760] px-4 py-2 text-sm font-semibold text-black hover:bg-[#19c453]"
                 >
                   {copiedShareUrl ? 'Copied!' : 'Copy URL'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {beatToDelete && (
+          <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-2xl border border-[#2A2A2A] bg-[#121212] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+              <h3 className="text-lg font-semibold text-white">Delete Beat?</h3>
+              <p className="mt-2 text-sm text-[#B3B3B3]">
+                You are about to delete <span className="font-semibold text-white">&quot;{beatToDelete.title}&quot;</span>. This action cannot be undone.
+              </p>
+              {deleteError ? (
+                <p className="mt-3 rounded-lg border border-[#4A1D25] bg-[#2A1015] px-3 py-2 text-xs text-[#FFB4C0]">
+                  {deleteError}
+                </p>
+              ) : null}
+              <div className="mt-5 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={handleCancelDelete}
+                  disabled={isDeleteSubmitting}
+                  className="rounded-xl border border-[#2A2A2A] px-4 py-2 text-sm font-medium text-[#B3B3B3] transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDeleteBeat}
+                  disabled={isDeleteSubmitting}
+                  className="rounded-xl bg-[#EF4444] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#DC2626] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isDeleteSubmitting ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

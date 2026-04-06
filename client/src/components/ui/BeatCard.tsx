@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Play, Pause, Heart, ShoppingCart, Music } from 'lucide-react';
+import { Play, Pause, Heart, Music } from 'lucide-react';
 import type { Beat } from '../../types';
 import { Badge } from '../ui/Badge';
-import { Button } from '../ui/Button';
-import { formatPrice, formatCount } from '../../utils/formatters';
-import { useCart } from '../../context/CartContext';
+import PriceButton from './PriceButton';
+import LicensePurchaseModal from './LicensePurchaseModal';
+import { formatCount } from '../../utils/formatters';
+import { getAuthSession } from '../../utils/auth';
 
 interface BeatCardProps {
   beat: Beat;
@@ -14,8 +15,9 @@ interface BeatCardProps {
 const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [liked, setLiked] = useState(false);
-  const { addToCart, getItemQuantity } = useCart();
-  const itemQuantity = getItemQuantity(beat.id);
+  const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
+  const currentUserId = getAuthSession()?.user?.id;
+  const isOwnBeat = Boolean(currentUserId && currentUserId === beat.producerId);
 
   const handlePlay = () => {
     setIsPlaying(!isPlaying);
@@ -89,14 +91,20 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
         </div>
 
         {/* Price + Cart */}
-        <div className="flex items-center justify-between">
-          <span className="text-[#1ED760] font-bold text-lg">{formatPrice(beat.price)}</span>
-          <Button size="sm" variant="primary" className="gap-1.5" onClick={() => addToCart(beat)}>
-            <ShoppingCart size={13} />
-            {itemQuantity > 0 ? 'In Cart' : 'Add to Cart'}
-          </Button>
-        </div>
+        {isOwnBeat ? null : (
+          <div className="flex items-center justify-end">
+            <PriceButton price={beat.price} onClick={() => setIsLicenseModalOpen(true)} />
+          </div>
+        )}
       </div>
+
+      {isOwnBeat ? null : (
+        <LicensePurchaseModal
+          beat={beat}
+          isOpen={isLicenseModalOpen}
+          onClose={() => setIsLicenseModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
