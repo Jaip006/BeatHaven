@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { authService } from '../utils/api';
 import { saveAuthSession } from '../utils/auth';
@@ -58,11 +58,7 @@ const SignInPage: React.FC = () => {
 
         <section className="relative min-h-screen max-w-7xl mx-auto px-4 sm:px-5 lg:px-7 py-10 sm:py-14 flex items-center">
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/80 px-4 py-2 text-sm text-[#B3B3B3]">
-                <ShieldCheck size={14} className="text-[#1ED760]" />
-                <span>Secure access for artists and producers</span>
-              </div>
+            <div className="hidden max-w-2xl sm:block">
 
               <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
                 Sign in and get
@@ -77,7 +73,6 @@ const SignInPage: React.FC = () => {
 
             <div className="glass rounded-[2rem] border border-[#262626] p-6 sm:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
               <div className="mb-8">
-                <p className="text-sm uppercase tracking-[0.3em] text-[#1ED760]">Welcome</p>
                 <h2 className="mt-3 text-3xl font-bold text-white">Sign in to BeatHaven</h2>
                 <p className="mt-3 text-sm leading-relaxed text-[#B3B3B3]">
                   Use your email and password to access your dashboard.

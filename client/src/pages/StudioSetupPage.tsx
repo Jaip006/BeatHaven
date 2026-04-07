@@ -389,14 +389,6 @@ const StudioSetupPage: React.FC = () => {
                   {copied ? <Check size={11} /> : <Copy size={11} />}
                   {copied ? 'Copied!' : 'Copy link'}
                 </button>
-                <a
-                  href={`https://${profileUrl}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-xl border border-[#262626] bg-[#161616] px-3 py-1.5 text-xs font-medium text-[#B3B3B3] transition-all duration-200 hover:text-white"
-                >
-                  <ExternalLink size={11} /> Preview
-                </a>
               </div>
             </div>
           )}

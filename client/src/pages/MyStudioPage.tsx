@@ -310,7 +310,7 @@ const MyStudioPage: React.FC = () => {
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]">
                   <Music2 size={18} className="text-[#0B0B0B]" />
                 </div>
-                <span className="text-xl font-bold text-white tracking-tight">Beat<span className="text-[#1ED760]">Haven</span></span>
+                <span className="hidden text-xl font-bold tracking-tight text-white sm:inline">Beat<span className="text-[#1ED760]">Haven</span></span>
               </Link>
 
               <div className="hidden flex-1 items-center justify-center lg:flex">
@@ -375,20 +375,20 @@ const MyStudioPage: React.FC = () => {
           </div>
         </div>
 
-        <section className="relative z-0 mx-auto max-w-7xl px-4 pb-28 pt-[7.5rem] sm:px-5 sm:pt-[8.25rem] lg:px-7">
+        <section className="relative z-0 mx-auto max-w-7xl px-3 pb-24 pt-[7rem] sm:px-5 sm:pb-28 sm:pt-[8.25rem] lg:px-7">
           {loading ? (
             <div className="text-center text-[#B3B3B3] py-20">Loading your studio...</div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[300px_1fr]">
 
               {/* Left Sidebar */}
               <div className="space-y-4">
                 {/* Profile Card */}
-                <div className="bg-[#151515] border border-[#262626] rounded-2xl p-6 text-center">
-                  <div className="w-32 h-32 mx-auto rounded-xl overflow-hidden mb-4 bg-[#2A2A2A]">
+                <div className="bg-[#151515] border border-[#262626] rounded-2xl p-4 text-center sm:p-6">
+                  <div className="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-xl bg-[#2A2A2A] sm:h-32 sm:w-32">
                     <img src={profile?.avatar } alt="Avatar" className="w-full h-full object-cover" />
                   </div>
-                  <h2 className="text-xl font-bold flex items-center justify-center gap-2">
+                  <h2 className="flex items-center justify-center gap-2 text-lg font-bold sm:text-xl">
                     {studioTitle}
                     {isStudioVerified && (
                       <ShieldCheck className="w-5 h-5 text-blue-500 fill-blue-500/20" />
@@ -401,7 +401,7 @@ const MyStudioPage: React.FC = () => {
                     <p className="text-gray-400 text-xs mt-2">Joined {joinedDate}</p>
                   )}
 
-                  <div className="mt-6 flex flex-wrap items-start justify-between gap-4 px-2 sm:px-4">
+                  <div className="mt-5 flex flex-wrap items-start justify-center gap-2 px-1 sm:mt-6 sm:justify-between sm:gap-4 sm:px-4">
                     <div className="text-center">
                       <p className="text-lg font-bold">{stats?.followers || 0}</p>
                       <p className="text-xs text-gray-500">Followers</p>
@@ -416,7 +416,7 @@ const MyStudioPage: React.FC = () => {
                     </div>
                     <button
                       onClick={() => setIsShareModalOpen(true)}
-                      className="ml-auto rounded-xl border border-[#262626] p-2 text-white transition-colors hover:bg-[#202020]"
+                      className="rounded-xl border border-[#262626] p-2 text-white transition-colors hover:bg-[#202020] sm:ml-auto"
                     >
                       <Share2 className="w-5 h-5" />
                     </button>
@@ -436,7 +436,7 @@ const MyStudioPage: React.FC = () => {
                 </div>
 
                 {/* About Me Card */}
-                <div className="bg-[#151515] border border-[#262626] rounded-2xl p-6 relative">
+                <div className="bg-[#151515] border border-[#262626] rounded-2xl p-4 relative sm:p-6">
                   <h3 className="font-bold mb-2">About me</h3>
                   <p className="text-sm text-gray-400">
                     {profile?.bio || 'Add your bio from Studio Setup to show buyers your style and vibe.'}
@@ -462,8 +462,8 @@ const MyStudioPage: React.FC = () => {
               </div>
 
               {/* Right Area - Beats */}
-              <div className="bg-[#151515] border border-[#262626] rounded-2xl p-6">
-                <div className="flex justify-between items-center mb-6">
+              <div className="bg-[#151515] border border-[#262626] rounded-2xl p-4 sm:p-6">
+                <div className="mb-4 flex items-center justify-between sm:mb-6">
                   <h2 className="text-xl font-bold">Beats</h2>
                 </div>
 
@@ -475,7 +475,7 @@ const MyStudioPage: React.FC = () => {
                       'Unknown Studio';
 
                     return (
-                    <div key={beat._id} className="group flex flex-col gap-3 rounded-xl p-3 transition-colors hover:bg-[#1A1A1A] sm:flex-row sm:items-center sm:justify-between">
+                    <div key={beat._id} className="group flex items-center justify-between gap-3 rounded-xl p-3 transition-colors hover:bg-[#1A1A1A]">
                       <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                         <button
                           onClick={() => handlePlayBeat(beat)}

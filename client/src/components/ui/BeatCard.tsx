@@ -5,7 +5,6 @@ import type { Beat } from '../../types';
 import { Badge } from '../ui/Badge';
 import PriceButton from './PriceButton';
 import LicensePurchaseModal from './LicensePurchaseModal';
-import { formatCount } from '../../utils/formatters';
 import { getAuthSession } from '../../utils/auth';
 import { useNavigate } from 'react-router-dom';
 
@@ -99,7 +98,6 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           <Badge variant="outline">{beat.bpm} BPM</Badge>
           <Badge variant="outline">{beat.key}</Badge>
-          <span className="text-xs text-[#6B7280] ml-auto">{formatCount(beat.plays)} plays</span>
         </div>
 
         {/* Price + Cart */}

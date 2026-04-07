@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Sparkles, User2 } from 'lucide-react';
+import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, User2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { authService } from '../utils/api';
 
@@ -129,11 +129,7 @@ const SignUpPage: React.FC = () => {
 
         <section className="relative min-h-screen max-w-7xl mx-auto px-4 sm:px-5 lg:px-7 py-7 sm:py-14 flex items-center">
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#262626] bg-[#121212]/80 px-4 py-2 text-sm text-[#B3B3B3]">
-                <Sparkles size={14} className="text-[#7C5CFF]" />
-                <span>Start building your artist identity on BeatHaven</span>
-              </div>
+            <div className="hidden max-w-2xl sm:block">
 
               <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
                 Create account and

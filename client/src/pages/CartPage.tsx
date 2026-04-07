@@ -17,24 +17,25 @@ const CartPage: React.FC = () => {
         <div className="absolute top-56 right-[-8rem] h-72 w-72 rounded-full bg-[#7C5CFF]/10 blur-[120px] pointer-events-none" />
 
         <header className="sticky top-0 z-[110] border-b border-[#262626] bg-[#0B0B0B]/85 backdrop-blur-xl">
-          <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:px-7">
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <Link to="/dashboard/buyer">
-                <Button variant="secondary" size="sm">
+                <Button variant="secondary" size="sm" className="px-2.5 py-1.5 text-xs sm:px-3 sm:py-2 sm:text-sm">
                   <ArrowLeft size={14} />
-                  Back
                 </Button>
               </Link>
-              <div>
-                <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+              <div className="min-w-0">
+                <h1 className="text-xl font-black tracking-tight text-white sm:text-3xl">
                   Your Cart
                 </h1>
-                <p className="text-sm text-[#B3B3B3]">
+                <p className="hidden text-xs text-[#B3B3B3] sm:block sm:text-sm">
                   {itemCount} item{itemCount === 1 ? '' : 's'} ready for checkout
                 </p>
               </div>
             </div>
-            <UserQuickActions />
+            <div className="shrink-0">
+              <UserQuickActions />
+            </div>
           </div>
         </header>
 
