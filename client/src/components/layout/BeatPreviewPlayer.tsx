@@ -227,7 +227,38 @@ const BeatPreviewPlayer: React.FC = () => {
           <PriceButton price={currentBeat?.price} showBuyText={false} className="px-2.5 py-1 text-xs sm:px-3.5 sm:py-1.5 sm:text-sm" />
         ) : null}
 
-        <div className="relative" ref={actionsMenuRef}>
+        <div className="hidden items-center gap-1.5 pl-2 sm:flex">
+          <button
+            type="button"
+            aria-label="Share beat"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[#6B7280] transition-colors duration-150 hover:text-white"
+          >
+            <Share2 size={17} />
+          </button>
+          <button
+            type="button"
+            aria-label="Download beat"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[#6B7280] transition-colors duration-150 hover:text-white"
+          >
+            <Download size={17} />
+          </button>
+          <button
+            type="button"
+            aria-label="Like beat"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[#6B7280] transition-colors duration-150 hover:text-[#FF6FA1]"
+          >
+            <Heart size={17} />
+          </button>
+          <button
+            type="button"
+            className="text-[#6B7280] transition-colors duration-150 hover:text-white"
+            aria-label="Lyrics"
+          >
+            <FileText size={17} />
+          </button>
+        </div>
+
+        <div className="relative sm:hidden" ref={actionsMenuRef}>
           <button
             type="button"
             onClick={() => setActionsMenuOpen((prev) => !prev)}
