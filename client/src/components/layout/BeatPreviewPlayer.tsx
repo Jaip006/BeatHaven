@@ -1,8 +1,9 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Download,
   FileText,
   Heart,
+  MoreVertical,
   Music2,
   Pause,
   Play,
@@ -39,6 +40,8 @@ const BeatPreviewPlayer: React.FC = () => {
 
   const progressBarRef = useRef<HTMLDivElement>(null);
   const volumeBarRef = useRef<HTMLDivElement>(null);
+  const actionsMenuRef = useRef<HTMLDivElement>(null);
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
 
   const handleProgressClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -66,6 +69,23 @@ const BeatPreviewPlayer: React.FC = () => {
 
   const isVisible = currentBeat !== null;
 
+  useEffect(() => {
+    if (!actionsMenuOpen) return;
+
+    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+      if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target as Node)) {
+        setActionsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, [actionsMenuOpen]);
+
   return (
     <div
       className={`fixed inset-x-0 bottom-0 z-[300] transition-transform duration-500 ease-out ${
@@ -87,14 +107,14 @@ const BeatPreviewPlayer: React.FC = () => {
           style={{ width: `${progress * 100}%` }}
         />
         <div
-          className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
+          className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 sm:h-3 sm:w-3"
           style={{ left: `calc(${progress * 100}% - 6px)` }}
         />
       </div>
 
-      <div className="flex items-center gap-4 border-t border-[#1a1a1a] bg-[#0d0d0d]/95 px-4 py-3 backdrop-blur-2xl sm:px-6">
-        <div className="flex min-w-0 flex-1 items-center gap-3 sm:w-64 sm:flex-[0_0_auto]">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#262626] bg-[#1a1a1a]">
+      <div className="flex items-center gap-2 border-t border-[#1a1a1a] bg-[#0d0d0d]/95 px-2.5 py-2.5 backdrop-blur-2xl sm:gap-4 sm:px-6 sm:py-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:w-64 sm:flex-[0_0_auto] sm:gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#262626] bg-[#1a1a1a] sm:h-11 sm:w-11 sm:rounded-lg">
             {currentBeat?.coverImage ? (
               <img
                 src={currentBeat.coverImage}
@@ -102,7 +122,7 @@ const BeatPreviewPlayer: React.FC = () => {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <Music2 size={18} className="text-[#1ED760]" />
+              <Music2 size={16} className="text-[#1ED760] sm:h-[18px] sm:w-[18px]" />
             )}
           </div>
 
@@ -123,17 +143,17 @@ const BeatPreviewPlayer: React.FC = () => {
           </div>
 
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold leading-tight text-white">
+            <p className="truncate text-xs font-semibold leading-tight text-white sm:text-sm">
               {currentBeat?.title ?? '-'}
             </p>
-            <div className="mt-0.5 flex items-center gap-1.5">
-              <span className="truncate text-xs text-[#B3B3B3]">
+            <div className="mt-0.5 flex items-center gap-1">
+              <span className="truncate text-[10px] text-[#B3B3B3] sm:text-xs">
                 {currentBeat?.producerName ?? ''}
               </span>
               {currentBeat?.bpm && (
                 <>
-                  <span className="text-[#444]">·</span>
-                  <span className="shrink-0 text-xs font-medium text-[#1ED760]">
+                  <span className="text-[#444]">|</span>
+                  <span className="shrink-0 text-[10px] font-medium text-[#1ED760] sm:text-xs">
                     {currentBeat.bpm} BPM
                   </span>
                 </>
@@ -142,48 +162,24 @@ const BeatPreviewPlayer: React.FC = () => {
           </div>
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-3 sm:pl-4">
-          <button
-            type="button"
-            aria-label="Share beat"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-[#6B7280] transition-colors duration-150 hover:text-white"
-          >
-            <Share2 size={17} />
-          </button>
-          <button
-            type="button"
-            aria-label="Download beat"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-[#6B7280] transition-colors duration-150 hover:text-white"
-          >
-            <Download size={17} />
-          </button>
-          <button
-            type="button"
-            aria-label="Like beat"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-[#6B7280] transition-colors duration-150 hover:text-[#FF6FA1]"
-          >
-            <Heart size={17} />
-          </button>
-        </div>
-
-        <div className="flex flex-1 flex-col items-center gap-1.5">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-1 flex-col items-center gap-1 sm:gap-1.5">
+          <div className="flex items-center gap-2.5 sm:gap-4">
             <button
               className="text-[#6B7280] transition-colors duration-150 hover:text-white"
               aria-label="Previous"
             >
-              <SkipBack size={18} />
+              <SkipBack size={16} className="sm:h-[18px] sm:w-[18px]" />
             </button>
 
             <button
               onClick={togglePlay}
               aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-[0_0_16px_rgba(30,215,96,0.35)] transition-transform duration-150 hover:scale-105 active:scale-95"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black shadow-[0_0_16px_rgba(30,215,96,0.35)] transition-transform duration-150 hover:scale-105 active:scale-95 sm:h-10 sm:w-10"
             >
               {isPlaying ? (
-                <Pause size={18} fill="currentColor" />
+                <Pause size={16} fill="currentColor" className="sm:h-[18px] sm:w-[18px]" />
               ) : (
-                <Play size={18} fill="currentColor" className="ml-0.5" />
+                <Play size={16} fill="currentColor" className="ml-0.5 sm:h-[18px] sm:w-[18px]" />
               )}
             </button>
 
@@ -191,7 +187,7 @@ const BeatPreviewPlayer: React.FC = () => {
               className="text-[#6B7280] transition-colors duration-150 hover:text-white"
               aria-label="Next"
             >
-              <SkipForward size={18} />
+              <SkipForward size={16} className="sm:h-[18px] sm:w-[18px]" />
             </button>
           </div>
 
@@ -202,47 +198,88 @@ const BeatPreviewPlayer: React.FC = () => {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="text-[#6B7280] transition-colors duration-150 hover:text-white"
-          aria-label="Lyrics"
-        >
-          <FileText size={17} />
-        </button>
-
-         <div className="hidden items-center gap-2 sm:flex">
-            <button
-              onClick={toggleMute}
-              aria-label="Toggle mute"
-              className="text-[#6B7280] transition-colors hover:text-white"
-            >
-              {volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
-            <div
-              ref={volumeBarRef}
-              onClick={handleVolumeClick}
-              className="group relative h-1 w-20 cursor-pointer rounded-full bg-[#2a2a2a] transition-all duration-150 hover:h-1.5"
-              role="slider"
-              aria-label="Volume"
-              aria-valuenow={Math.round(volume * 100)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div
-                className="absolute inset-y-0 left-0 rounded-full bg-[#7C5CFF] transition-colors duration-300 group-hover:bg-[#1ED760]"
-                style={{ width: `${volume * 100}%` }}
-              />
-            </div>
-          </div>
-
-        <PriceButton price={currentBeat?.price} showBuyText={false} />
+        <div className="hidden items-center gap-2 sm:flex">
           <button
-            onClick={close}
-            aria-label="Close player"
-            className="text-[#4B4B4B] transition-colors duration-150 hover:text-white"
+            onClick={toggleMute}
+            aria-label="Toggle mute"
+            className="text-[#6B7280] transition-colors hover:text-white"
           >
-            <XIcon size={18} />
+            {volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>
+          <div
+            ref={volumeBarRef}
+            onClick={handleVolumeClick}
+            className="group relative h-1 w-20 cursor-pointer rounded-full bg-[#2a2a2a] transition-all duration-150 hover:h-1.5"
+            role="slider"
+            aria-label="Volume"
+            aria-valuenow={Math.round(volume * 100)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-[#7C5CFF] transition-colors duration-300 group-hover:bg-[#1ED760]"
+              style={{ width: `${volume * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {!currentBeat?.isOwnedByCurrentUser ? (
+          <PriceButton price={currentBeat?.price} showBuyText={false} className="px-2.5 py-1 text-xs sm:px-3.5 sm:py-1.5 sm:text-sm" />
+        ) : null}
+
+        <div className="relative" ref={actionsMenuRef}>
+          <button
+            type="button"
+            onClick={() => setActionsMenuOpen((prev) => !prev)}
+            aria-label="More actions"
+            className="rounded-full p-1 text-[#6B7280] transition-colors duration-150 hover:text-white"
+          >
+            <MoreVertical size={16} className="sm:h-[18px] sm:w-[18px]" />
+          </button>
+
+          {actionsMenuOpen ? (
+            <div className="absolute bottom-full right-0 mb-2 w-40 rounded-xl border border-[#262626] bg-[#101010] p-1.5 shadow-[0_14px_36px_rgba(0,0,0,0.45)]">
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
+              >
+                <Heart size={14} />
+                Like
+              </button>
+              <button
+                type="button"
+                className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
+              >
+                <Download size={14} />
+                Download
+              </button>
+              <button
+                type="button"
+                className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
+              >
+                <Share2 size={14} />
+                Share
+              </button>
+              <button
+                type="button"
+                className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
+              >
+                <FileText size={14} />
+                Lyrics
+              </button>
+            </div>
+          ) : null}
+        </div>
+        <button
+          onClick={() => {
+            setActionsMenuOpen(false);
+            close();
+          }}
+          aria-label="Close player"
+          className="text-[#6B7280] transition-colors duration-150 hover:text-white"
+        >
+          <XIcon size={16} className="sm:h-[18px] sm:w-[18px]" />
+        </button>
       </div>
     </div>
   );

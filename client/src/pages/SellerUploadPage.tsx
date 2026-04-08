@@ -80,9 +80,9 @@ const genreOptions = ['Hip Hop', 'Pop', 'Soul', 'Dancehall', 'House', 'Alternati
 const instrumentOptions = ['808', 'Piano', 'Guitar', 'Synth', 'Strings', 'Flute'];
 const moodOptions = ['Dark', 'Energetic', 'Melodic', 'Dreamy', 'Aggressive', 'Ambient'];
 const keyOptions = ['C Minor', 'D Minor', 'E Minor', 'F Minor', 'G Minor', 'A Minor'];
-const SELLER_UPLOAD_DRAFT_STORAGE_KEY = 'beathaven_seller_upload_draft';
-const legacyDefaultMoods = ['Melodic', 'Energetic'];
-const legacyDefaultTags = ['clean mix', 'club ready', 'hook space'];
+const SELLER_UPLOAD_DRAFT_STORAGE_PREFIX = 'beathaven_seller_upload_draft';
+const getSellerUploadDraftStorageKey = (userId?: string | null): string =>
+  `${SELLER_UPLOAD_DRAFT_STORAGE_PREFIX}:${userId || 'guest'}`;
 const createDefaultMetadataForm = (): MetadataForm => ({
   title: '',
   beatType: '',
@@ -182,6 +182,7 @@ const uploadSections = [
 
 const SellerUploadPage: React.FC = () => {
   const navigate = useNavigate();
+  const draftStorageKey = getSellerUploadDraftStorageKey(getAuthSession()?.user?.id);
   const [isMoodDropdownOpen, setIsMoodDropdownOpen] = useState(false);
   const [isInstrumentDropdownOpen, setIsInstrumentDropdownOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<UploadSectionKey>('metadata');
@@ -263,7 +264,7 @@ const SellerUploadPage: React.FC = () => {
   }, [uploadNotice]);
 
   useEffect(() => {
-    const savedDraft = window.localStorage.getItem(SELLER_UPLOAD_DRAFT_STORAGE_KEY);
+    const savedDraft = window.localStorage.getItem(draftStorageKey);
 
     if (!savedDraft) {
       return;
@@ -271,21 +272,11 @@ const SellerUploadPage: React.FC = () => {
 
     try {
       const parsedDraft = JSON.parse(savedDraft) as SellerUploadDraft;
-      const restoredMoods = Array.isArray(parsedDraft.selectedMoods)
-        ? parsedDraft.selectedMoods
-        : [];
-      const restoredTags = Array.isArray(parsedDraft.selectedTags)
-        ? parsedDraft.selectedTags
-        : [];
-      const shouldClearLegacyMoodDefaults =
-        restoredMoods.length === legacyDefaultMoods.length &&
-        legacyDefaultMoods.every((mood) => restoredMoods.includes(mood));
-      const shouldClearLegacyTagDefaults =
-        restoredTags.length === legacyDefaultTags.length &&
-        legacyDefaultTags.every((tag) => restoredTags.includes(tag));
+      const restoredSection = parsedDraft.activeSection;
+      const isValidSection =
+        restoredSection === 'metadata' || restoredSection === 'media' || restoredSection === 'license';
 
-      // Always open Meta Data first when entering upload flow.
-      setActiveSection('metadata');
+      setActiveSection(isValidSection ? restoredSection : 'metadata');
       const restoredMetadataForm = parsedDraft.metadataForm ?? createDefaultMetadataForm();
       setMetadataForm({
         ...createDefaultMetadataForm(),
@@ -294,8 +285,8 @@ const SellerUploadPage: React.FC = () => {
           ? restoredMetadataForm.instruments
           : [],
       });
-      setSelectedMoods(shouldClearLegacyMoodDefaults ? [] : restoredMoods);
-      setSelectedTags(shouldClearLegacyTagDefaults ? [] : restoredTags);
+      setSelectedMoods(Array.isArray(parsedDraft.selectedMoods) ? parsedDraft.selectedMoods : []);
+      setSelectedTags(Array.isArray(parsedDraft.selectedTags) ? parsedDraft.selectedTags : []);
       setTagInput(parsedDraft.tagInput ?? '');
       setSampleUsed(parsedDraft.sampleUsed ?? false);
       setSampleDetails(
@@ -312,8 +303,9 @@ const SellerUploadPage: React.FC = () => {
       setDraftStatus('Draft restored');
     } catch {
       setDraftStatus('Could not restore draft');
+      window.localStorage.removeItem(draftStorageKey);
     }
-  }, []);
+  }, [draftStorageKey]);
 
   const toggleMood = (mood: string) => {
     setSelectedMoods((current) =>
@@ -411,19 +403,19 @@ const SellerUploadPage: React.FC = () => {
       licenseForm,
     };
 
-    window.localStorage.setItem(SELLER_UPLOAD_DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
+    window.localStorage.setItem(draftStorageKey, JSON.stringify(draftPayload));
     setDraftStatus('Draft saved');
   };
 
   const handleClearAll = () => {
-    const existingDraft = window.localStorage.getItem(SELLER_UPLOAD_DRAFT_STORAGE_KEY);
+    const existingDraft = window.localStorage.getItem(draftStorageKey);
     let parsedDraft: SellerUploadDraft | null = null;
 
     if (existingDraft) {
       try {
         parsedDraft = JSON.parse(existingDraft) as SellerUploadDraft;
       } catch {
-        window.localStorage.removeItem(SELLER_UPLOAD_DRAFT_STORAGE_KEY);
+        window.localStorage.removeItem(draftStorageKey);
       }
     }
 
@@ -444,7 +436,7 @@ const SellerUploadPage: React.FC = () => {
 
       if (parsedDraft) {
         window.localStorage.setItem(
-          SELLER_UPLOAD_DRAFT_STORAGE_KEY,
+          draftStorageKey,
           JSON.stringify({
             ...parsedDraft,
             metadataForm: clearedMetadataForm,
@@ -466,7 +458,7 @@ const SellerUploadPage: React.FC = () => {
 
       if (parsedDraft) {
         window.localStorage.setItem(
-          SELLER_UPLOAD_DRAFT_STORAGE_KEY,
+          draftStorageKey,
           JSON.stringify({
             ...parsedDraft,
             uploadedFiles: clearedUploadedFiles,
@@ -484,7 +476,7 @@ const SellerUploadPage: React.FC = () => {
 
       if (parsedDraft) {
         window.localStorage.setItem(
-          SELLER_UPLOAD_DRAFT_STORAGE_KEY,
+          draftStorageKey,
           JSON.stringify({
             ...parsedDraft,
             licensePricing: clearedLicensePricing,
@@ -512,7 +504,7 @@ const SellerUploadPage: React.FC = () => {
     setMediaInputResetKey((current) => current + 1);
     setLicensePricing(createDefaultLicensePricing());
     setLicenseForm(createDefaultLicenseForm());
-    window.localStorage.removeItem(SELLER_UPLOAD_DRAFT_STORAGE_KEY);
+    window.localStorage.removeItem(draftStorageKey);
   };
 
   const handleSubmit = async () => {
@@ -562,10 +554,6 @@ const SellerUploadPage: React.FC = () => {
 
       if (!session?.accessToken) {
         setUploadNotice({ tone: 'error', message: 'Your session expired. Please sign in again.' });
-        return;
-      }
-      if (session?.user?.role !== "seller") {
-        setUploadNotice({ tone: 'error', message: 'Only seller accounts can upload beats.' });
         return;
       }
       const response = await authFetch(`${import.meta.env.VITE_API_URL}/beats`, {

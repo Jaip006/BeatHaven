@@ -98,7 +98,6 @@ const deleteCloudinaryAsset = async (
 beatRouter.post(
   "/",
   requireAuth,
-  requireSeller,
   uploadFields,
   asyncHandler(async (req, res) => {
     ensureCloudinaryConfigured();

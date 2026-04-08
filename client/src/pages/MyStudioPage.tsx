@@ -284,6 +284,7 @@ const MyStudioPage: React.FC = () => {
       audioUrl: beat.untaggedMp3Url,
       bpm: beat.tempo,
       price: beat.basicPrice,
+      isOwnedByCurrentUser: canDeleteBeats,
     });
     void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat._id}/play`, { method: 'POST' })
       .then((r) => r.json())

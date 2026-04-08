@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { getAuthSession, subscribeToAuthChanges } from '../utils/auth';
 
 export interface PlayerBeat {
   id: string;
@@ -16,6 +17,7 @@ export interface PlayerBeat {
   bpm?: number;
   price?: number;
   genre?: string;
+  isOwnedByCurrentUser?: boolean;
 }
 
 interface PlayerContextValue {
@@ -150,6 +152,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCurrentTime(0);
     setDuration(0);
   }, []);
+
+  useEffect(() => subscribeToAuthChanges(() => {
+    if (!getAuthSession()) {
+      close();
+    }
+  }), [close]);
 
   return (
     <PlayerContext.Provider

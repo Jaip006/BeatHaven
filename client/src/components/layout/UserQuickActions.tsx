@@ -9,9 +9,10 @@ import { useCart } from '../../context/CartContext';
 
 type UserQuickActionsProps = {
   mobile?: boolean;
+  mobileSection?: 'all' | 'topActions' | 'account';
 };
 
-const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) => {
+const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false, mobileSection = 'all' }) => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(getAuthSession()?.user ?? null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -78,59 +79,62 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false }) =
   };
 
   if (mobile) {
+    const showTopActions = mobileSection === 'all' || mobileSection === 'topActions';
+    const showAccount = mobileSection === 'all' || mobileSection === 'account';
+
     return (
-      <div className="pt-3">
-        <div className="rounded-2xl border border-[#262626] bg-[#121212] px-4 py-3">
-          <p className="text-sm font-semibold text-white">{currentUser.displayName}</p>
-          <p className="mt-1 truncate text-xs text-[#B3B3B3]">{currentUser.email}</p>
-        </div>
+      <div className="space-y-3 pt-1">
+        {showTopActions ? (
+          <div className="grid grid-cols-2 gap-2">
+            <Link to="/cart" className="relative">
+              <Button variant="secondary" size="sm" className="h-11 w-full justify-start px-3">
+                <ShoppingCart size={14} />
+                Cart
+              </Button>
+              {itemCount > 0 ? (
+                <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1ED760] px-1 text-[10px] font-bold text-[#0B0B0B]">
+                  {itemCount > 99 ? '99+' : itemCount}
+                </span>
+              ) : null}
+            </Link>
+            <Link to="/dashboard/seller">
+              <Button variant="primary" size="sm" className="h-11 w-full justify-start px-3">
+                <Upload size={14} />
+                Upload
+              </Button>
+            </Link>
+          </div>
+        ) : null}
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Link to="/cart" className="relative">
-            <Button variant="secondary" size="sm" className="w-full justify-start">
-              <ShoppingCart size={14} />
-              Cart
-            </Button>
-            {itemCount > 0 ? (
-              <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1ED760] px-1 text-[10px] font-bold text-[#0B0B0B]">
-                {itemCount > 99 ? '99+' : itemCount}
-              </span>
-            ) : null}
-          </Link>
-          <Link to="/dashboard/seller">
-            <Button variant="primary" size="sm" className="w-full justify-start">
-              <Upload size={14} />
-              Upload
-            </Button>
-          </Link>
-        </div>
-
-        <div className="mt-3 rounded-2xl border border-[#262626] bg-[#101010] p-2">
-          <Link to={dashboardPath} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
-            <LayoutDashboard size={14} />
-            My Dashboard
-          </Link>
-          <Link to="/profile" className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
-            <User size={14} />
-            Profile
-          </Link>
-          <Link to="/studio-setup" className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
-            <HomeIcon size={14} />
-            Studio Setup
-          </Link>
-          <Link to="/seller-agreement" className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
-            <FileText size={14} />
-            Seller Agreement
-          </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#FFB4C0] transition-colors duration-200 hover:bg-[#2A1015]"
-          >
-            <LogOut size={14} />
-            Sign Out
-          </button>
-        </div>
+        {showAccount ? (
+          <div className="rounded-2xl border border-[#262626] bg-[#101010] p-2">
+            <p className="px-2 pb-2 text-[11px] uppercase tracking-[0.16em] text-[#6B7280]">Account</p>
+            <Link to={dashboardPath} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#D1D5DB] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
+              <LayoutDashboard size={14} />
+              My Dashboard
+            </Link>
+            <Link to="/profile" className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#D1D5DB] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
+              <User size={14} />
+              Profile
+            </Link>
+            <Link to="/studio-setup" className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#D1D5DB] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
+              <HomeIcon size={14} />
+              Studio Setup
+            </Link>
+            <Link to="/seller-agreement" className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#D1D5DB] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
+              <FileText size={14} />
+              Seller Agreement
+            </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#FFB4C0] transition-colors duration-200 hover:bg-[#2A1015]"
+            >
+              <LogOut size={14} />
+              Sign Out
+            </button>
+          </div>
+        ) : null}
       </div>
     );
   }

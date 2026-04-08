@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Music2 } from 'lucide-react';
+import { Compass, Menu, X, Music2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { getAuthSession, hydrateAuthSession, subscribeToAuthChanges } from '../../utils/auth';
@@ -67,6 +67,30 @@ const Navbar: React.FC = () => {
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen) {
+      return;
+    }
+
+    const { body, documentElement } = document;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyPaddingRight = body.style.paddingRight;
+    const previousHtmlOverflow = documentElement.style.overflow;
+    const scrollbarWidth = window.innerWidth - documentElement.clientWidth;
+
+    body.style.overflow = 'hidden';
+    documentElement.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      body.style.overflow = previousBodyOverflow;
+      body.style.paddingRight = previousBodyPaddingRight;
+      documentElement.style.overflow = previousHtmlOverflow;
     };
   }, [mobileOpen]);
 
@@ -167,40 +191,68 @@ const Navbar: React.FC = () => {
 
         {/* Mobile Menu */}
         {mobileOpen ? (
-          <div className="md:hidden px-3 pb-2">
-            <div className="max-h-[78vh] overflow-y-auto rounded-2xl border border-[#262626] bg-[#0B0B0B]/95 px-4 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl space-y-1">
-              {visibleNavLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="block py-3 text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200 border-b border-[#1A1A1A] last:border-0"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {link.label}
-                </a>
-              ))}
-              {isSignedIn ? (
-                <div className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-2">
-                  <p className="px-2 pb-2 text-xs uppercase tracking-[0.2em] text-[#6B7280]">Dashboard</p>
-                  <Link
-                    to="/dashboard/seller"
-                    className="block rounded-lg px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Seller Dashboard
-                  </Link>
-                  <Link
-                    to="/dashboard/buyer"
-                    className="mt-1 block rounded-lg px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Buyer Dashboard
-                  </Link>
-                </div>
-              ) : null}
+          <div className="md:hidden px-3 pb-3">
+            <div className="max-h-[78vh] overflow-y-auto rounded-2xl border border-[#262626] bg-[#0B0B0B]/95 px-3 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl space-y-3">
               {!hideAuthCta && isSignedIn ? (
-                <UserQuickActions mobile />
-              ) : !hideAuthCta ? (
+                <UserQuickActions mobile mobileSection="topActions" />
+              ) : null}
+              <div className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-2.5">
+                <p className="mb-2 px-1 text-[11px] uppercase tracking-[0.16em] text-[#6B7280]">Explore</p>
+                <div className="space-y-1.5">
+                  {isSignedIn ? (
+                    <>
+                      <a
+                        href="#trending"
+                        className="flex items-center justify-between rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-[#D1D5DB] transition-colors duration-200 hover:border-[#2A2A2A] hover:bg-[#171717] hover:text-white"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <span>Beats</span>
+                        <Compass size={14} className="text-[#6B7280]" />
+                      </a>
+                      <a
+                        href="#licensing"
+                        className="flex items-center justify-between rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-[#D1D5DB] transition-colors duration-200 hover:border-[#2A2A2A] hover:bg-[#171717] hover:text-white"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <span>Licensing</span>
+                        <Compass size={14} className="text-[#6B7280]" />
+                      </a>
+                      <Link
+                        to="/dashboard/buyer"
+                        className="flex items-center justify-between rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-[#D1D5DB] transition-colors duration-200 hover:border-[#2A2A2A] hover:bg-[#171717] hover:text-white"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <span>Buyer Dashboard</span>
+                        <Compass size={14} className="text-[#6B7280]" />
+                      </Link>
+                      <Link
+                        to="/dashboard/seller"
+                        className="flex items-center justify-between rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-[#D1D5DB] transition-colors duration-200 hover:border-[#2A2A2A] hover:bg-[#171717] hover:text-white"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <span>Seller Dashboard</span>
+                        <Compass size={14} className="text-[#6B7280]" />
+                      </Link>
+                    </>
+                  ) : (
+                    visibleNavLinks.map((link) => (
+                      <a
+                        key={link.label}
+                        href={link.href}
+                        className="flex items-center justify-between rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-[#D1D5DB] transition-colors duration-200 hover:border-[#2A2A2A] hover:bg-[#171717] hover:text-white"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <span>{link.label}</span>
+                        <Compass size={14} className="text-[#6B7280]" />
+                      </a>
+                    ))
+                  )}
+                </div>
+              </div>
+              {!hideAuthCta && isSignedIn ? (
+                <UserQuickActions mobile mobileSection="account" />
+              ) : null}
+              {!hideAuthCta && !isSignedIn ? (
                 <div className="flex gap-3 pt-3">
                   <Link to="/sign-in" className="flex-1" onClick={() => setMobileOpen(false)}>
                     <Button variant="secondary" size="sm" className="w-full">Sign In</Button>
