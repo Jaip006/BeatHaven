@@ -201,45 +201,70 @@ beatRouter.get(
   "/search",
   asyncHandler(async (req, res) => {
     const rawQuery = String(req.query?.q ?? "").trim();
-    const limit = Math.min(Math.max(Number(req.query?.limit) || 6, 1), 20);
+    const genreFilter = String(req.query?.genre ?? "").trim();
+    const bpmFilter = String(req.query?.bpm ?? "").trim();
+    const limit = Math.min(Math.max(Number(req.query?.limit) || 24, 1), 100);
 
-    if (rawQuery.length < 2) {
-      res.status(200).json({
-        success: true,
-        data: {
-          beats: [],
-          producers: [],
-        },
-      });
-      return;
-    }
+    const beatFilters: Record<string, unknown> = {};
 
-    const queryRegex = new RegExp(escapeRegex(rawQuery), "i");
+    if (rawQuery.length > 0) {
+      const queryRegex = new RegExp(escapeRegex(rawQuery), "i");
 
-    const [beats, producers] = await Promise.all([
-      Beat.find({
-        $or: [
-          { title: queryRegex },
-          { beatType: queryRegex },
-          { genre: queryRegex },
-          { tags: queryRegex },
-        ],
-      })
-        .populate("sellerId", "displayName avatar studioProfile.handle")
-        .select("title beatType genre tempo basicPrice artworkUrl sellerId")
-        .sort({ plays: -1, createdAt: -1 })
-        .limit(limit),
-      User.find({
+      const matchedSellers = await User.find({
         $or: [
           { displayName: queryRegex },
           { "studioProfile.studioName": queryRegex },
           { "studioProfile.handle": queryRegex },
         ],
-        "studioProfile.handle": { $exists: true, $ne: "" },
-      })
-        .select("displayName avatar studioProfile followers")
-        .sort({ createdAt: -1 })
+      }).select("_id");
+
+      const matchedSellerIds = matchedSellers.map((user) => user._id);
+      beatFilters.$or = [
+        { title: queryRegex },
+        { beatType: queryRegex },
+        { genre: queryRegex },
+        { tags: queryRegex },
+        ...(matchedSellerIds.length > 0 ? [{ sellerId: { $in: matchedSellerIds } }] : []),
+      ];
+    }
+
+    if (genreFilter && genreFilter.toLowerCase() !== "all") {
+      beatFilters.genre = new RegExp(`^${escapeRegex(genreFilter)}$`, "i");
+    }
+
+    if (bpmFilter && bpmFilter.toLowerCase() !== "any") {
+      if (bpmFilter === "60-90") {
+        beatFilters.tempo = { $gte: 60, $lte: 90 };
+      } else if (bpmFilter === "91-110") {
+        beatFilters.tempo = { $gte: 91, $lte: 110 };
+      } else if (bpmFilter === "111-130") {
+        beatFilters.tempo = { $gte: 111, $lte: 130 };
+      } else if (bpmFilter === "131+") {
+        beatFilters.tempo = { $gte: 131 };
+      }
+    }
+
+    const shouldSearchProducers = rawQuery.length > 0 && !genreFilter && !bpmFilter;
+
+    const [beats, producers] = await Promise.all([
+      Beat.find(beatFilters)
+        .populate("sellerId", "displayName avatar studioProfile.handle")
+        .select("title beatType genre tempo musicalKey tags basicPrice artworkUrl sellerId plays likes")
+        .sort({ plays: -1, createdAt: -1 })
         .limit(limit),
+      shouldSearchProducers
+        ? User.find({
+            $or: [
+              { displayName: new RegExp(escapeRegex(rawQuery), "i") },
+              { "studioProfile.studioName": new RegExp(escapeRegex(rawQuery), "i") },
+              { "studioProfile.handle": new RegExp(escapeRegex(rawQuery), "i") },
+            ],
+            "studioProfile.handle": { $exists: true, $ne: "" },
+          })
+            .select("displayName avatar studioProfile followers")
+            .sort({ createdAt: -1 })
+            .limit(limit)
+        : Promise.resolve([]),
     ]);
 
     const beatResults = beats.map((beat) => {
@@ -254,10 +279,16 @@ beatRouter.get(
         title: beat.title,
         genre: beat.genre,
         tempo: beat.tempo,
+        key: beat.musicalKey,
+        tags: Array.isArray(beat.tags) ? beat.tags : [],
         price: Number(beat.basicPrice ?? 0),
         artworkUrl: beat.artworkUrl,
+        coverImage: beat.artworkUrl,
+        producerId: beat.sellerId ? String((beat.sellerId as any)._id ?? "") : "",
         producerName: String(seller?.displayName ?? ""),
         producerHandle,
+        plays: Number(beat.plays ?? 0),
+        likes: Number(beat.likes ?? 0),
       };
     });
 

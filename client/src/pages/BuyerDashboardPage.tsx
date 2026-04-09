@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Download,
   Heart,
@@ -11,6 +11,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import BeatCard from '../components/ui/BeatCard';
 import UserQuickActions from '../components/layout/UserQuickActions';
+import type { Beat } from '../types';
+import { API_BASE_URL } from '../utils/apiBaseUrl';
 import { trendingBeats } from '../data/trendingBeats';
 
 const dashboardOptions = ['Seller Dashboard', 'Buyer Dashboard'];
@@ -30,18 +32,6 @@ const browseSections = [
   },
 ];
 
-const playlists = [
-  { name: 'Late Night Writing Camp', tracks: 18, tone: 'Moody vocals and atmospheric drums' },
-  { name: 'High Energy Rollout', tracks: 12, tone: 'Big hooks, loud 808s, stadium energy' },
-  { name: 'Smooth Replay Picks', tracks: 24, tone: 'Silky R&B pockets for repeat listens' },
-];
-
-const producers = [
-  { name: 'Aaryan Waves', genre: 'Trap Soul / R&B', followers: '128K', badge: 'Top Seller' },
-  { name: 'Riz Mixx', genre: 'Commercial Afro / Pop', followers: '92K', badge: 'Editor Pick' },
-  { name: 'Karma Keys', genre: 'Melodic Drill / Hip-Hop', followers: '141K', badge: 'Trending' },
-];
-
 const quickAccessItems = [
   { title: 'Liked Beats', hint: 'Your liked beats', icon: Heart, accent: 'text-[#1ED760]' },
   { title: 'Downloads', hint: 'Your downloaded beats', icon: Download, accent: 'text-[#7C5CFF]' },
@@ -49,7 +39,103 @@ const quickAccessItems = [
   { title: 'My Lyrics', hint: 'Keep your writing ideas close', icon: FileText, accent: 'text-[#7C5CFF]' },
 ];
 
+type ApiBeatSearchResult = {
+  id: string;
+  title: string;
+  producerName?: string;
+  producerId?: string;
+  genre?: string;
+  tempo?: number;
+  bpm?: number;
+  key?: string;
+  musicalKey?: string;
+  price?: number;
+  coverImage?: string;
+  artworkUrl?: string;
+  tags?: string[];
+  plays?: number;
+  likes?: number;
+};
+
+type SearchFilters = {
+  q: string;
+};
+
 const BuyerDashboardPage: React.FC = () => {
+  const [searchResults, setSearchResults] = useState<Beat[]>([]);
+  const [isLoadingBeats, setIsLoadingBeats] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [submittedQuery, setSubmittedQuery] = useState('');
+
+  const handleViewAll = () => {
+    setSearchQuery('');
+    setSubmittedQuery('');
+    setSearchResults([]);
+    setSearchError('');
+    setIsLoadingBeats(false);
+  };
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmittedQuery(searchQuery.trim());
+  };
+
+  const fetchBeatsFromDatabase = useCallback(async (filters: SearchFilters) => {
+    setIsLoadingBeats(true);
+    setSearchError('');
+
+    try {
+      const params = new URLSearchParams();
+      if (filters.q) params.set('q', filters.q);
+      params.set('limit', '48');
+
+      const endpoint = `${API_BASE_URL}/beats/search?${params.toString()}`;
+      const res = await fetch(endpoint);
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.success) {
+        setSearchResults([]);
+        setSearchError(data?.message || 'Failed to fetch beats.');
+        return;
+      }
+
+      const dbBeats = Array.isArray(data?.data?.beats) ? (data.data.beats as ApiBeatSearchResult[]) : [];
+      const mappedBeats: Beat[] = dbBeats.map((beat) => ({
+        id: String(beat.id ?? ''),
+        title: String(beat.title ?? 'Untitled Beat'),
+        producerName: String(beat.producerName ?? 'Unknown Producer'),
+        producerId: String(beat.producerId ?? ''),
+        genre: String(beat.genre ?? 'Unknown'),
+        bpm: Number(beat.bpm ?? beat.tempo ?? 0),
+        key: String(beat.key ?? beat.musicalKey ?? ''),
+        price: Number(beat.price ?? 0),
+        coverImage: String(beat.coverImage ?? beat.artworkUrl ?? ''),
+        tags: Array.isArray(beat.tags) ? beat.tags.map((tag) => String(tag)) : [],
+        plays: Number(beat.plays ?? 0),
+        likes: Number(beat.likes ?? 0),
+      }));
+
+      setSearchResults(mappedBeats);
+    } catch (error) {
+      console.error('Failed to fetch beats', error);
+      setSearchResults([]);
+      setSearchError('Failed to fetch beats from database.');
+    } finally {
+      setIsLoadingBeats(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!submittedQuery) {
+      setSearchResults([]);
+      setSearchError('');
+      setIsLoadingBeats(false);
+      return;
+    }
+    void fetchBeatsFromDatabase({ q: submittedQuery });
+  }, [fetchBeatsFromDatabase, submittedQuery]);
+
   return (
     <div className="min-h-screen bg-[#0B0B0B] text-white">
       <main className="relative min-h-screen overflow-x-hidden">
@@ -151,37 +237,62 @@ const BuyerDashboardPage: React.FC = () => {
         </div>
 
         <section className="relative z-0 mx-auto max-w-7xl space-y-8 px-4 pt-[7.5rem] pb-28 sm:px-5 sm:pt-[8.25rem] lg:px-7">
-          <div className="glass rounded-[2rem] border border-[#262626] mb-20 p-6 sm:p-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl">
                 <h1 className="mt-3 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
                   Discover the exact beat
                   <span className="gradient-text"> your next song needs.</span>
                 </h1>
-                <p className="mt-4 text-base leading-relaxed text-[#B3B3B3] sm:text-lg">
-                  Search by vibe, BPM, and genre with a cleaner discovery flow built for buyers.
-                </p>
-              </div>
-              <Button variant="accent" size="lg">
-                <Search size={16} />
-                Search
-              </Button>
             </div>
 
-            <div className="mt-8 grid gap-4 lg:grid-cols-[1.3fr_0.7fr_0.7fr_0.7fr]">
-              <div className="flex items-center gap-3 rounded-[1.4rem] border border-[#262626] bg-[#121212]/90 px-4 py-4 text-sm text-[#B3B3B3]">
-                <Search size={18} className="text-[#6B7280]" />
-                <span>Search by title, producer, genre, or mood</span>
-              </div>
-              <button className="rounded-[1.4rem] border border-[#262626] bg-[#121212]/90 px-4 py-4 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#1ED760] hover:text-white">
-                Genre: All
-              </button>
-              <button className="rounded-[1.4rem] border border-[#262626] bg-[#121212]/90 px-4 py-4 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#1ED760] hover:text-white">
-                BPM: Any
-              </button>
+            <div className="mx-auto mt-8 w-full max-w-3xl">
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <div className="flex items-center gap-3 rounded-2xl border border-[#2A2A2A] bg-[#111111]/95 px-4 py-3 shadow-[0_18px_48px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                  <Search size={18} className="text-[#6B7280]" />
+                  <input
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="Search beats or producers..."
+                    className="h-11 w-full bg-transparent text-base text-white outline-none placeholder:text-[#6B7280]"
+                    aria-label="Search beats or producers"
+                  />
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-gradient-to-r from-[#1ED760] to-[#7C5CFF] px-4 py-2 text-sm font-semibold text-white transition-all hover:brightness-105"
+                  >
+                    Search
+                  </button>
+                </div>
+              </form>
             </div>
-          </div>
         
+          {submittedQuery ? (
+            <div className="glass rounded-[2rem] border border-[#262626] p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="mt-2 text-2xl font-bold">Results for &quot;{submittedQuery}&quot;</h2>
+                </div>
+                <Button variant="secondary" size="sm" onClick={handleViewAll}>Clear Search</Button>
+              </div>
+
+              <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+                {searchResults.map((beat) => (
+                  <BeatCard key={beat.id} beat={beat} />
+                ))}
+              </div>
+              {isLoadingBeats ? (
+                <p className="mt-5 text-sm text-[#9CA3AF]">Loading beats from database...</p>
+              ) : null}
+              {!isLoadingBeats && searchError ? (
+                <p className="mt-5 text-sm text-[#FCA5A5]">{searchError}</p>
+              ) : null}
+              {!isLoadingBeats && !searchError && searchResults.length === 0 ? (
+                <p className="mt-5 text-sm text-[#9CA3AF]">
+                  No beats match this search yet.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {quickAccessItems.map(({ title, hint, icon: Icon, accent, route }) => {
               const content = (
@@ -223,81 +334,15 @@ const BuyerDashboardPage: React.FC = () => {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm uppercase tracking-[0.28em] text-[#1ED760]">Trending Beats</p>
-                <h2 className="mt-2 text-2xl font-bold">What buyers are replaying right now</h2>
               </div>
-              <Button variant="secondary" size="sm">View All</Button>
+              <Button variant="secondary" size="sm" onClick={handleViewAll}>
+                View All
+              </Button>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
               {trendingBeats.map((beat) => (
                 <BeatCard key={beat.id} beat={beat} />
-              ))}
-            </div>
-          </div>
-
-          <div className="glass rounded-[2rem] border border-[#262626] p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm uppercase tracking-[0.28em] text-[#1ED760]">Playlists</p>
-                <h2 className="mt-2 text-2xl font-bold">Curated lanes for every writing mood</h2>
-              </div>
-              <Button variant="secondary" size="sm">Open Library</Button>
-            </div>
-
-            <div className="mt-6 grid gap-4 lg:grid-cols-3">
-              {playlists.map((playlist, index) => (
-                <div key={playlist.name} className="rounded-[1.6rem] border border-[#262626] bg-[#121212]/90 p-5">
-                  <div
-                    className={`mb-4 h-32 rounded-[1.25rem] ${
-                      index === 0
-                        ? 'bg-[linear-gradient(135deg,rgba(30,215,96,0.22),rgba(124,92,255,0.14))]'
-                        : index === 1
-                          ? 'bg-[linear-gradient(135deg,rgba(124,92,255,0.24),rgba(30,215,96,0.10))]'
-                          : 'bg-[linear-gradient(135deg,rgba(18,18,18,1),rgba(30,215,96,0.12))]'
-                    } border border-[#2A2A2A]`}
-                  />
-                  <h3 className="text-lg font-semibold">{playlist.name}</h3>
-                  <p className="mt-2 text-sm text-[#B3B3B3]">{playlist.tone}</p>
-                  <div className="mt-5 flex items-center justify-between">
-                    <span className="text-sm text-[#6B7280]">{playlist.tracks} tracks</span>
-                    <Button variant="ghost" size="sm">Play Now</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="glass rounded-[2rem] border border-[#262626] p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm uppercase tracking-[0.28em] text-[#1ED760]">Famous Producers</p>
-                <h2 className="mt-2 text-2xl font-bold">Top creators shaping the marketplace</h2>
-              </div>
-              <Button variant="secondary" size="sm">Explore Producers</Button>
-            </div>
-
-            <div className="mt-6 grid gap-4 lg:grid-cols-3">
-              {producers.map((producer) => (
-                <div key={producer.name} className="rounded-[1.6rem] border border-[#262626] bg-[#121212]/90 p-5">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] text-lg font-bold text-[#0B0B0B]">
-                      {producer.name.slice(0, 1)}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold">{producer.name}</h3>
-                      <p className="text-sm text-[#B3B3B3]">{producer.genre}</p>
-                    </div>
-                  </div>
-                  <div className="mt-5 flex items-center justify-between">
-                    <span className="rounded-full border border-[#2A2A2A] px-3 py-1 text-xs uppercase tracking-[0.22em] text-[#6B7280]">
-                      {producer.badge}
-                    </span>
-                    <span className="text-sm text-[#1ED760]">{producer.followers} followers</span>
-                  </div>
-                  <Button variant="ghost" size="sm" className="mt-5 w-full rounded-2xl border border-[#262626]">
-                    View Profile
-                  </Button>
-                </div>
               ))}
             </div>
           </div>

@@ -1,8 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Play, Pause, ShieldCheck, Share2, Music2, Trash2, Instagram, Youtube, Twitter, Disc3, Cloud, Globe } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import UserQuickActions from '../components/layout/UserQuickActions';
 import PriceButton from '../components/ui/PriceButton';
+import LicensePurchaseModal from '../components/ui/LicensePurchaseModal';
+import type { Beat as MarketplaceBeat } from '../types';
 import { getAuthSession } from '../utils/auth';
 import { authFetch } from '../utils/authFetch';
 import { usePlayer } from '../context/PlayerContext';
@@ -105,8 +108,11 @@ const MyStudioPage: React.FC = () => {
   const [beatToDelete, setBeatToDelete] = useState<Beat | null>(null);
   const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [selectedBeatForPurchase, setSelectedBeatForPurchase] = useState<Beat | null>(null);
+  const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const currentUserId = getAuthSession()?.user?.id;
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { playBeat, currentBeat, isPlaying, togglePlay } = usePlayer();
 
   const fetchStudioData = useCallback(async () => {
@@ -296,6 +302,40 @@ const MyStudioPage: React.FC = () => {
       .catch(() => null);
   };
 
+  const handlePriceClick = (beat: Beat) => {
+    if (!getAuthSession()) {
+      setIsAuthPromptOpen(true);
+      return;
+    }
+    setSelectedBeatForPurchase(beat);
+  };
+
+  const purchaseBeatData = useMemo<MarketplaceBeat | null>(() => {
+    if (!selectedBeatForPurchase) return null;
+    const producerId =
+      profile?.ownerId ||
+      (typeof selectedBeatForPurchase.sellerId === 'string'
+        ? selectedBeatForPurchase.sellerId
+        : '');
+
+    return {
+      id: selectedBeatForPurchase._id,
+      title: selectedBeatForPurchase.title,
+      producerName:
+        profile?.studioName?.trim() || profile?.displayName || 'Unknown Studio',
+      producerId,
+      genre: 'Unknown',
+      bpm: selectedBeatForPurchase.tempo,
+      key: selectedBeatForPurchase.musicalKey,
+      price: Number(selectedBeatForPurchase.basicPrice) || 0,
+      coverImage: selectedBeatForPurchase.artworkUrl,
+      audioUrl: selectedBeatForPurchase.untaggedMp3Url,
+      tags: [],
+      plays: 0,
+      likes: 0,
+    };
+  }, [selectedBeatForPurchase, profile?.displayName, profile?.ownerId, profile?.studioName]);
+
   return (
     <div className="min-h-screen bg-[#0B0B0B] text-white">
       <main className="relative min-h-screen overflow-x-hidden">
@@ -378,7 +418,7 @@ const MyStudioPage: React.FC = () => {
 
         <section className="relative z-0 mx-auto max-w-7xl px-3 pb-24 pt-[7rem] sm:px-5 sm:pb-28 sm:pt-[8.25rem] lg:px-7">
           {loading ? (
-            <div className="text-center text-[#B3B3B3] py-20">Loading your studio...</div>
+            <div className="text-center text-[#B3B3B3] py-20">Loading the studio...</div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[300px_1fr]">
 
@@ -506,7 +546,7 @@ const MyStudioPage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center justify-end gap-3">
-                        {!canDeleteBeats && <PriceButton price={beat.basicPrice} />}
+                        {!canDeleteBeats && <PriceButton price={beat.basicPrice} onClick={() => handlePriceClick(beat)} />}
                         {canDeleteBeats && (
                           <button
                             onClick={() => handleDeleteBeat(beat)}
@@ -540,9 +580,6 @@ const MyStudioPage: React.FC = () => {
                   Close
                 </button>
               </div>
-              <p className="mt-2 text-sm text-[#9CA3AF]">
-                Anyone can paste this URL in a browser to view the studio page.
-              </p>
               <div className="mt-4 rounded-xl border border-[#2A2A2A] bg-[#0E0E0E] px-4 py-3 text-sm text-[#E5E7EB] break-all">
                 {shareUrl}
               </div>
@@ -590,6 +627,45 @@ const MyStudioPage: React.FC = () => {
             </div>
           </div>
         )}
+        {purchaseBeatData ? (
+          <LicensePurchaseModal
+            beat={purchaseBeatData}
+            isOpen={Boolean(selectedBeatForPurchase)}
+            onClose={() => setSelectedBeatForPurchase(null)}
+          />
+        ) : null}
+        {isAuthPromptOpen && typeof document !== 'undefined'
+          ? createPortal(
+            <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setIsAuthPromptOpen(false)}>
+              <div
+                className="w-full max-w-sm rounded-2xl border border-[#2A2A2A] bg-[#101010] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <h3 className="text-lg font-bold text-white">Sign in required</h3>
+                <p className="mt-2 text-sm text-[#B3B3B3]">
+                  Please sign in or create an account to purchase beats.
+                </p>
+                <div className="mt-5 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/sign-up')}
+                    className="rounded-lg border border-[#2A2A2A] px-3 py-2 text-sm text-white transition-colors hover:bg-[#171717]"
+                  >
+                    Sign Up
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/sign-in')}
+                    className="rounded-lg bg-[#1ED760] px-3 py-2 text-sm font-semibold text-[#0B0B0B] transition-colors hover:bg-[#19c453]"
+                  >
+                    Sign In
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+          : null}
       </main>
     </div>
   );
