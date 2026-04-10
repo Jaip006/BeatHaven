@@ -7,6 +7,7 @@ import PriceButton from './PriceButton';
 import LicensePurchaseModal from './LicensePurchaseModal';
 import { getAuthSession } from '../../utils/auth';
 import { useNavigate } from 'react-router-dom';
+import { useLikedBeats } from '../../context/LikedBeatsContext';
 
 interface BeatCardProps {
   beat: Beat;
@@ -15,12 +16,25 @@ interface BeatCardProps {
 
 const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [liked, setLiked] = useState(false);
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const navigate = useNavigate();
+  const { isLikedBeat, toggleLikedBeat } = useLikedBeats();
   const currentUserId = getAuthSession()?.user?.id;
   const isOwnBeat = Boolean(currentUserId && currentUserId === beat.producerId);
+  const liked = isLikedBeat(beat.id);
+  const primaryTag = Array.isArray(beat.tags) && beat.tags.length > 0 ? String(beat.tags[0]) : '';
+  const formattedPrimaryTag = primaryTag
+    ? primaryTag
+      .replace(/[-_]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (ch) => ch.toUpperCase())
+    : '';
+  const genreBadgeLabel =
+    beat.genre && beat.genre.trim() && beat.genre.toLowerCase() !== 'unknown'
+      ? beat.genre
+      : (formattedPrimaryTag || 'Unknown');
 
   const handlePlay = () => {
     setIsPlaying(!isPlaying);
@@ -71,12 +85,12 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
 
         {/* Genre badge */}
         <div className="absolute top-2 left-2">
-          <Badge variant="primary">{beat.genre}</Badge>
+          <Badge variant="primary">{genreBadgeLabel}</Badge>
         </div>
 
         {/* Like button */}
         <button
-          onClick={() => setLiked(!liked)}
+          onClick={() => toggleLikedBeat(beat)}
           className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
           aria-label="Like"
         >

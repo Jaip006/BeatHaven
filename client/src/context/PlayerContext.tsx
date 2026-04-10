@@ -17,6 +17,7 @@ export interface PlayerBeat {
   bpm?: number;
   price?: number;
   genre?: string;
+  freeMp3Enabled?: boolean;
   isOwnedByCurrentUser?: boolean;
 }
 

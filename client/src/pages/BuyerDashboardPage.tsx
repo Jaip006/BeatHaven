@@ -14,6 +14,8 @@ import UserQuickActions from '../components/layout/UserQuickActions';
 import type { Beat } from '../types';
 import { API_BASE_URL } from '../utils/apiBaseUrl';
 import { trendingBeats } from '../data/trendingBeats';
+import { usePlayer } from '../context/PlayerContext';
+import { authFetch } from '../utils/authFetch';
 
 const dashboardOptions = ['Seller Dashboard', 'Buyer Dashboard'];
 const beatOptions = ['All Beats', 'Trending Beats'];
@@ -33,8 +35,8 @@ const browseSections = [
 ];
 
 const quickAccessItems = [
-  { title: 'Liked Beats', hint: 'Your liked beats', icon: Heart, accent: 'text-[#1ED760]' },
-  { title: 'Downloads', hint: 'Your downloaded beats', icon: Download, accent: 'text-[#7C5CFF]' },
+  { title: 'Liked Beats', hint: 'Your liked beats', icon: Heart, accent: 'text-[#1ED760]', route: '/liked-beats' },
+  { title: 'Downloads', hint: 'Your downloaded beats', icon: Download, accent: 'text-[#7C5CFF]', route: '/downloads' },
   { title: 'Cart', hint: 'Review beats ready for checkout', icon: ShoppingCart, accent: 'text-[#1ED760]', route: '/cart' },
   { title: 'My Lyrics', hint: 'Keep your writing ideas close', icon: FileText, accent: 'text-[#7C5CFF]' },
 ];
@@ -45,6 +47,7 @@ type ApiBeatSearchResult = {
   producerName?: string;
   producerId?: string;
   genre?: string;
+  beatType?: string;
   tempo?: number;
   bpm?: number;
   key?: string;
@@ -52,7 +55,9 @@ type ApiBeatSearchResult = {
   price?: number;
   coverImage?: string;
   artworkUrl?: string;
-  tags?: string[];
+  audioUrl?: string;
+  untaggedMp3Url?: string;
+  tags?: string[] | string;
   plays?: number;
   likes?: number;
 };
@@ -61,12 +66,38 @@ type SearchFilters = {
   q: string;
 };
 
+const resolveBeatGenre = (beat: ApiBeatSearchResult): string => {
+  const normalizedTags = Array.isArray(beat.tags)
+    ? beat.tags.map((tag) => String(tag ?? '').trim()).filter(Boolean)
+    : (typeof beat.tags === 'string'
+      ? beat.tags.split(',').map((tag) => tag.trim()).filter(Boolean)
+      : []);
+
+  const genreCandidate = String(beat.genre ?? '').trim();
+  if (genreCandidate && genreCandidate.toLowerCase() !== 'unknown') {
+    return genreCandidate;
+  }
+
+  const beatTypeCandidate = String(beat.beatType ?? '').trim();
+  if (beatTypeCandidate && beatTypeCandidate.toLowerCase() !== 'unknown') {
+    return beatTypeCandidate;
+  }
+
+  const tagCandidate = normalizedTags[0] ?? '';
+  if (tagCandidate) {
+    return tagCandidate;
+  }
+
+  return 'Unknown';
+};
+
 const BuyerDashboardPage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Beat[]>([]);
   const [isLoadingBeats, setIsLoadingBeats] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
+  const { playBeat, currentBeat, togglePlay } = usePlayer();
 
   const handleViewAll = () => {
     setSearchQuery('');
@@ -79,6 +110,32 @@ const BuyerDashboardPage: React.FC = () => {
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmittedQuery(searchQuery.trim());
+  };
+
+  const handlePlayBeat = (beat: Beat) => {
+    if (!beat.audioUrl) {
+      setSearchError('Preview is not available for this beat.');
+      return;
+    }
+
+    if (currentBeat?.id === beat.id) {
+      togglePlay();
+      return;
+    }
+
+    playBeat({
+      id: beat.id,
+      title: beat.title,
+      producerName: beat.producerName,
+      coverImage: beat.coverImage,
+      audioUrl: beat.audioUrl,
+      bpm: beat.bpm,
+      price: beat.price,
+      genre: beat.genre,
+      freeMp3Enabled: true,
+    });
+
+    void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat.id}/play`, { method: 'POST' }).catch(() => null);
   };
 
   const fetchBeatsFromDatabase = useCallback(async (filters: SearchFilters) => {
@@ -106,12 +163,17 @@ const BuyerDashboardPage: React.FC = () => {
         title: String(beat.title ?? 'Untitled Beat'),
         producerName: String(beat.producerName ?? 'Unknown Producer'),
         producerId: String(beat.producerId ?? ''),
-        genre: String(beat.genre ?? 'Unknown'),
+        genre: resolveBeatGenre(beat),
         bpm: Number(beat.bpm ?? beat.tempo ?? 0),
         key: String(beat.key ?? beat.musicalKey ?? ''),
         price: Number(beat.price ?? 0),
         coverImage: String(beat.coverImage ?? beat.artworkUrl ?? ''),
-        tags: Array.isArray(beat.tags) ? beat.tags.map((tag) => String(tag)) : [],
+        audioUrl: String(beat.audioUrl ?? beat.untaggedMp3Url ?? ''),
+        tags: Array.isArray(beat.tags)
+          ? beat.tags.map((tag) => String(tag ?? '').trim()).filter(Boolean)
+          : (typeof beat.tags === 'string'
+            ? beat.tags.split(',').map((tag) => tag.trim()).filter(Boolean)
+            : []),
         plays: Number(beat.plays ?? 0),
         likes: Number(beat.likes ?? 0),
       }));
@@ -276,7 +338,7 @@ const BuyerDashboardPage: React.FC = () => {
 
               <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
                 {searchResults.map((beat) => (
-                  <BeatCard key={beat.id} beat={beat} />
+                  <BeatCard key={beat.id} beat={beat} onPlay={handlePlayBeat} />
                 ))}
               </div>
               {isLoadingBeats ? (

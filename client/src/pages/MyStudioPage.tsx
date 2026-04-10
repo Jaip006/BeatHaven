@@ -27,6 +27,7 @@ interface Beat {
   tempo: number;
   musicalKey: string;
   basicPrice?: number;
+  freeMp3Enabled?: boolean;
   artworkUrl: string;
   untaggedMp3Url: string;
   sellerId:
@@ -290,6 +291,7 @@ const MyStudioPage: React.FC = () => {
       audioUrl: beat.untaggedMp3Url,
       bpm: beat.tempo,
       price: beat.basicPrice,
+      freeMp3Enabled: Boolean(beat.freeMp3Enabled),
       isOwnedByCurrentUser: canDeleteBeats,
     });
     void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat._id}/play`, { method: 'POST' })

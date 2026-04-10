@@ -12,6 +12,51 @@ const beatRouter = Router();
 
 const STUDIO_HANDLE_REGEX = /^[a-z0-9._-]{3,30}$/;
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const normalizeStringArray = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item ?? "").trim()).filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.map((item) => String(item ?? "").trim()).filter(Boolean);
+      }
+    } catch {
+      // Fall back to plain string parsing below.
+    }
+
+    return trimmed
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+const resolveBeatGenre = (genre: unknown, beatType: unknown, tags: unknown): string => {
+  const genreCandidate = String(genre ?? "").trim();
+  if (genreCandidate && genreCandidate.toLowerCase() !== "unknown") {
+    return genreCandidate;
+  }
+
+  const beatTypeCandidate = String(beatType ?? "").trim();
+  if (beatTypeCandidate && beatTypeCandidate.toLowerCase() !== "unknown") {
+    return beatTypeCandidate;
+  }
+
+  const normalizedTags = normalizeStringArray(tags);
+  if (normalizedTags[0]) {
+    return normalizedTags[0];
+  }
+
+  return "Unknown";
+};
+const resolveBeatKey = (key: unknown): string => String(key ?? "").trim();
 
 const normalizeStudioSocials = (socials: unknown) => {
   const value = socials && typeof socials === "object" ? socials : {};
@@ -248,8 +293,8 @@ beatRouter.get(
 
     const [beats, producers] = await Promise.all([
       Beat.find(beatFilters)
-        .populate("sellerId", "displayName avatar studioProfile.handle")
-        .select("title beatType genre tempo musicalKey tags basicPrice artworkUrl sellerId plays likes")
+        .populate("sellerId", "displayName avatar studioProfile.handle studioProfile.studioName")
+        .select("title beatType genre tempo musicalKey tags basicPrice artworkUrl untaggedMp3Url sellerId plays likes freeMp3Enabled")
         .sort({ plays: -1, createdAt: -1 })
         .limit(limit),
       shouldSearchProducers
@@ -270,25 +315,33 @@ beatRouter.get(
     const beatResults = beats.map((beat) => {
       const seller =
         beat.sellerId && typeof beat.sellerId === "object"
-          ? (beat.sellerId as unknown as { displayName?: string; studioProfile?: { handle?: string } })
+          ? (beat.sellerId as unknown as { displayName?: string; studioProfile?: { handle?: string; studioName?: string } })
           : null;
       const producerHandle = String(seller?.studioProfile?.handle ?? "").trim();
+      const producerDisplayName = String(seller?.studioProfile?.studioName ?? seller?.displayName ?? "").trim();
+      const normalizedTags = normalizeStringArray(beat.tags);
+      const resolvedGenre = resolveBeatGenre(beat.genre, beat.beatType, normalizedTags);
+      const resolvedKey = resolveBeatKey(beat.musicalKey);
 
       return {
         id: String(beat._id),
         title: beat.title,
-        genre: beat.genre,
+        genre: resolvedGenre,
+        beatType: beat.beatType,
         tempo: beat.tempo,
-        key: beat.musicalKey,
-        tags: Array.isArray(beat.tags) ? beat.tags : [],
+        key: resolvedKey,
+        musicalKey: resolvedKey,
+        tags: normalizedTags,
         price: Number(beat.basicPrice ?? 0),
         artworkUrl: beat.artworkUrl,
         coverImage: beat.artworkUrl,
+        audioUrl: beat.untaggedMp3Url,
         producerId: beat.sellerId ? String((beat.sellerId as any)._id ?? "") : "",
-        producerName: String(seller?.displayName ?? ""),
+        producerName: producerDisplayName,
         producerHandle,
         plays: Number(beat.plays ?? 0),
         likes: Number(beat.likes ?? 0),
+        freeMp3Enabled: Boolean(beat.freeMp3Enabled),
       };
     });
 
@@ -468,6 +521,82 @@ beatRouter.delete(
       message: "Beat deleted successfully.",
       data: {
         beatId,
+      },
+    });
+  })
+);
+
+beatRouter.get(
+  "/:beatId/preview",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { beatId } = req.params;
+    const beat = await Beat.findById(beatId).select(
+      "title genre beatType tags tempo musicalKey basicPrice artworkUrl untaggedMp3Url sellerId freeMp3Enabled"
+    );
+
+    if (!beat) {
+      throw new AppError("Beat not found.", 404);
+    }
+
+    const seller = await User.findById(beat.sellerId).select("displayName studioProfile.studioName");
+    const producerDisplayName = String(seller?.studioProfile?.studioName ?? seller?.displayName ?? "Unknown Producer");
+    const normalizedTags = normalizeStringArray(beat.tags);
+    const resolvedGenre = resolveBeatGenre(beat.genre, beat.beatType, normalizedTags);
+    const resolvedKey = resolveBeatKey(beat.musicalKey);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: String(beat._id),
+        title: beat.title,
+        genre: resolvedGenre,
+        beatType: beat.beatType,
+        bpm: Number(beat.tempo ?? 0),
+        key: resolvedKey,
+        musicalKey: resolvedKey,
+        price: Number(beat.basicPrice ?? 0),
+        coverImage: beat.artworkUrl,
+        audioUrl: beat.untaggedMp3Url,
+        tags: normalizedTags,
+        producerId: String(beat.sellerId),
+        producerName: producerDisplayName,
+        freeMp3Enabled: Boolean(beat.freeMp3Enabled),
+      },
+    });
+  })
+);
+
+beatRouter.post(
+  "/:beatId/download",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { beatId } = req.params;
+    const beat = await Beat.findById(beatId).select(
+      "sellerId freeMp3Enabled untaggedMp3Url title genre beatType tags musicalKey"
+    );
+
+    if (!beat) {
+      throw new AppError("Beat not found.", 404);
+    }
+
+    const isOwner = String(beat.sellerId) === String(req.user!.userId);
+    if (!isOwner && !beat.freeMp3Enabled) {
+      throw new AppError("Free MP3 download is not enabled for this beat.", 403);
+    }
+    const normalizedTags = normalizeStringArray(beat.tags);
+    const resolvedGenre = resolveBeatGenre(beat.genre, beat.beatType, normalizedTags);
+    const resolvedKey = resolveBeatKey(beat.musicalKey);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        beatId: String(beat._id),
+        title: beat.title,
+        downloadUrl: beat.untaggedMp3Url,
+        freeMp3Enabled: Boolean(beat.freeMp3Enabled),
+        genre: resolvedGenre,
+        key: resolvedKey,
       },
     });
   })
