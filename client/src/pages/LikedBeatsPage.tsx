@@ -9,6 +9,13 @@ import { usePlayer } from '../context/PlayerContext';
 import { authFetch } from '../utils/authFetch';
 import type { Beat } from '../types';
 
+const parseFreeMp3Enabled = (value: unknown): boolean => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.trim().toLowerCase() === 'true';
+  if (typeof value === 'number') return value === 1;
+  return false;
+};
+
 const LikedBeatsPage: React.FC = () => {
   const { likedBeats, likedCount, clearLikedBeats, upsertLikedBeat } = useLikedBeats();
   const { playBeat, currentBeat, togglePlay } = usePlayer();
@@ -46,6 +53,7 @@ const LikedBeatsPage: React.FC = () => {
         tags: rawTags,
         plays: Number(apiBeat.plays ?? 0),
         likes: Number(apiBeat.likes ?? 0),
+        freeMp3Enabled: parseFreeMp3Enabled(apiBeat.freeMp3Enabled),
       };
     } catch {
       return null;
@@ -55,7 +63,7 @@ const LikedBeatsPage: React.FC = () => {
   const handlePlayBeat = async (beat: (typeof likedBeats)[number]) => {
     let playableBeat = beat;
 
-    if (!playableBeat.audioUrl) {
+    if (!playableBeat.audioUrl || typeof playableBeat.freeMp3Enabled !== 'boolean') {
       const resolvedBeat = await resolveBeatPreview(beat.id);
       if (!resolvedBeat?.audioUrl) {
         return;
@@ -82,7 +90,7 @@ const LikedBeatsPage: React.FC = () => {
       bpm: playableBeat.bpm,
       price: playableBeat.price,
       genre: playableBeat.genre,
-      freeMp3Enabled: Boolean(playableBeat.freeMp3Enabled),
+      freeMp3Enabled: parseFreeMp3Enabled(playableBeat.freeMp3Enabled),
     });
 
     void authFetch(`${import.meta.env.VITE_API_URL}/beats/${playableBeat.id}/play`, { method: 'POST' }).catch(() => null);
@@ -96,7 +104,8 @@ const LikedBeatsPage: React.FC = () => {
         !beat.audioUrl ||
         !beat.key?.trim() ||
         !beat.genre?.trim() ||
-        beat.genre.trim().toLowerCase() === 'unknown'
+        beat.genre.trim().toLowerCase() === 'unknown' ||
+        typeof beat.freeMp3Enabled !== 'boolean'
         ),
     );
 

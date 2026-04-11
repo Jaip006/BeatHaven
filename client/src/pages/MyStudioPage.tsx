@@ -70,6 +70,13 @@ const SOCIAL_META: Record<SupportedSocialKey, { label: string; base?: string; ic
   website: { label: 'Website', icon: <Globe className="h-4 w-4" /> },
 };
 
+const parseFreeMp3Enabled = (value: unknown): boolean => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.trim().toLowerCase() === 'true';
+  if (typeof value === 'number') return value === 1;
+  return false;
+};
+
 const toSocialHref = (key: SupportedSocialKey, value: string): string => {
   const raw = value.trim();
   if (!raw) return '';
@@ -291,7 +298,7 @@ const MyStudioPage: React.FC = () => {
       audioUrl: beat.untaggedMp3Url,
       bpm: beat.tempo,
       price: beat.basicPrice,
-      freeMp3Enabled: Boolean(beat.freeMp3Enabled),
+      freeMp3Enabled: parseFreeMp3Enabled(beat.freeMp3Enabled),
       isOwnedByCurrentUser: canDeleteBeats,
     });
     void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat._id}/play`, { method: 'POST' })

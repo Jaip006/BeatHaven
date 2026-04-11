@@ -32,6 +32,13 @@ const formatTime = (seconds: number): string => {
   return `${m}:${s.toString().padStart(2, '0')}`;
 };
 
+const isFreeMp3Enabled = (value: unknown): boolean => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.trim().toLowerCase() === 'true';
+  if (typeof value === 'number') return value === 1;
+  return false;
+};
+
 const BeatPreviewPlayer: React.FC = () => {
   const {
     currentBeat,
@@ -86,6 +93,7 @@ const BeatPreviewPlayer: React.FC = () => {
 
   const isVisible = currentBeat !== null;
   const isCurrentBeatLiked = currentBeat ? isLikedBeat(currentBeat.id) : false;
+  const isCurrentBeatDownloadable = isFreeMp3Enabled(currentBeat?.freeMp3Enabled);
 
   const mappedCurrentBeat: Beat | null = currentBeat
     ? {
@@ -131,6 +139,10 @@ const BeatPreviewPlayer: React.FC = () => {
   };
 
   const openDownloadTermsModal = () => {
+    if (!isCurrentBeatDownloadable) {
+      showDownloadNotice('error', 'Download is not available for this beat.');
+      return;
+    }
     setActionsMenuOpen(false);
     setDownloadTermsAccepted(false);
     setIsDownloadTermsOpen(true);
@@ -229,7 +241,7 @@ const BeatPreviewPlayer: React.FC = () => {
   return (
     <>
       <div
-        className={`fixed inset-x-0 bottom-0 z-[300] transition-transform duration-500 ease-out ${
+        className={`fixed inset-x-3 bottom-3 z-[300] overflow-hidden rounded-3xl border border-[#1f1f1f] shadow-[0_12px_34px_rgba(0,0,0,0.5)] transition-transform duration-500 ease-out sm:inset-x-0 sm:bottom-0 sm:rounded-none sm:border-0 sm:shadow-none ${
           isVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
@@ -253,7 +265,7 @@ const BeatPreviewPlayer: React.FC = () => {
         />
       </div>
 
-        <div className="flex items-center gap-2 border-t border-[#1a1a1a] bg-[#0d0d0d]/95 px-2.5 py-2.5 backdrop-blur-2xl sm:gap-4 sm:px-6 sm:py-3">
+        <div className="flex items-center gap-2 bg-[#0d0d0d]/95 px-2.5 py-2.5 backdrop-blur-2xl sm:gap-4 sm:border-t sm:border-[#1a1a1a] sm:px-6 sm:py-3">
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:w-64 sm:flex-[0_0_auto] sm:gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#262626] bg-[#1a1a1a] sm:h-11 sm:w-11 sm:rounded-lg">
             {currentBeat?.coverImage ? (
@@ -381,14 +393,16 @@ const BeatPreviewPlayer: React.FC = () => {
           >
             <Share2 size={17} />
           </button>
-          <button
-            type="button"
-            aria-label="Download beat"
-            onClick={openDownloadTermsModal}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-[#6B7280] transition-colors duration-150 hover:text-white"
-          >
-            <Download size={17} />
-          </button>
+          {isCurrentBeatDownloadable ? (
+            <button
+              type="button"
+              aria-label="Download beat"
+              onClick={openDownloadTermsModal}
+              className="flex h-7 w-7 items-center justify-center rounded-full text-[#6B7280] transition-colors duration-150 hover:text-white"
+            >
+              <Download size={17} />
+            </button>
+          ) : null}
           <button
             type="button"
             aria-label="Like beat"
@@ -428,14 +442,16 @@ const BeatPreviewPlayer: React.FC = () => {
                 <Heart size={14} fill={isCurrentBeatLiked ? 'currentColor' : 'none'} className={isCurrentBeatLiked ? 'text-[#FF6FA1]' : ''} />
                 {isCurrentBeatLiked ? 'Unlike' : 'Like'}
               </button>
-              <button
-                type="button"
-                onClick={openDownloadTermsModal}
-                className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
-              >
-                <Download size={14} />
-                Download
-              </button>
+              {isCurrentBeatDownloadable ? (
+                <button
+                  type="button"
+                  onClick={openDownloadTermsModal}
+                  className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
+                >
+                  <Download size={14} />
+                  Download
+                </button>
+              ) : null}
               <button
                 type="button"
                 className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"

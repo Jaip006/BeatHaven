@@ -118,21 +118,21 @@ const LicensePurchaseModal: React.FC<LicensePurchaseModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/85 p-2 backdrop-blur-sm sm:p-4"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-label="Select License Type"
     >
       <div
-        className="relative isolate mx-auto w-full max-w-[850px] overflow-hidden rounded-2xl border border-[#262626] bg-[#080808] shadow-[0_24px_72px_rgba(0,0,0,0.88)]"
+        className="relative isolate mx-auto max-h-[calc(100dvh-1rem)] w-full max-w-[850px] overflow-hidden rounded-2xl border border-[#262626] bg-[#080808] shadow-[0_24px_72px_rgba(0,0,0,0.88)] sm:max-h-[calc(100dvh-2rem)]"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex flex-col lg:flex-row">
-          <aside className="border-b border-[#252525] bg-[#0E0E0E] p-5 lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r lg:p-6">
-            <h2 className="text-3xl font-bold text-white">Select License Type</h2>
+        <div className="flex max-h-[calc(100dvh-1rem)] flex-col lg:max-h-[calc(100dvh-2rem)] lg:flex-row">
+          <aside className="border-b border-[#252525] bg-[#0E0E0E] p-3 sm:p-5 lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r lg:p-6">
+            <h2 className="text-lg font-bold text-white sm:text-2xl lg:text-3xl">Select License Type</h2>
 
-            <div className="mt-6 overflow-hidden rounded-xl border border-[#2A2A2A]">
+            <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-5 lg:mt-6 lg:grid-cols-1 lg:gap-0 lg:overflow-hidden lg:rounded-xl lg:border lg:border-[#2A2A2A]">
               {LICENSES.map((license) => {
                 const active = selected === license.key;
                 return (
@@ -140,8 +140,10 @@ const LicensePurchaseModal: React.FC<LicensePurchaseModalProps> = ({
                     key={license.key}
                     type="button"
                     onClick={() => setSelected(license.key)}
-                    className={`flex h-14 w-full items-center justify-center border-b border-[#2A2A2A] px-3 text-base font-semibold tracking-wide last:border-b-0 ${
-                      active ? license.activeClassName : 'bg-[#1A1B20] text-[#E2E2E2] hover:bg-[#24252B]'
+                    className={`flex min-h-11 w-full items-center justify-center rounded-lg px-2 text-[11px] font-semibold tracking-wide sm:text-sm lg:h-14 lg:rounded-none lg:border-b lg:border-[#2A2A2A] lg:px-3 lg:text-base lg:last:border-b-0 ${
+                      active
+                        ? `${license.activeClassName} shadow-[0_0_0_1px_rgba(124,92,255,0.35)] lg:shadow-none`
+                        : 'bg-[#1A1B20] text-[#E2E2E2] hover:bg-[#24252B]'
                     }`}
                   >
                     {license.label}
@@ -151,17 +153,17 @@ const LicensePurchaseModal: React.FC<LicensePurchaseModalProps> = ({
             </div>
           </aside>
 
-          <section className="flex min-h-[430px] flex-1 flex-col bg-[#0D0D0D] p-5 lg:p-6">
+          <section className="flex min-h-0 flex-1 flex-col bg-[#0D0D0D] p-3 sm:p-5 lg:p-6">
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[#2A2A2A] bg-[#1E1E22]">
+                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-[#2A2A2A] bg-[#1E1E22] sm:h-16 sm:w-16">
                   {beat.coverImage ? (
                     <img src={beat.coverImage} alt={beat.title} className="h-full w-full object-cover" />
                   ) : null}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="truncate text-2xl font-bold text-white">{beat.title}</h3>
-                  <p className="truncate text-sm text-[#A5A5A5]">{beat.producerName}</p>
+                  <h3 className="truncate text-lg font-bold text-white sm:text-xl lg:text-2xl">{beat.title}</h3>
+                  <p className="truncate text-xs text-[#A5A5A5] sm:text-sm">{beat.producerName}</p>
                 </div>
               </div>
               <button
@@ -174,26 +176,27 @@ const LicensePurchaseModal: React.FC<LicensePurchaseModalProps> = ({
               </button>
             </div>
 
-            <div className="mt-5 flex-1 rounded-xl border border-[#262626] bg-[#121212] p-5">
-              <div className="grid grid-cols-1 gap-y-5 text-md sm:grid-cols-2">
+            <div className="mt-3 flex-1 overflow-y-auto rounded-xl border border-[#262626] bg-[#121212] p-3 sm:mt-5 sm:p-5">
+              <div className="space-y-2 text-sm sm:space-y-3 sm:text-base">
                 {selectedLicense.rows.map((row) => (
-                  <React.Fragment key={row.label}>
-                    <div className="font-small text-[#E1E1E1]">
-                      <span className="inline-flex items-center gap-1.5">
-                        {row.label}                      </span>
-                      <span className="ml-1.5">:</span>
+                  <div
+                    key={row.label}
+                    className="flex items-start justify-between gap-3  px-3 py-2"
+                  >
+                    <div className="text-[#E1E1E1]">
+                      <span className="inline-flex items-center gap-1.5">{row.label}</span>
                     </div>
-                    <div className="font-semibold text-white sm:text-right">{row.value}</div>
-                  </React.Fragment>
+                    <div className="text-right font-semibold text-white">{row.value}</div>
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-3 flex justify-end sm:mt-6">
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className="inline-flex min-w-[220px] items-center justify-center gap-0.8 rounded-lg bg-gradient-to-r from-[#1ED760] to-[#7C5CFF] px-4 py-3 text-2xl font-bold text-white shadow-[0_10px_28px_rgba(124,92,255,0.35)] transition-all hover:brightness-105 active:scale-[0.99]"
+                className="inline-flex w-full items-center justify-center gap-1 rounded-lg bg-gradient-to-r from-[#1ED760] to-[#7C5CFF] px-4 py-3 text-lg font-bold text-white shadow-[0_10px_28px_rgba(124,92,255,0.35)] transition-all hover:brightness-105 active:scale-[0.99] sm:min-w-[220px] sm:w-auto sm:text-2xl"
               >
                 <ShoppingCart size={20}/>
                 <IndianRupee size={18} />

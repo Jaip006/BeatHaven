@@ -1,8 +1,9 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { PlayerProvider } from './context/PlayerContext';
 import BeatPreviewPlayer from './components/layout/BeatPreviewPlayer';
+import { startInactivityLogoutMonitor } from './utils/auth';
 import './App.css';
 
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -20,6 +21,11 @@ const LikedBeatsPage = lazy(() => import('./pages/LikedBeatsPage'));
 const DownloadsPage = lazy(() => import('./pages/DownloadsPage'));
 
 function App() {
+  useEffect(() => {
+    const stopInactivityMonitor = startInactivityLogoutMonitor();
+    return stopInactivityMonitor;
+  }, []);
+
   return (
     <PlayerProvider>
       <Router>

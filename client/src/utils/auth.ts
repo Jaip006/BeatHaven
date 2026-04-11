@@ -33,9 +33,42 @@ export type AuthSession = {
 
 const AUTH_STORAGE_KEY = 'beathaven_auth_session';
 const AUTH_EVENT_NAME = 'beathaven-auth-changed';
+const LAST_ACTIVITY_STORAGE_KEY = 'beathaven_last_activity_at';
+const INACTIVITY_TIMEOUT_MS = 60 * 60 * 1000;
+
+const hasWindow = () => typeof window !== 'undefined';
+
+const getLastActivityAt = (): number | null => {
+  if (!hasWindow()) return null;
+  const rawValue = localStorage.getItem(LAST_ACTIVITY_STORAGE_KEY);
+  if (!rawValue) return null;
+  const parsed = Number(rawValue);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const setLastActivityAt = (timestamp = Date.now()) => {
+  if (!hasWindow()) return;
+  localStorage.setItem(LAST_ACTIVITY_STORAGE_KEY, String(timestamp));
+};
+
+export const hasInactivityExpired = (timestamp = Date.now()): boolean => {
+  const lastActivityAt = getLastActivityAt();
+  if (typeof lastActivityAt !== 'number') {
+    return false;
+  }
+  return timestamp - lastActivityAt > INACTIVITY_TIMEOUT_MS;
+};
+
+export const recordAuthActivity = () => {
+  if (!getAuthSession()) {
+    return;
+  }
+  setLastActivityAt();
+};
 
 export function saveAuthSession(session: AuthSession) {
   localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+  setLastActivityAt();
   window.dispatchEvent(new Event(AUTH_EVENT_NAME));
 }
 
@@ -56,6 +89,7 @@ export function getAuthSession(): AuthSession | null {
 
 export function clearAuthSession() {
   localStorage.removeItem(AUTH_STORAGE_KEY);
+  localStorage.removeItem(LAST_ACTIVITY_STORAGE_KEY);
   window.dispatchEvent(new Event(AUTH_EVENT_NAME));
 }
 
@@ -124,6 +158,52 @@ export function subscribeToAuthChanges(callback: () => void) {
   return () => {
     window.removeEventListener('storage', callback);
     window.removeEventListener(AUTH_EVENT_NAME, callback);
+  };
+}
+
+export function startInactivityLogoutMonitor() {
+  if (!hasWindow()) {
+    return () => undefined;
+  }
+
+  const touchActivity = () => {
+    const now = Date.now();
+    const lastActivityAt = getLastActivityAt();
+    if (!lastActivityAt || now - lastActivityAt > 15_000) {
+      recordAuthActivity();
+    }
+  };
+
+  const enforceInactivityTimeout = () => {
+    if (!getAuthSession()) {
+      return;
+    }
+    if (!hasInactivityExpired()) {
+      return;
+    }
+    clearAuthSession();
+    redirectToSignIn('inactive');
+  };
+
+  if (getAuthSession() && !getLastActivityAt()) {
+    setLastActivityAt();
+  }
+
+  enforceInactivityTimeout();
+
+  const events: Array<keyof WindowEventMap> = [
+    'click',
+    'keydown',
+    'mousemove',
+    'scroll',
+    'touchstart',
+  ];
+  events.forEach((eventName) => window.addEventListener(eventName, touchActivity, { passive: true }));
+  const intervalId = window.setInterval(enforceInactivityTimeout, 30_000);
+
+  return () => {
+    events.forEach((eventName) => window.removeEventListener(eventName, touchActivity));
+    window.clearInterval(intervalId);
   };
 }
 

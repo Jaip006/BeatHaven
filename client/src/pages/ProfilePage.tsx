@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  AlertTriangle,
   BadgeCheck,
   Building2,
   CalendarDays,
@@ -8,12 +7,9 @@ import {
   CreditCard,
   Edit2,
   FileText,
-  Fingerprint,
   Lock,
   Mail,
   Music2,
-  Phone,
-  Shield,
   User,
   X,
   Check,
@@ -40,12 +36,6 @@ const browseSections = [
 const VerifiedBadge = () => (
   <span className="inline-flex items-center gap-1 rounded-full bg-[#1ED760]/10 px-2.5 py-1 text-[11px] font-semibold text-[#1ED760]">
     <BadgeCheck size={12} /> Verified
-  </span>
-);
-
-const UnverifiedBadge = () => (
-  <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2.5 py-1 text-[11px] font-semibold text-yellow-400">
-    <AlertTriangle size={12} /> Not Verified
   </span>
 );
 
@@ -131,18 +121,6 @@ const ProfilePage: React.FC = () => {
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(displayName);
 
-  // ── mobile ──
-  const [mobile, setMobile] = useState('');
-  const [mobileVerified, setMobileVerified] = useState(Boolean(currentUser?.mobileVerified));
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [otpVerifying, setOtpVerifying] = useState(false);
-  const [otpError, setOtpError] = useState('');
-
-  // ── aadhaar ──
-  const [aadhaarVerified, setAadhaarVerified] = useState(Boolean(currentUser?.aadhaarVerified));
-
   // ── gender & dob ──
   const [gender, setGender] = useState('');
   const [dob, setDob] = useState('');
@@ -166,12 +144,6 @@ const ProfilePage: React.FC = () => {
     if (!sessionUser) return;
 
     setCurrentUser(sessionUser);
-    setMobileVerified(Boolean(sessionUser.mobileVerified));
-    const rawMobile = String(sessionUser.mobileNumber ?? '');
-    const digits = rawMobile.replace(/\D/g, '');
-    if (digits.length >= 10) {
-      setMobile(digits.slice(-10));
-    }
     if (sessionUser.gender) {
       setGender(sessionUser.gender);
     }
@@ -248,82 +220,6 @@ const ProfilePage: React.FC = () => {
       setPhotoError('Failed to upload profile photo.');
     } finally {
       setIsPhotoUploading(false);
-    }
-  };
-
-  const handleSendOtp = async () => {
-    if (mobile.length !== 10) {
-      setOtpError('Please enter a valid 10-digit mobile number.');
-      return;
-    }
-    setOtpError('');
-    setOtpLoading(true);
-
-    try {
-      const response = await authFetch(`${import.meta.env.VITE_API_URL}/auth/mobile/send-otp`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobileNumber: mobile }),
-      });
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok || !data?.success) {
-        setOtpError(data?.message || 'Failed to send OTP. Please try again.');
-        return;
-      }
-
-      setOtp('');
-      setOtpSent(true);
-    } catch (error) {
-      console.error('Failed to send mobile OTP', error);
-      setOtpError('Failed to send OTP. Please check your connection and retry.');
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (otp.length !== 6) {
-      setOtpError('Please enter a valid 6-digit OTP.');
-      return;
-    }
-
-    setOtpError('');
-    setOtpVerifying(true);
-
-    try {
-      const response = await authFetch(`${import.meta.env.VITE_API_URL}/auth/mobile/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobileNumber: mobile, otp }),
-      });
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok || !data?.success) {
-        setOtpError(data?.message || 'Invalid OTP. Please try again.');
-        return;
-      }
-
-      const updatedUser = data?.data?.user as AuthUser | undefined;
-      if (updatedUser) {
-        setCurrentUser(updatedUser);
-        const session = getAuthSession();
-        if (session) {
-          saveAuthSession({
-            ...session,
-            user: updatedUser,
-          });
-        }
-      }
-
-      setMobileVerified(true);
-      setOtpSent(false);
-      setOtp('');
-    } catch (error) {
-      console.error('Failed to verify mobile OTP', error);
-      setOtpError('Failed to verify OTP. Please try again.');
-    } finally {
-      setOtpVerifying(false);
     }
   };
 
@@ -571,156 +467,16 @@ const ProfilePage: React.FC = () => {
             </div>
           </SectionCard>
 
+
           {/* ═══════════════════════════════════════════════════════════
-              2. MOBILE VERIFICATION
+              3. Mobile verification
           ════════════════════════════════════════════════════════════ */}
-          <SectionCard
-            icon={<Phone size={18} />}
-            title="Mobile Number"
-            subtitle="Verified via SMS OTP – required for transactions and withdrawals."
-            accent="purple"
-          >
-            <div className="space-y-3">
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] uppercase tracking-[0.18em] text-[#6B7280] font-medium">
-                    Mobile Number
-                  </label>
-                  {mobileVerified ? <VerifiedBadge /> : <UnverifiedBadge />}
-                </div>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <div className="flex w-full items-center justify-center gap-2 rounded-[0.85rem] border border-[#262626] bg-[#121212] px-4 py-3 text-sm text-[#6B7280] sm:w-auto sm:justify-start">
-                    🇮🇳 +91
-                  </div>
-                  <input
-                    type="tel"
-                    maxLength={10}
-                    value={mobile}
-                    onChange={(e) => {
-                      setMobile(e.target.value.replace(/\D/g, ''));
-                      setMobileVerified(false);
-                      setOtpSent(false);
-                      setOtpError('');
-                    }}
-                    disabled={mobileVerified}
-                    placeholder="Enter 10-digit number"
-                    className={`flex-1 rounded-[0.85rem] border px-4 py-3 text-sm outline-none transition-all duration-200 ${mobileVerified
-                      ? 'border-[#1ED760]/30 bg-[#0B0B0B] text-[#6B7280] cursor-not-allowed'
-                      : 'border-[#262626] bg-[#121212] text-white placeholder-[#4B4B4B] focus:border-[#7C5CFF]/60 focus:ring-1 focus:ring-[#7C5CFF]/20'
-                      }`}
-                  />
-                  {!mobileVerified && (
-                    <button
-                      onClick={handleSendOtp}
-                      disabled={otpLoading || otpSent}
-                      className="w-full rounded-[0.85rem] bg-[#7C5CFF] px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#6D4FF5] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-                    >
-                      {otpLoading ? 'Sending…' : otpSent ? 'OTP Sent' : 'Send OTP'}
-                    </button>
-                  )}
-                  {mobileVerified && (
-                    <button
-                      onClick={() => {
-                        setMobileVerified(false);
-                        setOtpSent(false);
-                        setOtp('');
-                        setOtpError('');
-                      }}
-                      className="w-full rounded-[0.85rem] border border-[#262626] bg-[#161616] px-4 py-3 text-xs font-medium text-[#B3B3B3] transition-all duration-200 hover:border-[#7C5CFF]/40 hover:text-[#7C5CFF] sm:w-auto"
-                    >
-                      Change
-                    </button>
-                  )}
-                </div>
-              </div>
 
-              {otpSent && !mobileVerified && (
-                <div className="flex flex-col gap-2 animate-[fade-in-up_0.3s_ease-out_forwards] sm:flex-row">
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => { setOtp(e.target.value.replace(/\D/g, '')); setOtpError(''); }}
-                    placeholder="Enter 6-digit OTP"
-                    className="flex-1 rounded-[0.85rem] border border-[#262626] bg-[#121212] px-4 py-3 text-sm text-white placeholder-[#4B4B4B] outline-none focus:border-[#7C5CFF]/60 focus:ring-1 focus:ring-[#7C5CFF]/20 tracking-[0.35em]"
-                  />
-                  <button
-                    onClick={handleVerifyOtp}
-                    disabled={otpVerifying}
-                    className="w-full rounded-[0.85rem] bg-[#1ED760] px-4 py-3 text-sm font-semibold text-[#0B0B0B] transition-all duration-200 hover:bg-[#17C955] sm:w-auto"
-                  >
-                    {otpVerifying ? 'Verifying…' : 'Verify'}
-                  </button>
-                </div>
-              )}
-
-              {otpError && (
-                <p className="flex items-center gap-1.5 text-xs text-red-400">
-                  <AlertTriangle size={12} /> {otpError}
-                </p>
-              )}
-
-              {otpSent && !mobileVerified && (
-                <p className="text-[11px] text-[#6B7280]">
-                  📩 OTP sent to +91 {mobile}. Didn't receive?{' '}
-                  <button
-                    onClick={handleSendOtp}
-                    className="text-[#7C5CFF] underline underline-offset-2 hover:text-[#9B7FFF]"
-                  >
-                    Resend
-                  </button>
-                </p>
-              )}
-            </div>
-          </SectionCard>
-
+          
           {/* ═══════════════════════════════════════════════════════════
               3. AADHAAR VERIFICATION
           ════════════════════════════════════════════════════════════ */}
-          <SectionCard
-            icon={<Fingerprint size={18} />}
-            title="Aadhaar Verification"
-            subtitle="Verified via DigiLocker – required to receive payouts above ₹10,000."
-            accent="blue"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-[0.85rem] bg-blue-500/10">
-                  <Shield size={20} className="text-blue-400" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-white">DigiLocker Authentication</p>
-                  <p className="text-xs text-[#6B7280] mt-0.5">
-                    {aadhaarVerified
-                      ? 'Your Aadhaar identity has been confirmed.'
-                      : 'Link your DigiLocker to verify your Aadhaar identity.'}
-                  </p>
-                </div>
-                <div className="ml-1">{aadhaarVerified ? <VerifiedBadge /> : <UnverifiedBadge />}</div>
-              </div>
-              {!aadhaarVerified ? (
-                <button
-                  onClick={() => {
-                    setAadhaarVerified(true);
-                    void saveVerificationDetails({ aadhaarVerified: true });
-                  }}
-                  className="w-full sm:w-auto rounded-[0.85rem] bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(59,130,246,0.25)] transition-all duration-200 hover:shadow-[0_4px_24px_rgba(59,130,246,0.4)] active:scale-95"
-                >
-                  Verify via DigiLocker
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    setAadhaarVerified(false);
-                    void saveVerificationDetails({ aadhaarVerified: false });
-                  }}
-                  className="w-full sm:w-auto rounded-[0.85rem] border border-[#262626] bg-[#161616] px-5 py-3 text-sm font-medium text-[#B3B3B3] transition-all duration-200 hover:border-blue-400/40 hover:text-blue-400"
-                >
-                  Re-verify
-                </button>
-              )}
-            </div>
-          </SectionCard>
+          
 
           {/* ═══════════════════════════════════════════════════════════
               4. FULL NAME & EMAIL
@@ -955,7 +711,6 @@ const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
-
 
 
 

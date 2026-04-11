@@ -60,6 +60,7 @@ type ApiBeatSearchResult = {
   tags?: string[] | string;
   plays?: number;
   likes?: number;
+  freeMp3Enabled?: boolean;
 };
 
 type SearchFilters = {
@@ -89,6 +90,13 @@ const resolveBeatGenre = (beat: ApiBeatSearchResult): string => {
   }
 
   return 'Unknown';
+};
+
+const parseFreeMp3Enabled = (value: unknown): boolean => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.trim().toLowerCase() === 'true';
+  if (typeof value === 'number') return value === 1;
+  return false;
 };
 
 const BuyerDashboardPage: React.FC = () => {
@@ -132,7 +140,7 @@ const BuyerDashboardPage: React.FC = () => {
       bpm: beat.bpm,
       price: beat.price,
       genre: beat.genre,
-      freeMp3Enabled: Boolean(beat.freeMp3Enabled),
+      freeMp3Enabled: parseFreeMp3Enabled(beat.freeMp3Enabled),
     });
 
     void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat.id}/play`, { method: 'POST' }).catch(() => null);
@@ -176,6 +184,7 @@ const BuyerDashboardPage: React.FC = () => {
             : []),
         plays: Number(beat.plays ?? 0),
         likes: Number(beat.likes ?? 0),
+        freeMp3Enabled: parseFreeMp3Enabled(beat.freeMp3Enabled),
       }));
 
       setSearchResults(mappedBeats);
