@@ -113,9 +113,11 @@ const Navbar: React.FC = () => {
           <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="flex w-9 h-9 rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] flex items-center justify-center shadow-[0_0_20px_rgba(30,215,96,0.3)] group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)] transition-all duration-300">
-              <Music2 size={18} className="text-[#0B0B0B]" />
-            </div>
+            <img
+              src="/beathaven.png"
+              alt="BeatHaven logo"
+              className="w-9 h-9 rounded-xl object-cover shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]"
+            />
             <span className="text-xl font-bold text-white tracking-tight">
               Beat<span className="text-[#1ED760]">Haven</span>
             </span>

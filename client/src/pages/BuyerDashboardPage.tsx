@@ -132,7 +132,7 @@ const BuyerDashboardPage: React.FC = () => {
       bpm: beat.bpm,
       price: beat.price,
       genre: beat.genre,
-      freeMp3Enabled: true,
+      freeMp3Enabled: Boolean(beat.freeMp3Enabled),
     });
 
     void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat.id}/play`, { method: 'POST' }).catch(() => null);

@@ -10,6 +10,7 @@ export interface Beat {
   price: number;
   coverImage: string;
   audioUrl?: string;
+  freeMp3Enabled?: boolean;
   tags: string[];
   plays: number;
   likes: number;

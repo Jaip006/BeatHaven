@@ -15,12 +15,15 @@ import {
   VolumeX,
   XIcon,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import PriceButton from '../ui/PriceButton';
 import { useLikedBeats } from '../../context/LikedBeatsContext';
 import type { Beat } from '../../types';
 import { authFetch } from '../../utils/authFetch';
 import { useDownloads } from '../../context/DownloadsContext';
+import LicensePurchaseModal from '../ui/LicensePurchaseModal';
+import { getAuthSession } from '../../utils/auth';
 
 const formatTime = (seconds: number): string => {
   if (!isFinite(seconds) || seconds < 0) return '0:00';
@@ -44,6 +47,7 @@ const BeatPreviewPlayer: React.FC = () => {
   } = usePlayer();
   const { isLikedBeat, toggleLikedBeat } = useLikedBeats();
   const { addDownload } = useDownloads();
+  const navigate = useNavigate();
 
   const progressBarRef = useRef<HTMLDivElement>(null);
   const volumeBarRef = useRef<HTMLDivElement>(null);
@@ -53,6 +57,8 @@ const BeatPreviewPlayer: React.FC = () => {
   const [isDownloadTermsOpen, setIsDownloadTermsOpen] = useState(false);
   const [downloadTermsAccepted, setDownloadTermsAccepted] = useState(false);
   const [isDownloadSubmitting, setIsDownloadSubmitting] = useState(false);
+  const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
+  const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
 
   const handleProgressClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -99,6 +105,19 @@ const BeatPreviewPlayer: React.FC = () => {
     }
     : null;
 
+  const handlePriceClick = () => {
+    if (!mappedCurrentBeat) {
+      return;
+    }
+
+    if (!getAuthSession()) {
+      setIsAuthPromptOpen(true);
+      return;
+    }
+
+    setIsLicenseModalOpen(true);
+  };
+
   const handleToggleLike = () => {
     if (!mappedCurrentBeat) {
       return;
@@ -137,8 +156,14 @@ const BeatPreviewPlayer: React.FC = () => {
       }
 
       const downloadUrl = String(data.data.downloadUrl);
-      const safeTitle = String(data?.data?.title || currentBeat.title || 'beat')
-        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+      const rawTitle = String(data?.data?.title || currentBeat.title || 'beat');
+      const safeTitle = rawTitle
+        .split('')
+        .filter((char) => {
+          const code = char.charCodeAt(0);
+          return code >= 0x20 && !/[<>:"/\\|?*]/.test(char);
+        })
+        .join('')
         .trim()
         .slice(0, 120) || 'beat';
 
@@ -340,7 +365,12 @@ const BeatPreviewPlayer: React.FC = () => {
         </div>
 
         {!currentBeat?.isOwnedByCurrentUser ? (
-          <PriceButton price={currentBeat?.price} showBuyText={false} className="px-2.5 py-1 text-xs sm:px-3.5 sm:py-1.5 sm:text-sm" />
+          <PriceButton
+            price={currentBeat?.price}
+            onClick={handlePriceClick}
+            showBuyText={false}
+            className="px-2.5 py-1 text-xs sm:px-3.5 sm:py-1.5 sm:text-sm"
+          />
         ) : null}
 
         <div className="hidden items-center gap-1.5 pl-2 sm:flex">
@@ -483,6 +513,45 @@ const BeatPreviewPlayer: React.FC = () => {
               >
                 {isDownloadSubmitting ? 'Downloading...' : 'Download'}
               </button>
+            </div>
+          </div>,
+          document.body,
+        )
+        : null}
+      {mappedCurrentBeat ? (
+        <LicensePurchaseModal
+          beat={mappedCurrentBeat}
+          isOpen={isLicenseModalOpen}
+          onClose={() => setIsLicenseModalOpen(false)}
+        />
+      ) : null}
+      {isAuthPromptOpen && typeof document !== 'undefined'
+        ? createPortal(
+          <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setIsAuthPromptOpen(false)}>
+            <div
+              className="w-full max-w-sm rounded-2xl border border-[#2A2A2A] bg-[#101010] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h3 className="text-lg font-bold text-white">Sign in required</h3>
+              <p className="mt-2 text-sm text-[#B3B3B3]">
+                Please sign in or create an account to purchase beats.
+              </p>
+              <div className="mt-5 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/sign-up')}
+                  className="rounded-lg border border-[#2A2A2A] px-3 py-2 text-sm text-white transition-colors hover:bg-[#171717]"
+                >
+                  Sign Up
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/sign-in')}
+                  className="rounded-lg bg-[#1ED760] px-3 py-2 text-sm font-semibold text-[#0B0B0B] transition-colors hover:bg-[#19c453]"
+                >
+                  Sign In
+                </button>
+              </div>
             </div>
           </div>,
           document.body,

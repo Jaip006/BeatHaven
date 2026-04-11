@@ -82,7 +82,7 @@ const LikedBeatsPage: React.FC = () => {
       bpm: playableBeat.bpm,
       price: playableBeat.price,
       genre: playableBeat.genre,
-      freeMp3Enabled: true,
+      freeMp3Enabled: Boolean(playableBeat.freeMp3Enabled),
     });
 
     void authFetch(`${import.meta.env.VITE_API_URL}/beats/${playableBeat.id}/play`, { method: 'POST' }).catch(() => null);
