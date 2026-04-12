@@ -125,9 +125,12 @@ const SignInPage: React.FC = () => {
                 </label>
 
                 <div className="text-right text-sm">
-                  <a href="#" className="inline-block text-[#1ED760] hover:text-[#22FFA3] transition-colors duration-200">
+                  <Link
+                    to={`/reset-password${email.trim() ? `?email=${encodeURIComponent(email.trim())}` : ''}`}
+                    className="inline-block text-[#1ED760] hover:text-[#22FFA3] transition-colors duration-200"
+                  >
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
 
                 <Button type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>

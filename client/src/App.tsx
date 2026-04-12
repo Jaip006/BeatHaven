@@ -9,6 +9,7 @@ import './App.css';
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const SignInPage = lazy(() => import('./pages/SignInPage'));
 const SignUpPage = lazy(() => import('./pages/SignUpPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const BuyerDashboardPage = lazy(() => import('./pages/BuyerDashboardPage'));
 const SellerDashboardPage = lazy(() => import('./pages/SellerDashboardPage'));
 const SellerUploadPage = lazy(() => import('./pages/SellerUploadPage'));
@@ -40,6 +41,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard/buyer" element={<BuyerDashboardPage />} />
               <Route path="/dashboard/seller" element={<SellerDashboardPage />} />

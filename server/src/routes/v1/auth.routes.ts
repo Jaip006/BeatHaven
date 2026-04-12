@@ -4,7 +4,7 @@ import multer from "multer";
 import User from "../../models/user.model";
 import asyncHandler from "../../utils/asyncHandler";
 import AppError from "../../utils/appError";
-import { sendVerificationOtpEmail } from "../../utils/email.utils";
+import { sendPasswordResetOtpEmail, sendVerificationOtpEmail } from "../../utils/email.utils";
 import { generateOtp, hashOtp } from "../../utils/otp.utils";
 import { sendSms } from "../../utils/sms.utils";
 import cloudinary from "../../config/cloudinary.config";
@@ -34,6 +34,18 @@ const verifyEmailSchema = z.object({
 
 const resendOtpSchema = z.object({
   email: z.string().trim().email(),
+});
+const forgotPasswordSchema = z.object({
+  email: z.string().trim().email(),
+});
+const resetPasswordSchema = z.object({
+  email: z.string().trim().email(),
+  otp: z.string().trim().length(6),
+  newPassword: z.string().min(8),
+});
+const verifyResetOtpSchema = z.object({
+  email: z.string().trim().email(),
+  otp: z.string().trim().length(6),
 });
 
 const loginSchema = z.object({
@@ -280,6 +292,134 @@ authRouter.post(
     res.status(200).json({
       success: true,
       message: "A new OTP has been sent to your email.",
+    });
+  })
+);
+
+authRouter.post(
+  "/forgot-password",
+  asyncHandler(async (req, res) => {
+    const { email } = forgotPasswordSchema.parse(req.body);
+    const normalizedEmail = email.toLowerCase();
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+emailVerificationOtp +emailVerificationOtpExpires"
+    );
+
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message: "If an account exists for this email, a password reset OTP has been sent.",
+      });
+    }
+
+    if (!user.isVerified) {
+      throw new AppError(
+        "Please verify your email first, then try password reset.",
+        400,
+        "EMAIL_NOT_VERIFIED"
+      );
+    }
+
+    const otp = generateOtp();
+    user.emailVerificationOtp = hashOtp(otp);
+    user.emailVerificationOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    await sendPasswordResetOtpEmail({
+      email: normalizedEmail,
+      displayName: user.displayName,
+      otp,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "If an account exists for this email, a password reset OTP has been sent.",
+    });
+  })
+);
+
+authRouter.post(
+  "/verify-reset-otp",
+  asyncHandler(async (req, res) => {
+    const { email, otp } = verifyResetOtpSchema.parse(req.body);
+    const normalizedEmail = email.toLowerCase();
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+emailVerificationOtp +emailVerificationOtpExpires"
+    );
+
+    if (!user) {
+      throw new AppError("No account found for this email.", 404, "USER_NOT_FOUND");
+    }
+
+    if (!user.emailVerificationOtp || !user.emailVerificationOtpExpires) {
+      throw new AppError("No reset OTP found. Please request a new code.", 400, "OTP_MISSING");
+    }
+
+    if (user.emailVerificationOtpExpires.getTime() < Date.now()) {
+      user.emailVerificationOtp = null;
+      user.emailVerificationOtpExpires = null;
+      await user.save();
+      throw new AppError("OTP has expired. Please request a new code.", 400, "OTP_EXPIRED");
+    }
+
+    if (user.emailVerificationOtp !== hashOtp(otp)) {
+      throw new AppError("Invalid OTP.", 400, "OTP_INVALID");
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "OTP verified successfully. You can now set a new password.",
+    });
+  })
+);
+
+authRouter.post(
+  "/reset-password",
+  asyncHandler(async (req, res) => {
+    const { email, otp, newPassword } = resetPasswordSchema.parse(req.body);
+    const normalizedEmail = email.toLowerCase();
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+password +refreshToken +lastActivityAt +emailVerificationOtp +emailVerificationOtpExpires"
+    );
+
+    if (!user) {
+      throw new AppError("No account found for this email.", 404, "USER_NOT_FOUND");
+    }
+
+    if (!user.emailVerificationOtp || !user.emailVerificationOtpExpires) {
+      throw new AppError("No reset OTP found. Please request a new code.", 400, "OTP_MISSING");
+    }
+
+    if (user.emailVerificationOtpExpires.getTime() < Date.now()) {
+      user.emailVerificationOtp = null;
+      user.emailVerificationOtpExpires = null;
+      await user.save();
+      throw new AppError("OTP has expired. Please request a new code.", 400, "OTP_EXPIRED");
+    }
+
+    if (user.emailVerificationOtp !== hashOtp(otp)) {
+      throw new AppError("Invalid OTP.", 400, "OTP_INVALID");
+    }
+
+    user.password = newPassword;
+    user.emailVerificationOtp = null;
+    user.emailVerificationOtpExpires = null;
+    user.refreshToken = undefined;
+    user.lastActivityAt = null;
+    await user.save();
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successful. You can sign in with your new password.",
     });
   })
 );

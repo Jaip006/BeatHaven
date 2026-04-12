@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Play, Pause, ShieldCheck, Share2, Music2, Trash2, Instagram, Youtube, Twitter, Disc3, Cloud, Globe } from 'lucide-react';
+import { Play, Pause, ShieldCheck, Share2, Trash2, Instagram, Youtube, Twitter, Disc3, Cloud, Globe } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import UserQuickActions from '../components/layout/UserQuickActions';
 import PriceButton from '../components/ui/PriceButton';
@@ -357,9 +357,11 @@ const MyStudioPage: React.FC = () => {
           <div className="relative z-[120]">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
               <Link to="/" className="flex shrink-0 items-center gap-2.5 group">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]">
-                  <Music2 size={18} className="text-[#0B0B0B]" />
-                </div>
+                <img
+                  src="/beathaven.png"
+                  alt="BeatHaven logo"
+                  className="h-9 w-9 rounded-xl object-cover shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]"
+                />
                 <span className="hidden text-xl font-bold tracking-tight text-white sm:inline">Beat<span className="text-[#1ED760]">Haven</span></span>
               </Link>
 

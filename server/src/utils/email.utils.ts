@@ -7,6 +7,11 @@ interface SendVerificationOtpEmailOptions {
   displayName: string;
   otp: string;
 }
+interface SendPasswordResetOtpEmailOptions {
+  email: string;
+  displayName: string;
+  otp: string;
+}
 
 function buildTransporter() {
   if (!env.EMAIL_HOST || !env.EMAIL_PORT || !env.EMAIL_USER || !env.EMAIL_PASS) {
@@ -38,11 +43,21 @@ function isAuthenticationError(error: unknown): boolean {
   );
 }
 
-export async function sendVerificationOtpEmail({
+async function sendOtpEmail({
   email,
-  displayName,
+  subject,
+  title,
+  intro,
   otp,
-}: SendVerificationOtpEmailOptions): Promise<void> {
+  signatureName,
+}: {
+  email: string;
+  subject: string;
+  title: string;
+  intro: string;
+  otp: string;
+  signatureName: string;
+}): Promise<void> {
   const transporter = buildTransporter();
 
   if (!transporter || !env.EMAIL_FROM) {
@@ -62,16 +77,17 @@ export async function sendVerificationOtpEmail({
     await transporter.sendMail({
       from: env.EMAIL_FROM,
       to: email,
-      subject: "Your BeatHaven verification code",
+      subject,
       html: `
         <div style="font-family: Arial, sans-serif; background: #0b0b0b; color: #ffffff; padding: 24px;">
-          <h2 style="margin: 0 0 16px;">Verify your BeatHaven account</h2>
-          <p style="margin: 0 0 12px;">Hi ${displayName},</p>
-          <p style="margin: 0 0 20px;">Use the OTP below to verify your email address.</p>
+          <h2 style="margin: 0 0 16px;">${title}</h2>
+          <p style="margin: 0 0 20px;">${intro}</p>
           <div style="display: inline-block; padding: 12px 18px; border-radius: 12px; background: #121212; border: 1px solid #262626; font-size: 28px; letter-spacing: 8px; font-weight: 700;">
             ${otp}
           </div>
           <p style="margin: 20px 0 0; color: #b3b3b3;">This code expires in 10 minutes.</p>
+          <p style="margin: 8px 0 0; color: #b3b3b3;">If you did not request this, you can safely ignore this email.</p>
+          <p style="margin: 16px 0 0; color: #b3b3b3;">- ${signatureName}</p>
         </div>
       `,
     });
@@ -96,4 +112,34 @@ export async function sendVerificationOtpEmail({
       error instanceof Error ? error.message : error
     );
   }
+}
+
+export async function sendVerificationOtpEmail({
+  email,
+  displayName,
+  otp,
+}: SendVerificationOtpEmailOptions): Promise<void> {
+  await sendOtpEmail({
+    email,
+    subject: "Your BeatHaven verification code",
+    title: "Verify your BeatHaven account",
+    intro: `Hi ${displayName}, use the OTP below to verify your email address.`,
+    otp,
+    signatureName: "Team BeatHaven",
+  });
+}
+
+export async function sendPasswordResetOtpEmail({
+  email,
+  displayName,
+  otp,
+}: SendPasswordResetOtpEmailOptions): Promise<void> {
+  await sendOtpEmail({
+    email,
+    subject: "Your BeatHaven password reset code",
+    title: "Reset your BeatHaven password",
+    intro: `Hi ${displayName}, use this OTP to reset your password.`,
+    otp,
+    signatureName: "Team BeatHaven",
+  });
 }

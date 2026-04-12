@@ -9,7 +9,6 @@ import {
   FileText,
   Lock,
   Mail,
-  Music2,
   User,
   X,
   Check,
@@ -323,9 +322,11 @@ const ProfilePage: React.FC = () => {
           <div className="relative z-[120]">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
               <Link to="/" className="flex shrink-0 items-center gap-2.5 group">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ED760] to-[#7C5CFF] shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]">
-                  <Music2 size={18} className="text-[#0B0B0B]" />
-                </div>
+                <img
+                  src="/beathaven.png"
+                  alt="BeatHaven logo"
+                  className="h-9 w-9 rounded-xl object-cover shadow-[0_0_20px_rgba(30,215,96,0.3)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(30,215,96,0.5)]"
+                />
                 <span className="text-xl font-bold text-white tracking-tight">
                   Beat<span className="text-[#1ED760]">Haven</span>
                 </span>
@@ -711,7 +712,6 @@ const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
-
 
 
 
