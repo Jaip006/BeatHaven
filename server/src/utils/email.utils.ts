@@ -17,6 +17,12 @@ type EmailHealthStatus = {
   fromConfigured: boolean;
   connectionVerified: boolean | null;
   reason: string | null;
+  diagnostics?: {
+    code: string | null;
+    responseCode: number | null;
+    command: string | null;
+    message: string | null;
+  };
 };
 
 function buildTransporter() {
@@ -50,6 +56,36 @@ function isAuthenticationError(error: unknown): boolean {
     smtpError.responseCode === 535 ||
     smtpError.message?.toLowerCase().includes("authentication failed") === true
   );
+}
+
+function getSmtpDiagnostics(error: unknown): {
+  code: string | null;
+  responseCode: number | null;
+  command: string | null;
+  message: string | null;
+} {
+  if (!error || typeof error !== "object") {
+    return {
+      code: null,
+      responseCode: null,
+      command: null,
+      message: null,
+    };
+  }
+
+  const smtpError = error as {
+    code?: string;
+    responseCode?: number;
+    command?: string;
+    message?: string;
+  };
+
+  return {
+    code: smtpError.code ?? null,
+    responseCode: typeof smtpError.responseCode === "number" ? smtpError.responseCode : null,
+    command: smtpError.command ?? null,
+    message: smtpError.message ?? null,
+  };
 }
 
 async function sendOtpEmail({
@@ -114,12 +150,7 @@ async function sendOtpEmail({
       ? "Failed to send verification email. SMTP authentication failed. Check EMAIL_USER, EMAIL_PASS, and the provider's app-password requirements."
       : "Failed to send verification email";
 
-    throw new AppError(
-      message,
-      502,
-      "EMAIL_SEND_FAILED",
-      error instanceof Error ? error.message : error
-    );
+    throw new AppError(message, 502, "EMAIL_SEND_FAILED", getSmtpDiagnostics(error));
   }
 }
 
@@ -163,11 +194,13 @@ export async function getEmailServiceHealth(verifyConnection = false): Promise<E
       reason: null,
     };
   } catch (error) {
+    const diagnostics = getSmtpDiagnostics(error);
     return {
       configured: true,
       fromConfigured: true,
       connectionVerified: false,
       reason: isAuthenticationError(error) ? "SMTP_AUTH_FAILED" : "SMTP_VERIFY_FAILED",
+      diagnostics,
     };
   }
 }
