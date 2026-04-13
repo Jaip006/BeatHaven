@@ -12,6 +12,12 @@ interface SendPasswordResetOtpEmailOptions {
   displayName: string;
   otp: string;
 }
+type EmailHealthStatus = {
+  configured: boolean;
+  fromConfigured: boolean;
+  connectionVerified: boolean | null;
+  reason: string | null;
+};
 
 function buildTransporter() {
   if (!env.EMAIL_HOST || !env.EMAIL_PORT || !env.EMAIL_USER || !env.EMAIL_PASS) {
@@ -26,6 +32,9 @@ function buildTransporter() {
       user: env.EMAIL_USER,
       pass: env.EMAIL_PASS,
     },
+    connectionTimeout: 8_000,
+    greetingTimeout: 8_000,
+    socketTimeout: 8_000,
   });
 }
 
@@ -111,6 +120,55 @@ async function sendOtpEmail({
       "EMAIL_SEND_FAILED",
       error instanceof Error ? error.message : error
     );
+  }
+}
+
+export async function getEmailServiceHealth(verifyConnection = false): Promise<EmailHealthStatus> {
+  const transporter = buildTransporter();
+  const fromConfigured = Boolean(env.EMAIL_FROM);
+
+  if (!transporter) {
+    return {
+      configured: false,
+      fromConfigured,
+      connectionVerified: null,
+      reason: "SMTP_TRANSPORT_NOT_CONFIGURED",
+    };
+  }
+
+  if (!fromConfigured) {
+    return {
+      configured: true,
+      fromConfigured: false,
+      connectionVerified: null,
+      reason: "EMAIL_FROM_MISSING",
+    };
+  }
+
+  if (!verifyConnection) {
+    return {
+      configured: true,
+      fromConfigured: true,
+      connectionVerified: null,
+      reason: null,
+    };
+  }
+
+  try {
+    await transporter.verify();
+    return {
+      configured: true,
+      fromConfigured: true,
+      connectionVerified: true,
+      reason: null,
+    };
+  } catch (error) {
+    return {
+      configured: true,
+      fromConfigured: true,
+      connectionVerified: false,
+      reason: isAuthenticationError(error) ? "SMTP_AUTH_FAILED" : "SMTP_VERIFY_FAILED",
+    };
   }
 }
 

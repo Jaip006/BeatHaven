@@ -6,8 +6,6 @@ const errorHandlerMiddleware = (
   res: any,
   next: () => void
 ) => {
-  console.log("---errorHandlerMiddleware---");
-  console.log(err);
   let error: AppError;
 
   if (err instanceof AppError) {
@@ -63,6 +61,23 @@ const errorHandlerMiddleware = (
 
   if (err.name === "TokenExpiredError") {
     error = new AppError("Token expired", 401, "TOKEN_EXPIRED");
+  }
+
+  const expectedAuthCodes = new Set([
+    "REFRESH_TOKEN_MISSING",
+    "INVALID_REFRESH_TOKEN",
+    "SESSION_INACTIVE",
+    "INVALID_TOKEN",
+    "TOKEN_EXPIRED",
+  ]);
+  const shouldLogError =
+    process.env.NODE_ENV === "development" ||
+    error.statusCode >= 500 ||
+    !expectedAuthCodes.has(error.code ?? "");
+
+  if (shouldLogError) {
+    console.log("---errorHandlerMiddleware---");
+    console.log(err);
   }
 
   // Build standardized error response

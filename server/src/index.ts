@@ -10,6 +10,7 @@ import v1Routes from "./routes/v1/index";
 import errorHandlerMiddleware from "./middlewares/errorHandler";
 import notFoundMiddleware from "./middlewares/notFound";
 import cookieParser from "cookie-parser";
+import { getEmailServiceHealth } from "./utils/email.utils";
 
 dotenv.config();
 
@@ -65,6 +66,18 @@ app.get("/health", (_req, res) => {
 
 app.get("/api/v1/health", (_req, res) => {
   res.status(200).json({ ok: true, service: "beathaven-api" });
+});
+
+app.get("/api/v1/health/email", async (req, res) => {
+  const verifyConnection = String(req.query.verify ?? "").toLowerCase();
+  const shouldVerify = verifyConnection === "1" || verifyConnection === "true";
+  const email = await getEmailServiceHealth(shouldVerify);
+
+  res.status(200).json({
+    ok: true,
+    service: "beathaven-api",
+    email,
+  });
 });
 
 //  API ROUTES
