@@ -133,7 +133,7 @@ const SignUpPage: React.FC = () => {
 
               <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
                 Create account and
-                <span className="gradient-text"> launch the next drop.</span>
+                <span className="gradient-text"> launch your next drop.</span>
               </h1>
 
               <p className="mt-5 max-w-xl text-base sm:text-lg leading-relaxed text-[#B3B3B3]">
@@ -343,6 +343,8 @@ const SignUpPage: React.FC = () => {
       </main>
     </div>
   );
+
 };
 
 export default SignUpPage;
+
