@@ -142,7 +142,7 @@ const SignUpPage: React.FC = () => {
             </div>
 
             <div className="glass rounded-[2rem] border border-[#262626] p-6 sm:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-              <div className="mb-8">
+              <div className="mb-4">
                 <p className="text-sm uppercase tracking-[0.3em] text-[#1ED760]">
                   {phase === 'otp' ? 'Verify your email' : phase === 'verified' ? 'All set' : ''}
                 </p>
@@ -157,7 +157,7 @@ const SignUpPage: React.FC = () => {
                   {phase === 'form'
                     ? 'Set up your profile and start exploring beats in a few seconds.'
                     : phase === 'otp'
-                      ? 'A 6-digit OTP has been sent to your email address.'
+                      ? ''
                       : 'You can now sign in and continue into BeatHaven.'}
                 </p>
               </div>
@@ -177,7 +177,6 @@ const SignUpPage: React.FC = () => {
               {phase === 'form' ? (
                 <form className="space-y-5" onSubmit={handleRegisterSubmit}>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-[#B3B3B3]">Full name</span>
                     <div className="flex items-center gap-3 rounded-2xl border border-[#262626] bg-[#121212] px-4 py-3 focus-within:border-[#1ED760] transition-colors duration-200">
                       <User2 size={18} className="text-[#6B7280]" />
                       <input
@@ -185,7 +184,7 @@ const SignUpPage: React.FC = () => {
                         value={formData.displayName}
                         onChange={handleInputChange}
                         type="text"
-                        placeholder="Jordan Phoenix"
+                        placeholder="Your Full Name"
                         className="w-full bg-transparent text-white outline-none placeholder:text-[#6B7280]"
                         required
                       />
@@ -193,7 +192,6 @@ const SignUpPage: React.FC = () => {
                   </label>
 
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-[#B3B3B3]">Email</span>
                     <div className="flex items-center gap-3 rounded-2xl border border-[#262626] bg-[#121212] px-4 py-3 focus-within:border-[#1ED760] transition-colors duration-200">
                       <Mail size={18} className="text-[#6B7280]" />
                       <input
@@ -201,7 +199,7 @@ const SignUpPage: React.FC = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         type="email"
-                        placeholder="artist@beathaven.com"
+                        placeholder="Your Email"
                         className="w-full bg-transparent text-white outline-none placeholder:text-[#6B7280]"
                         required
                       />
@@ -209,7 +207,6 @@ const SignUpPage: React.FC = () => {
                   </label>
 
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-[#B3B3B3]">Role</span>
                     <select
                       name="role"
                       value={formData.role}
@@ -222,7 +219,6 @@ const SignUpPage: React.FC = () => {
                   </label>
 
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-[#B3B3B3]">Password</span>
                     <div className="flex items-center gap-3 rounded-2xl border border-[#262626] bg-[#121212] px-4 py-3 focus-within:border-[#7C5CFF] transition-colors duration-200">
                       <LockKeyhole size={18} className="text-[#6B7280]" />
                       <input
@@ -247,7 +243,6 @@ const SignUpPage: React.FC = () => {
                   </label>
 
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-[#B3B3B3]">Confirm password</span>
                     <div className="flex items-center gap-3 rounded-2xl border border-[#262626] bg-[#121212] px-4 py-3 focus-within:border-[#7C5CFF] transition-colors duration-200">
                       <ShieldCheck size={18} className="text-[#6B7280]" />
                       <input
