@@ -17,6 +17,7 @@ type EmailHealthStatus = {
   fromConfigured: boolean;
   connectionVerified: boolean | null;
   reason: string | null;
+  attempts?: string[];
   diagnostics?: {
     code: string | null;
     responseCode: number | null;
@@ -25,15 +26,17 @@ type EmailHealthStatus = {
   };
 };
 
-function buildTransporter() {
-  if (!env.EMAIL_HOST || !env.EMAIL_PORT || !env.EMAIL_USER || !env.EMAIL_PASS) {
-    return null;
-  }
+type SmtpTarget = {
+  host: string;
+  port: number;
+  secure: boolean;
+};
 
-  return nodemailer.createTransport({
-    host: env.EMAIL_HOST,
-    port: env.EMAIL_PORT,
-    secure: env.EMAIL_PORT === 465,
+const buildTransporter = (target: SmtpTarget) =>
+  nodemailer.createTransport({
+    host: target.host,
+    port: target.port,
+    secure: target.secure,
     auth: {
       user: env.EMAIL_USER,
       pass: env.EMAIL_PASS,
@@ -41,6 +44,49 @@ function buildTransporter() {
     connectionTimeout: 8_000,
     greetingTimeout: 8_000,
     socketTimeout: 8_000,
+  });
+
+function getSmtpTargets(): SmtpTarget[] {
+  if (!env.EMAIL_HOST || !env.EMAIL_PORT || !env.EMAIL_USER || !env.EMAIL_PASS) {
+    return [];
+  }
+
+  const targets: SmtpTarget[] = [
+    {
+      host: env.EMAIL_HOST,
+      port: env.EMAIL_PORT,
+      secure: env.EMAIL_PORT === 465,
+    },
+  ];
+
+  const host = env.EMAIL_HOST.toLowerCase();
+  if (host === "smtp.gmail.com") {
+    if (env.EMAIL_PORT === 587) {
+      targets.push({ host: env.EMAIL_HOST, port: 465, secure: true });
+    } else if (env.EMAIL_PORT === 465) {
+      targets.push({ host: env.EMAIL_HOST, port: 587, secure: false });
+    }
+  }
+
+  const fallbackPorts = String(env.EMAIL_PORT_FALLBACKS ?? "")
+    .split(",")
+    .map((value) => Number(value.trim()))
+    .filter((value) => Number.isFinite(value) && value > 0);
+
+  fallbackPorts.forEach((port) => {
+    targets.push({
+      host: env.EMAIL_HOST!,
+      port,
+      secure: port === 465,
+    });
+  });
+
+  const seen = new Set<string>();
+  return targets.filter((target) => {
+    const key = `${target.host}:${target.port}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
 }
 
@@ -103,9 +149,9 @@ async function sendOtpEmail({
   otp: string;
   signatureName: string;
 }): Promise<void> {
-  const transporter = buildTransporter();
+  const smtpTargets = getSmtpTargets();
 
-  if (!transporter || !env.EMAIL_FROM) {
+  if (smtpTargets.length === 0 || !env.EMAIL_FROM) {
     if (env.NODE_ENV === "development") {
       console.log(`[DEV OTP] ${email}: ${otp}`);
       return;
@@ -118,12 +164,19 @@ async function sendOtpEmail({
     );
   }
 
-  try {
-    await transporter.sendMail({
-      from: env.EMAIL_FROM,
-      to: email,
-      subject,
-      html: `
+  let lastError: unknown;
+  const attempts: string[] = [];
+
+  for (const target of smtpTargets) {
+    attempts.push(`${target.host}:${target.port}`);
+    const transporter = buildTransporter(target);
+
+    try {
+      await transporter.sendMail({
+        from: env.EMAIL_FROM,
+        to: email,
+        subject,
+        html: `
         <div style="font-family: Arial, sans-serif; background: #0b0b0b; color: #ffffff; padding: 24px;">
           <h2 style="margin: 0 0 16px;">${title}</h2>
           <p style="margin: 0 0 20px;">${intro}</p>
@@ -135,30 +188,42 @@ async function sendOtpEmail({
           <p style="margin: 16px 0 0; color: #b3b3b3;">- ${signatureName}</p>
         </div>
       `,
-    });
-  } catch (error) {
-    if (env.NODE_ENV === "development") {
-      console.warn(
-        `[DEV OTP FALLBACK] Email delivery failed for ${email}. Using console OTP instead.`
-      );
-      console.warn(error);
-      console.log(`[DEV OTP] ${email}: ${otp}`);
+      });
       return;
+    } catch (error) {
+      lastError = error;
+      const diagnostics = getSmtpDiagnostics(error);
+      const isTimeout = diagnostics.code === "ETIMEDOUT";
+      if (!isTimeout) {
+        break;
+      }
     }
+  }
 
-    const message = isAuthenticationError(error)
+  if (env.NODE_ENV === "development") {
+    console.warn(
+      `[DEV OTP FALLBACK] Email delivery failed for ${email}. Using console OTP instead.`
+    );
+    console.warn(lastError);
+    console.log(`[DEV OTP] ${email}: ${otp}`);
+    return;
+  }
+
+  const message = isAuthenticationError(lastError)
       ? "Failed to send verification email. SMTP authentication failed. Check EMAIL_USER, EMAIL_PASS, and the provider's app-password requirements."
       : "Failed to send verification email";
 
-    throw new AppError(message, 502, "EMAIL_SEND_FAILED", getSmtpDiagnostics(error));
-  }
+  throw new AppError(message, 502, "EMAIL_SEND_FAILED", {
+    ...getSmtpDiagnostics(lastError),
+    attempts,
+  });
 }
 
 export async function getEmailServiceHealth(verifyConnection = false): Promise<EmailHealthStatus> {
-  const transporter = buildTransporter();
+  const smtpTargets = getSmtpTargets();
   const fromConfigured = Boolean(env.EMAIL_FROM);
 
-  if (!transporter) {
+  if (smtpTargets.length === 0) {
     return {
       configured: false,
       fromConfigured,
@@ -182,27 +247,44 @@ export async function getEmailServiceHealth(verifyConnection = false): Promise<E
       fromConfigured: true,
       connectionVerified: null,
       reason: null,
+      attempts: smtpTargets.map((target) => `${target.host}:${target.port}`),
     };
   }
 
-  try {
-    await transporter.verify();
-    return {
-      configured: true,
-      fromConfigured: true,
-      connectionVerified: true,
-      reason: null,
-    };
-  } catch (error) {
-    const diagnostics = getSmtpDiagnostics(error);
-    return {
-      configured: true,
-      fromConfigured: true,
-      connectionVerified: false,
-      reason: isAuthenticationError(error) ? "SMTP_AUTH_FAILED" : "SMTP_VERIFY_FAILED",
-      diagnostics,
-    };
+  let lastError: unknown;
+  const attempts: string[] = [];
+
+  for (const target of smtpTargets) {
+    attempts.push(`${target.host}:${target.port}`);
+    const transporter = buildTransporter(target);
+
+    try {
+      await transporter.verify();
+      return {
+        configured: true,
+        fromConfigured: true,
+        connectionVerified: true,
+        reason: null,
+        attempts,
+      };
+    } catch (error) {
+      lastError = error;
+      const diagnostics = getSmtpDiagnostics(error);
+      const isTimeout = diagnostics.code === "ETIMEDOUT";
+      if (!isTimeout) {
+        break;
+      }
+    }
   }
+
+  return {
+    configured: true,
+    fromConfigured: true,
+    connectionVerified: false,
+    reason: isAuthenticationError(lastError) ? "SMTP_AUTH_FAILED" : "SMTP_VERIFY_FAILED",
+    attempts,
+    diagnostics: getSmtpDiagnostics(lastError),
+  };
 }
 
 export async function sendVerificationOtpEmail({
