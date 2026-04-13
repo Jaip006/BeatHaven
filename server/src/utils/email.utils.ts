@@ -171,6 +171,11 @@ async function sendOtpEmail({
     attempts.push(`${target.host}:${target.port}`);
     const transporter = buildTransporter(target);
 
+
+    console.log("Trying SMTP:", target.host, target.port);
+    await transporter.verify();
+    console.log("SMTP connected");
+
     try {
       await transporter.sendMail({
         from: env.EMAIL_FROM,
