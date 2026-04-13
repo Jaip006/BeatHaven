@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, User2 } from 'lucide-react';
@@ -25,6 +25,7 @@ const initialFormData: SignUpFormData = {
 
 const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
+  const redirectTimeoutRef = useRef<number | null>(null);
   const [phase, setPhase] = useState<VerificationPhase>('form');
   const [formData, setFormData] = useState<SignUpFormData>(initialFormData);
   const [otp, setOtp] = useState('');
@@ -34,6 +35,14 @@ const SignUpPage: React.FC = () => {
   const [isResending, setIsResending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current) {
+        window.clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const getApiErrorMessage = (apiError: unknown, fallback: string) => {
     if (axios.isAxiosError(apiError)) {
@@ -97,7 +106,10 @@ const SignUpPage: React.FC = () => {
 
       setPhase('verified');
       setSuccessMessage('Email verified successfully. Redirecting to sign in...');
-      window.setTimeout(() => navigate('/sign-in'), 1200);
+      if (redirectTimeoutRef.current) {
+        window.clearTimeout(redirectTimeoutRef.current);
+      }
+      redirectTimeoutRef.current = window.setTimeout(() => navigate('/sign-in'), 1200);
     } catch (apiError) {
       setError(getApiErrorMessage(apiError, 'Unable to verify OTP.'));
     } finally {
@@ -279,7 +291,7 @@ const SignUpPage: React.FC = () => {
                     {isSubmitting ? 'Creating Account...' : 'Create Account'}
                   </Button>
                 </form>
-              ) : (
+              ) : phase === 'otp' ? (
                 <form className="space-y-5" onSubmit={handleVerifyOtp}>
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-[#B3B3B3]">Email</span>
@@ -317,12 +329,21 @@ const SignUpPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleResendOtp}
-                    disabled={isResending}
+                    disabled={isResending || isSubmitting}
                     className="w-full text-sm text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200 disabled:opacity-50"
                   >
                     {isResending ? 'Sending a new OTP...' : 'Resend OTP'}
                   </button>
                 </form>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-[#B3B3B3]">
+                    Your email is verified. You can continue to sign in now.
+                  </p>
+                  <Button type="button" variant="primary" size="lg" className="w-full" onClick={() => navigate('/sign-in')}>
+                    Continue to Sign In
+                  </Button>
+                </div>
               )}
 
               <div className="mt-6 flex items-center gap-3">
@@ -347,4 +368,3 @@ const SignUpPage: React.FC = () => {
 };
 
 export default SignUpPage;
-
