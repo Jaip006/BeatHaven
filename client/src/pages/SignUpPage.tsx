@@ -323,7 +323,7 @@ const SignUpPage: React.FC = () => {
                   </label>
 
                   <Button type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
-                    {phase === 'verified' ? 'Verified' : isSubmitting ? 'Verifying...' : 'Verify OTP'}
+                    {isSubmitting ? 'Verifying...' : 'Verify OTP'}
                   </Button>
 
                   <button
