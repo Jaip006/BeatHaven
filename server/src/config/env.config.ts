@@ -39,12 +39,15 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string().optional(),
 
   // Email
+  EMAIL_PROVIDER: z.enum(["smtp", "brevo"]).optional(),
   EMAIL_HOST: z.string().optional(),
   EMAIL_PORT: z.string().transform(Number).optional(),
   EMAIL_PORT_FALLBACKS: z.string().optional(),
   EMAIL_USER: z.string().optional(),
   EMAIL_PASS: z.string().optional(),
   EMAIL_FROM: emailFromSchema.optional(),
+  BREVO_API_KEY: z.string().optional(),
+  BREVO_API_BASE_URL: z.string().url().optional(),
 
   // SMS (Twilio)
   TWILIO_ACCOUNT_SID: z.string().optional(),
@@ -85,7 +88,15 @@ function validateEnv() {
         );
       }
 
-      if (
+      const provider = validatedEnv.EMAIL_PROVIDER ?? "smtp";
+
+      if (provider === "brevo") {
+        if (!validatedEnv.BREVO_API_KEY || !validatedEnv.EMAIL_FROM) {
+          startupErrors.push(
+            "Email OTP is required for signup in production. For Brevo API set BREVO_API_KEY and EMAIL_FROM."
+          );
+        }
+      } else if (
         !validatedEnv.EMAIL_HOST ||
         !validatedEnv.EMAIL_PORT ||
         !validatedEnv.EMAIL_USER ||
@@ -93,7 +104,7 @@ function validateEnv() {
         !validatedEnv.EMAIL_FROM
       ) {
         startupErrors.push(
-          "Email OTP is required for signup in production. Set EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, and EMAIL_FROM."
+          "Email OTP is required for signup in production. For SMTP set EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, and EMAIL_FROM."
         );
       }
 
