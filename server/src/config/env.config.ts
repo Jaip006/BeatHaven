@@ -73,7 +73,47 @@ function validateEnv() {
       process.exit(1);
     }
 
-    return parsed.data;
+    const validatedEnv = parsed.data;
+
+    if (validatedEnv.NODE_ENV === "production") {
+      const startupErrors: string[] = [];
+
+      if (!validatedEnv.FRONTEND_URL || validatedEnv.FRONTEND_URL.includes("localhost")) {
+        startupErrors.push(
+          "FRONTEND_URL must be your deployed frontend URL in production (not localhost)."
+        );
+      }
+
+      if (
+        !validatedEnv.EMAIL_HOST ||
+        !validatedEnv.EMAIL_PORT ||
+        !validatedEnv.EMAIL_USER ||
+        !validatedEnv.EMAIL_PASS ||
+        !validatedEnv.EMAIL_FROM
+      ) {
+        startupErrors.push(
+          "Email OTP is required for signup in production. Set EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, and EMAIL_FROM."
+        );
+      }
+
+      if (
+        validatedEnv.JWT_ACCESS_SECRET === "your_super_secret_access_token_key_here_min_32_chars" ||
+        validatedEnv.JWT_REFRESH_SECRET === "your_super_secret_refresh_token_key_here_min_32_chars"
+      ) {
+        startupErrors.push("JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be custom values in production.");
+      }
+
+      if (startupErrors.length > 0) {
+        console.error("Invalid production environment configuration:\n");
+        startupErrors.forEach((message) => {
+          console.error(`  - ${message}`);
+        });
+        console.error("\nUpdate your deployment environment variables and redeploy.\n");
+        process.exit(1);
+      }
+    }
+
+    return validatedEnv;
   } catch (error) {
     console.error("\n❌ ENVIRONMENT CONFIGURATION ERROR\n");
     console.error(error);

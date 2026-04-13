@@ -85,11 +85,11 @@ app.use(errorHandlerMiddleware);
 
 const args = process.argv.slice(2);
 const portArgIndex = args.indexOf("--port");
-const PORT =
-  portArgIndex !== -1 ? Number(args[portArgIndex + 1]) : env.PORT;
+const portFromArg = portArgIndex !== -1 ? Number(args[portArgIndex + 1]) : NaN;
+const PORT = Number.isFinite(portFromArg) && portFromArg > 0 ? portFromArg : env.PORT;
 
 const server = createServer(app);
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running in ${env.NODE_ENV} mode on port ${PORT}`);
 });
