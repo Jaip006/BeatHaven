@@ -18,6 +18,10 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
+  const [authPromptCopy, setAuthPromptCopy] = useState<{ title: string; message: string }>({
+    title: 'Sign in required',
+    message: 'Please sign in or create an account to purchase beats.',
+  });
   const navigate = useNavigate();
   const { isLikedBeat, toggleLikedBeat } = useLikedBeats();
   const currentUserId = getAuthSession()?.user?.id;
@@ -43,10 +47,26 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
 
   const handlePriceClick = () => {
     if (!getAuthSession()) {
+      setAuthPromptCopy({
+        title: 'Sign in required',
+        message: 'Please sign in or create an account to purchase beats.',
+      });
       setIsAuthPromptOpen(true);
       return;
     }
     setIsLicenseModalOpen(true);
+  };
+
+  const handleToggleLike = () => {
+    if (!getAuthSession()) {
+      setAuthPromptCopy({
+        title: 'Sign in required',
+        message: 'Please sign in or create an account to like beats.',
+      });
+      setIsAuthPromptOpen(true);
+      return;
+    }
+    toggleLikedBeat(beat);
   };
 
   return (
@@ -90,7 +110,7 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
 
         {/* Like button */}
         <button
-          onClick={() => toggleLikedBeat(beat)}
+          onClick={handleToggleLike}
           className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
           aria-label="Like"
         >
@@ -137,9 +157,9 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
               className="w-full max-w-sm rounded-2xl border border-[#2A2A2A] bg-[#101010] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
               onClick={(event) => event.stopPropagation()}
             >
-              <h3 className="text-lg font-bold text-white">Sign in required</h3>
+              <h3 className="text-lg font-bold text-white">{authPromptCopy.title}</h3>
               <p className="mt-2 text-sm text-[#B3B3B3]">
-                Please sign in or create an account to purchase beats.
+                {authPromptCopy.message}
               </p>
               <div className="mt-5 flex items-center justify-end gap-2">
                 <button

@@ -391,6 +391,15 @@ const BeatPreviewPlayer: React.FC = () => {
   }, [isLyricsModalOpen, saveLyricsSong]);
 
   const handleToggleLike = () => {
+    if (!getAuthSession()) {
+      setAuthPromptCopy({
+        title: 'Sign in required',
+        message: 'Please sign in or create an account to like beats.',
+      });
+      setIsAuthPromptOpen(true);
+      return;
+    }
+
     if (!mappedCurrentBeat) {
       return;
     }
@@ -403,6 +412,15 @@ const BeatPreviewPlayer: React.FC = () => {
   };
 
   const openDownloadTermsModal = () => {
+    if (!getAuthSession()) {
+      setAuthPromptCopy({
+        title: 'Sign in required',
+        message: 'Please sign in or create an account to download beats.',
+      });
+      setIsAuthPromptOpen(true);
+      return;
+    }
+
     if (!isCurrentBeatDownloadable) {
       showDownloadNotice('error', 'Download is not available for this beat.');
       return;
@@ -470,23 +488,6 @@ const BeatPreviewPlayer: React.FC = () => {
       setIsDownloadSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    if (!actionsMenuOpen) return;
-
-    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
-      if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target as Node)) {
-        setActionsMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('touchstart', handleOutsideClick);
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('touchstart', handleOutsideClick);
-    };
-  }, [actionsMenuOpen]);
 
   useEffect(() => {
     if (!downloadNotice) {
@@ -688,50 +689,15 @@ const BeatPreviewPlayer: React.FC = () => {
         <div className="relative sm:hidden" ref={actionsMenuRef}>
           <button
             type="button"
-            onClick={() => setActionsMenuOpen((prev) => !prev)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActionsMenuOpen((prev) => !prev);
+            }}
             aria-label="More actions"
             className="rounded-full p-1 text-[#6B7280] transition-colors duration-150 hover:text-white"
           >
             <MoreVertical size={16} className="sm:h-[18px] sm:w-[18px]" />
           </button>
-
-          {actionsMenuOpen ? (
-            <div className="absolute bottom-full right-0 mb-2 w-40 rounded-xl border border-[#262626] bg-[#101010] p-1.5 shadow-[0_14px_36px_rgba(0,0,0,0.45)]">
-              <button
-                type="button"
-                onClick={handleToggleLike}
-                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
-              >
-                <Heart size={14} fill={isCurrentBeatLiked ? 'currentColor' : 'none'} className={isCurrentBeatLiked ? 'text-[#FF6FA1]' : ''} />
-                {isCurrentBeatLiked ? 'Unlike' : 'Like'}
-              </button>
-              {isCurrentBeatDownloadable ? (
-                <button
-                  type="button"
-                  onClick={openDownloadTermsModal}
-                  className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
-                >
-                  <Download size={14} />
-                  Download
-                </button>
-              ) : null}
-              <button
-                type="button"
-                className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
-              >
-                <Share2 size={14} />
-                Share
-              </button>
-              <button
-                type="button"
-                className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
-                onClick={openLyricsModal}
-              >
-                <FileText size={14} />
-                Lyrics
-              </button>
-            </div>
-          ) : null}
         </div>
         <button
           onClick={() => {
@@ -985,6 +951,72 @@ const BeatPreviewPlayer: React.FC = () => {
                   )}
                 </section>
               </div>
+            </div>
+          </div>,
+          document.body,
+        )
+        : null}
+      {actionsMenuOpen && typeof document !== 'undefined'
+        ? createPortal(
+          <div 
+            className="fixed inset-0 z-[1200]" 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setActionsMenuOpen(false);
+              }
+            }}
+          >
+            <div 
+              className="absolute bottom-20 right-3 w-40 rounded-xl border border-[#262626] bg-[#101010] p-1.5 shadow-[0_14px_36px_rgba(0,0,0,0.45)]"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleLike();
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
+              >
+                <Heart size={14} fill={isCurrentBeatLiked ? 'currentColor' : 'none'} className={isCurrentBeatLiked ? 'text-[#FF6FA1]' : ''} />
+                {isCurrentBeatLiked ? 'Unlike' : 'Like'}
+              </button>
+              {isCurrentBeatDownloadable ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openDownloadTermsModal();
+                  }}
+                  className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
+                >
+                  <Download size={14} />
+                  Download
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <Share2 size={14} />
+                Share
+              </button>
+              <button
+                type="button"
+                className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openLyricsModal();
+                }}
+              >
+                <FileText size={14} />
+                Lyrics
+              </button>
             </div>
           </div>,
           document.body,
