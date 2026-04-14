@@ -33,11 +33,17 @@ const browseSections = [
   },
 ];
 
+const browseItemRoutes: Record<string, string> = {
+  Liked: '/liked-beats',
+  Downloads: '/downloads',
+  'My Lyrics': '/my-lyrics',
+};
+
 const quickAccessItems = [
   { title: 'Liked Beats', hint: 'Your liked beats', icon: Heart, accent: 'text-[#1ED760]', route: '/liked-beats' },
   { title: 'Downloads', hint: 'Your downloaded beats', icon: Download, accent: 'text-[#7C5CFF]', route: '/downloads' },
   { title: 'Cart', hint: 'Review beats ready for checkout', icon: ShoppingCart, accent: 'text-[#1ED760]', route: '/cart' },
-  { title: 'My Lyrics', hint: 'Keep your writing ideas close', icon: FileText, accent: 'text-[#7C5CFF]' },
+  { title: 'My Lyrics', hint: 'Keep your writing ideas close', icon: FileText, accent: 'text-[#7C5CFF]', route: '/my-lyrics' },
 ];
 
 type ApiBeatSearchResult = {
@@ -285,12 +291,22 @@ const BuyerDashboardPage: React.FC = () => {
                           <div key={section.title}>
                             <div className="space-y-2">
                               {section.items.map((item) => (
-                                <button
-                                  key={item}
-                                  className="w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white"
-                                >
-                                  {item}
-                                </button>
+                                browseItemRoutes[item] ? (
+                                  <Link
+                                    key={item}
+                                    to={browseItemRoutes[item]}
+                                    className="block w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white"
+                                  >
+                                    {item}
+                                  </Link>
+                                ) : (
+                                  <button
+                                    key={item}
+                                    className="w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white"
+                                  >
+                                    {item}
+                                  </button>
+                                )
                               ))}
                             </div>
                           </div>

@@ -20,6 +20,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
 const LikedBeatsPage = lazy(() => import('./pages/LikedBeatsPage'));
 const DownloadsPage = lazy(() => import('./pages/DownloadsPage'));
+const MyLyricsPage = lazy(() => import('./pages/MyLyricsPage'));
 
 function App() {
   useEffect(() => {
@@ -53,6 +54,7 @@ function App() {
               <Route path="/cart" element={<CartPage />} />
               <Route path="/liked-beats" element={<LikedBeatsPage />} />
               <Route path="/downloads" element={<DownloadsPage />} />
+              <Route path="/my-lyrics" element={<MyLyricsPage />} />
             </Route>
           </Routes>
         </Suspense>

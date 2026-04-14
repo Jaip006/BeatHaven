@@ -8,9 +8,11 @@ import {
   Music2,
   Pause,
   Play,
+  Plus,
   Share2,
   SkipBack,
   SkipForward,
+  Trash2,
   Volume2,
   VolumeX,
   XIcon,
@@ -39,6 +41,10 @@ const isFreeMp3Enabled = (value: unknown): boolean => {
   return false;
 };
 
+type LyricsSaveStatus = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
+
+const resolveLyricsTitle = (title: string) => title.trim() || 'Untitled';
+
 const BeatPreviewPlayer: React.FC = () => {
   const {
     currentBeat,
@@ -66,6 +72,28 @@ const BeatPreviewPlayer: React.FC = () => {
   const [isDownloadSubmitting, setIsDownloadSubmitting] = useState(false);
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
+  const [authPromptCopy, setAuthPromptCopy] = useState<{ title: string; message: string }>({
+    title: 'Sign in required',
+    message: 'Please sign in to continue.',
+  });
+  const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
+  const [lyricsLoading, setLyricsLoading] = useState(false);
+  const [lyricsError, setLyricsError] = useState('');
+  const [lyricsSongs, setLyricsSongs] = useState<Array<{ id: string; title: string; lyrics: string; updatedAt: number }>>([]);
+  const [lyricsSelectedId, setLyricsSelectedId] = useState('');
+  const [isCreatingLyrics, setIsCreatingLyrics] = useState(false);
+  const [lyricsSaveStatus, setLyricsSaveStatus] = useState<Record<string, LyricsSaveStatus>>({});
+  const lyricsRequestIdRef = useRef(0);
+  const lyricsLastSavedRef = useRef<Record<string, { title: string; lyrics: string }>>({});
+  const lyricsSongsRef = useRef(lyricsSongs);
+  const lyricsSaveVersionRef = useRef<Record<string, number>>({});
+  const lyricsSaveTimersRef = useRef<Record<string, number>>({});
+
+  const selectedLyricsSong = lyricsSongs.find((song) => song.id === lyricsSelectedId) ?? null;
+
+  useEffect(() => {
+    lyricsSongsRef.current = lyricsSongs;
+  }, [lyricsSongs]);
 
   const handleProgressClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -119,12 +147,248 @@ const BeatPreviewPlayer: React.FC = () => {
     }
 
     if (!getAuthSession()) {
+      setAuthPromptCopy({
+        title: 'Sign in required',
+        message: 'Please sign in or create an account to purchase beats.',
+      });
       setIsAuthPromptOpen(true);
       return;
     }
 
     setIsLicenseModalOpen(true);
   };
+
+  const fetchLyricsSongs = useCallback(async () => {
+    const requestId = lyricsRequestIdRef.current + 1;
+    lyricsRequestIdRef.current = requestId;
+
+    setLyricsLoading(true);
+    setLyricsError('');
+
+    try {
+      const res = await authFetch('/lyrics');
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        throw new Error(String(data?.message ?? 'Failed to load lyrics.'));
+      }
+
+      const rawSongs = (data?.data?.songs ?? []) as Array<{
+        id: string;
+        title: string;
+        lyrics: string;
+        updatedAt: string;
+      }>;
+
+      if (lyricsRequestIdRef.current !== requestId) {
+        return;
+      }
+
+      const hydrated = rawSongs
+        .map((song) => ({
+          id: String(song.id ?? '').trim(),
+          title: String(song.title ?? 'Untitled'),
+          lyrics: String(song.lyrics ?? ''),
+          updatedAt: Date.parse(String(song.updatedAt ?? '')) || Date.now(),
+        }))
+        .filter((song) => Boolean(song.id))
+        .sort((a, b) => b.updatedAt - a.updatedAt);
+
+      setLyricsSongs(hydrated);
+      setLyricsSelectedId(hydrated[0]?.id ?? '');
+      lyricsLastSavedRef.current = hydrated.reduce(
+        (acc, song) => {
+          acc[song.id] = { title: song.title, lyrics: song.lyrics };
+          return acc;
+        },
+        {} as Record<string, { title: string; lyrics: string }>,
+      );
+      setLyricsSaveStatus({});
+    } catch (err) {
+      if (lyricsRequestIdRef.current !== requestId) {
+        return;
+      }
+      setLyricsSongs([]);
+      setLyricsSelectedId('');
+      setLyricsError(err instanceof Error ? err.message : 'Failed to load lyrics.');
+    } finally {
+      if (lyricsRequestIdRef.current === requestId) {
+        setLyricsLoading(false);
+      }
+    }
+  }, []);
+
+  const saveLyricsSong = useCallback(async (songId: string) => {
+    const song = lyricsSongsRef.current.find((item) => item.id === songId);
+    if (!song) return;
+
+    const version = (lyricsSaveVersionRef.current[songId] ?? 0) + 1;
+    lyricsSaveVersionRef.current[songId] = version;
+    setLyricsSaveStatus((prev) => ({ ...prev, [songId]: 'saving' }));
+
+    try {
+      const res = await authFetch(`/lyrics/${songId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: resolveLyricsTitle(song.title),
+          lyrics: song.lyrics,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        throw new Error(String(data?.message ?? 'Failed to save lyrics.'));
+      }
+
+      const apiSong = data?.data?.song as { title?: string; lyrics?: string; updatedAt?: string } | undefined;
+      const saved = {
+        title: String(apiSong?.title ?? song.title),
+        lyrics: String(apiSong?.lyrics ?? song.lyrics),
+        updatedAt: Date.parse(String(apiSong?.updatedAt ?? '')) || Date.now(),
+      };
+
+      if (lyricsSaveVersionRef.current[songId] !== version) {
+        return;
+      }
+
+      lyricsLastSavedRef.current[songId] = { title: saved.title, lyrics: saved.lyrics };
+      setLyricsSongs((prev) =>
+        prev
+          .map((item) => (item.id === songId ? { ...item, ...saved } : item))
+          .sort((a, b) => b.updatedAt - a.updatedAt),
+      );
+      setLyricsSaveStatus((prev) => ({ ...prev, [songId]: 'saved' }));
+
+      window.setTimeout(() => {
+        setLyricsSaveStatus((prev) => (prev[songId] === 'saved' ? { ...prev, [songId]: 'idle' } : prev));
+      }, 1200);
+    } catch {
+      if (lyricsSaveVersionRef.current[songId] !== version) {
+        return;
+      }
+      setLyricsSaveStatus((prev) => ({ ...prev, [songId]: 'error' }));
+    }
+  }, []);
+
+  const updateLyricsSongLocal = useCallback((songId: string, patch: Partial<{ title: string; lyrics: string }>) => {
+    setLyricsSongs((prev) =>
+      prev.map((song) => (song.id === songId ? { ...song, ...patch } : song)),
+    );
+    setLyricsSaveStatus((prev) => ({ ...prev, [songId]: 'dirty' }));
+
+    const existingTimer = lyricsSaveTimersRef.current[songId];
+    if (existingTimer) {
+      window.clearTimeout(existingTimer);
+    }
+
+    lyricsSaveTimersRef.current[songId] = window.setTimeout(() => {
+      void saveLyricsSong(songId);
+    }, 800);
+  }, [saveLyricsSong]);
+
+  const createLyricsSong = useCallback(async () => {
+    setIsCreatingLyrics(true);
+    try {
+      const res = await authFetch('/lyrics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Untitled', lyrics: '' }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        throw new Error(String(data?.message ?? 'Failed to create lyric sheet.'));
+      }
+
+      const apiSong = data?.data?.song as { id?: string; title?: string; lyrics?: string; updatedAt?: string } | undefined;
+      if (!apiSong?.id) {
+        throw new Error('Failed to create lyric sheet.');
+      }
+
+      const createdSong = {
+        id: String(apiSong.id),
+        title: String(apiSong.title ?? 'Untitled'),
+        lyrics: String(apiSong.lyrics ?? ''),
+        updatedAt: Date.parse(String(apiSong.updatedAt ?? '')) || Date.now(),
+      };
+
+      lyricsLastSavedRef.current[createdSong.id] = { title: createdSong.title, lyrics: createdSong.lyrics };
+      setLyricsSaveStatus((prev) => ({ ...prev, [createdSong.id]: 'idle' }));
+      setLyricsSongs((prev) => [createdSong, ...prev].sort((a, b) => b.updatedAt - a.updatedAt));
+      setLyricsSelectedId(createdSong.id);
+    } catch (err) {
+      setLyricsError(err instanceof Error ? err.message : 'Failed to create lyric sheet.');
+    } finally {
+      setIsCreatingLyrics(false);
+    }
+  }, []);
+
+  const deleteLyricsSong = useCallback(async (songId: string) => {
+    try {
+      const res = await authFetch(`/lyrics/${songId}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        throw new Error(String(data?.message ?? 'Failed to delete lyric sheet.'));
+      }
+
+      setLyricsSongs((prev) => {
+        const next = prev.filter((song) => song.id !== songId);
+        setLyricsSelectedId((prevSelected) => (prevSelected === songId ? next[0]?.id ?? '' : prevSelected));
+        return next;
+      });
+      setLyricsSaveStatus((prev) => {
+        const next = { ...prev };
+        delete next[songId];
+        return next;
+      });
+      delete lyricsLastSavedRef.current[songId];
+    } catch (err) {
+      setLyricsError(err instanceof Error ? err.message : 'Failed to delete lyric sheet.');
+    }
+  }, []);
+
+  const openLyricsModal = useCallback(() => {
+    setActionsMenuOpen(false);
+
+    if (!getAuthSession()) {
+      setAuthPromptCopy({
+        title: 'Sign in required',
+        message: 'Please sign in or create an account to view your saved lyrics.',
+      });
+      setIsAuthPromptOpen(true);
+      return;
+    }
+
+    setIsLyricsModalOpen(true);
+    void fetchLyricsSongs();
+  }, [fetchLyricsSongs]);
+
+  useEffect(() => {
+    if (!isLyricsModalOpen) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsLyricsModalOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLyricsModalOpen]);
+
+  useEffect(() => {
+    if (isLyricsModalOpen) {
+      return undefined;
+    }
+
+    const pendingSongIds = Object.keys(lyricsSaveTimersRef.current);
+    pendingSongIds.forEach((songId) => {
+      window.clearTimeout(lyricsSaveTimersRef.current[songId]);
+      void saveLyricsSong(songId);
+    });
+    lyricsSaveTimersRef.current = {};
+    return undefined;
+  }, [isLyricsModalOpen, saveLyricsSong]);
 
   const handleToggleLike = () => {
     if (!mappedCurrentBeat) {
@@ -241,9 +505,7 @@ const BeatPreviewPlayer: React.FC = () => {
   return (
     <>
       <div
-        className={`fixed inset-x-3 bottom-3 z-[300] overflow-hidden rounded-3xl border border-[#1f1f1f] shadow-[0_12px_34px_rgba(0,0,0,0.5)] transition-transform duration-500 ease-out sm:inset-x-0 sm:bottom-0 sm:rounded-none sm:border-0 sm:shadow-none ${
-          isVisible ? 'translate-y-0' : 'translate-y-full'
-        }`}
+        className={`fixed inset-x-3 bottom-3 ${isLyricsModalOpen ? 'z-[1300]' : 'z-[300]'} overflow-hidden rounded-3xl border border-[#1f1f1f] shadow-[0_12px_34px_rgba(0,0,0,0.5)] transition-transform duration-500 ease-out sm:inset-x-0 sm:bottom-0 sm:rounded-none sm:border-0 sm:shadow-none ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
       >
         <div
         ref={progressBarRef}
@@ -417,6 +679,7 @@ const BeatPreviewPlayer: React.FC = () => {
             type="button"
             className="text-[#6B7280] transition-colors duration-150 hover:text-white"
             aria-label="Lyrics"
+            onClick={openLyricsModal}
           >
             <FileText size={17} />
           </button>
@@ -462,6 +725,7 @@ const BeatPreviewPlayer: React.FC = () => {
               <button
                 type="button"
                 className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
+                onClick={openLyricsModal}
               >
                 <FileText size={14} />
                 Lyrics
@@ -548,9 +812,9 @@ const BeatPreviewPlayer: React.FC = () => {
               className="w-full max-w-sm rounded-2xl border border-[#2A2A2A] bg-[#101010] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
               onClick={(event) => event.stopPropagation()}
             >
-              <h3 className="text-lg font-bold text-white">Sign in required</h3>
+              <h3 className="text-lg font-bold text-white">{authPromptCopy.title}</h3>
               <p className="mt-2 text-sm text-[#B3B3B3]">
-                Please sign in or create an account to purchase beats.
+                {authPromptCopy.message}
               </p>
               <div className="mt-5 flex items-center justify-end gap-2">
                 <button
@@ -567,6 +831,159 @@ const BeatPreviewPlayer: React.FC = () => {
                 >
                   Sign In
                 </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+        : null}
+      {isLyricsModalOpen && typeof document !== 'undefined'
+        ? createPortal(
+          <div
+            className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 p-3 pb-28 backdrop-blur-sm sm:p-4 sm:pb-32"
+            onClick={() => setIsLyricsModalOpen(false)}
+          >
+            <div
+              className="w-full max-w-5xl overflow-hidden rounded-3xl border border-[#2A2A2A] bg-[#101010] shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-center justify-between gap-3 border-b border-[#262626] px-4 py-3 sm:px-5 sm:py-4">
+                <div className="min-w-0">
+                  <h3 className="truncate text-lg font-bold text-white sm:text-xl">My Lyrics</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsLyricsModalOpen(false);
+                      navigate('/my-lyrics');
+                    }}
+                    className="hidden rounded-xl border border-[#2A2A2A] px-3 py-2 text-xs text-white transition-colors hover:bg-[#171717] sm:inline-flex"
+                  >
+                    Lyrics Page
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid max-h-[50vh] min-h-[480px] grid-cols-1 lg:grid-cols-[320px_1fr] sm:min-h-[560px]">
+                <aside className="border-b border-[#262626] bg-[#0B0B0B]/35 p-3 sm:p-4 lg:border-b-0 lg:border-r">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#121212] text-[#7C5CFF]">
+                        <FileText size={18} />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-bold">Songs</h2>
+                        <p className="text-xs text-[#9CA3AF]">{lyricsSongs.length} saved</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void createLyricsSong()}
+                      disabled={isCreatingLyrics}
+                      className="flex items-center gap-2 rounded-lg border border-[#1ED760]/30 bg-[#1ED760]/5 px-3 py-2 text-xs font-medium text-[#1ED760] transition-colors hover:bg-[#1ED760]/15 disabled:opacity-50"
+                      aria-label="Create new lyrics"
+                    >
+                      <Plus size={16} />
+                      New
+                    </button>
+                  </div>
+
+                  <div className="mt-3 space-y-2 overflow-auto pr-1 lg:max-h-[calc(78vh-86px)]">
+                    {lyricsLoading ? (
+                      <div className="rounded-2xl border border-[#262626] bg-[#0B0B0B]/35 p-4 text-sm text-[#B3B3B3]">
+                        Loading your lyrics...
+                      </div>
+                    ) : lyricsError ? (
+                      <div className="rounded-2xl border border-[#3B1F1F] bg-[#0B0B0B]/35 p-4 text-sm text-[#FCA5A5]">
+                        {lyricsError}
+                      </div>
+                    ) : lyricsSongs.length === 0 ? (
+                      <div className="rounded-2xl border border-[#262626] bg-[#0B0B0B]/35 p-4 text-sm text-[#B3B3B3]">
+                        No lyric sheets yet. Click the + button to create one.
+                      </div>
+                    ) : (
+                      lyricsSongs.map((song) => (
+                        <button
+                          key={song.id}
+                          type="button"
+                          onClick={() => setLyricsSelectedId(song.id)}
+                          className={`w-full rounded-2xl border px-4 py-3 text-left transition-colors ${
+                            song.id === lyricsSelectedId
+                              ? 'border-[#1ED760]/40 bg-[#121212] text-white'
+                              : 'border-[#262626] bg-[#0B0B0B]/15 text-[#B3B3B3] hover:bg-[#121212]/60 hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold">{song.title.trim() || 'Untitled'}</p>
+                              <p className="mt-0.5 truncate text-xs text-[#6B7280]">
+                                {song.lyrics.trim() ? song.lyrics.trim().split('\n')[0] : 'No lyrics yet'}
+                              </p>
+                            </div>
+                            <span className="shrink-0 text-xs text-[#6B7280]">
+                              {new Date(song.updatedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </aside>
+
+                <section className="p-4 sm:p-6">
+                  {!selectedLyricsSong ? (
+                    <div className="flex h-full min-h-[320px] flex-col items-center justify-center text-center">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#121212] text-[#7C5CFF]">
+                        <FileText size={22} />
+                      </div>
+                      <h4 className="mt-4 text-xl font-bold text-white">Select a lyric sheet</h4>
+                      <p className="mt-2 max-w-sm text-sm text-[#B3B3B3]">
+                        Choose a title on the left to view your lyrics here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex h-full flex-col">
+                      <div className="min-w-0 mb-3">
+                        <p className="text-xs uppercase tracking-[0.28em] text-[#9CA3AF]">Title</p>
+                        <div className="mt-2 flex gap-3">
+                          <input
+                            value={selectedLyricsSong.title}
+                            onChange={(event) => updateLyricsSongLocal(selectedLyricsSong.id, { title: event.target.value })}
+                            className="min-w-0 flex-1 rounded-2xl border border-[#262626] bg-[#0B0B0B]/25 px-4 py-3 text-base font-semibold text-white outline-none transition-colors focus:border-[#1ED760]/45"
+                            placeholder="Song title"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => void deleteLyricsSong(selectedLyricsSong.id)}
+                            className="flex shrink-0 items-center gap-1 rounded-lg border border-[#FCA5A5]/40 bg-[#FCA5A5]/5 px-3 py-1 text-xs font-medium text-[#FCA5A5] transition-colors hover:bg-[#FCA5A5]/15"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                        <div className="mt-2 text-xs text-[#6B7280]">
+                          {lyricsSaveStatus[selectedLyricsSong.id] === 'saving' ? 'Saving...' : null}
+                          {lyricsSaveStatus[selectedLyricsSong.id] === 'dirty' ? 'Unsaved changes' : null}
+                          {lyricsSaveStatus[selectedLyricsSong.id] === 'saved' ? 'Saved' : null}
+                          {lyricsSaveStatus[selectedLyricsSong.id] === 'error' ? 'Save failed' : null}
+                        </div>
+                      </div>
+                      <label className="text-xs uppercase tracking-[0.28em] text-[#9CA3AF]">Lyrics</label>
+                      <div className="mt-2 flex-1 overflow-hidden rounded-2xl border border-[#262626] bg-[#0B0B0B]/25 p-2">
+                        <textarea
+                          value={selectedLyricsSong.lyrics}
+                          onChange={(event) => updateLyricsSongLocal(selectedLyricsSong.id, { lyrics: event.target.value })}
+                          placeholder="Write your lyrics here..."
+                          className="h-full min-h-[420px] w-full resize-none overflow-auto rounded-xl bg-transparent px-4 py-4 text-sm leading-relaxed text-white outline-none sm:min-h-[460px]"
+                        />
+                      </div>
+
+                      <p className="mt-2 text-xs text-[#6B7280]">
+                        Updated {new Date(selectedLyricsSong.updatedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                </section>
               </div>
             </div>
           </div>,
