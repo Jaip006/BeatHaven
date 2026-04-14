@@ -5,11 +5,47 @@ import { Button } from '../ui/Button';
 import type { Beat } from '../../types';
 import { API_BASE_URL } from '../../utils/apiBaseUrl';
 import { trendingBeats as dummyBeats } from '../../data/trendingBeats';
+import { usePlayer } from '../../context/PlayerContext';
+import { authFetch } from '../../utils/authFetch';
+
+const parseFreeMp3Enabled = (value: unknown): boolean => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.trim().toLowerCase() === 'true';
+  if (typeof value === 'number') return value === 1;
+  return false;
+};
 
 const TrendingBeats: React.FC = () => {
   const [beats, setBeats] = useState<Beat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { playBeat, currentBeat, togglePlay } = usePlayer();
+
+  const handlePlayBeat = (beat: Beat) => {
+    if (!beat.audioUrl) {
+      console.warn('Preview is not available for this beat.');
+      return;
+    }
+
+    if (currentBeat?.id === beat.id) {
+      togglePlay();
+      return;
+    }
+
+    playBeat({
+      id: beat.id,
+      title: beat.title,
+      producerName: beat.producerName,
+      coverImage: beat.coverImage,
+      audioUrl: beat.audioUrl,
+      bpm: beat.bpm,
+      price: beat.price,
+      genre: beat.genre,
+      freeMp3Enabled: parseFreeMp3Enabled(beat.freeMp3Enabled),
+    });
+
+    void authFetch(`${API_BASE_URL}/beats/${beat.id}/play`, { method: 'POST' }).catch(() => null);
+  };
 
   const fetchTrendingBeats = async () => {
     try {
@@ -107,7 +143,7 @@ const TrendingBeats: React.FC = () => {
         {!isLoading && !error && beats.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
             {beats.map((beat) => (
-              <BeatCard key={beat.id} beat={beat} />
+              <BeatCard key={beat.id} beat={beat} onPlay={handlePlayBeat} />
             ))}
           </div>
         )}

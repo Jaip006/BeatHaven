@@ -506,7 +506,7 @@ const BuyerDashboardPage: React.FC = () => {
             {!isLoadingTrending && !trendingError && trendingBeats.length > 0 && (
               <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
                 {trendingBeats.map((beat) => (
-                  <BeatCard key={beat.id} beat={beat} />
+                  <BeatCard key={beat.id} beat={beat} onPlay={handlePlayBeat} />
                 ))}
               </div>
             )}
