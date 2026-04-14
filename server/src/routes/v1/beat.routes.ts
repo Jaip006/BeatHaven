@@ -243,6 +243,74 @@ beatRouter.post(
 );
 
 beatRouter.get(
+  "/trending",
+  asyncHandler(async (req, res) => {
+    const limit = Math.min(Math.max(Number(req.query?.limit) || 16, 1), 50);
+    const daysAgo = Math.max(Number(req.query?.days) || 30, 1);
+
+    // Calculate date for recent activity filter
+    const recentDate = new Date();
+    recentDate.setDate(recentDate.getDate() - daysAgo);
+
+    // Fetch beats updated in the recent period with engagement
+    const beats = await Beat.find({
+      updatedAt: { $gte: recentDate },
+    })
+      .populate("sellerId", "displayName avatar studioProfile")
+      .lean()
+      .exec();
+
+    // Calculate engagement score and sort
+    const beatsWithScore = beats
+      .map((beat: any) => ({
+        ...beat,
+        engagementScore: (Number(beat.plays ?? 0) * 0.3) + (Number(beat.likes ?? 0) * 0.7),
+      }))
+      .sort((a: any, b: any) => b.engagementScore - a.engagementScore)
+      .slice(0, limit);
+
+    // Format response
+    const beatResults = beatsWithScore.map((beat: any) => {
+      const seller = beat.sellerId || {};
+      const producerHandle = String(seller?.studioProfile?.handle ?? "").trim();
+      const producerDisplayName = String(seller?.studioProfile?.studioName ?? seller?.displayName ?? "Unknown Producer").trim();
+      const normalizedTags = normalizeStringArray(beat.tags);
+      const resolvedGenre = resolveBeatGenre(beat.genre, beat.beatType, normalizedTags);
+      const resolvedKey = resolveBeatKey(beat.musicalKey);
+
+      return {
+        id: String(beat._id),
+        title: beat.title,
+        genre: resolvedGenre,
+        beatType: beat.beatType,
+        bpm: Number(beat.tempo ?? 0),
+        key: resolvedKey,
+        musicalKey: resolvedKey,
+        price: Number(beat.basicPrice ?? 0),
+        coverImage: beat.artworkUrl,
+        audioUrl: beat.untaggedMp3Url,
+        producerId: beat.sellerId ? String((beat.sellerId as any)._id ?? "") : "",
+        producerName: producerDisplayName,
+        producerHandle,
+        plays: Number(beat.plays ?? 0),
+        likes: Number(beat.likes ?? 0),
+        tags: normalizedTags,
+        freeMp3Enabled: Boolean(beat.freeMp3Enabled),
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        beats: beatResults,
+        count: beatResults.length,
+        period: `${daysAgo} days`,
+      },
+    });
+  })
+);
+
+beatRouter.get(
   "/search",
   asyncHandler(async (req, res) => {
     const rawQuery = String(req.query?.q ?? "").trim();

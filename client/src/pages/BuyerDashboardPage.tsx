@@ -12,7 +12,7 @@ import BeatCard from '../components/ui/BeatCard';
 import UserQuickActions from '../components/layout/UserQuickActions';
 import type { Beat } from '../types';
 import { API_BASE_URL } from '../utils/apiBaseUrl';
-import { trendingBeats } from '../data/trendingBeats';
+import { trendingBeats as dummyBeats } from '../data/trendingBeats';
 import { usePlayer } from '../context/PlayerContext';
 import { authFetch } from '../utils/authFetch';
 
@@ -110,6 +110,9 @@ const BuyerDashboardPage: React.FC = () => {
   const [searchError, setSearchError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
+  const [trendingBeats, setTrendingBeats] = useState<Beat[]>([]);
+  const [isLoadingTrending, setIsLoadingTrending] = useState(true);
+  const [trendingError, setTrendingError] = useState<string | null>(null);
   const { playBeat, currentBeat, togglePlay } = usePlayer();
 
   const handleViewAll = () => {
@@ -201,6 +204,48 @@ const BuyerDashboardPage: React.FC = () => {
       setIsLoadingBeats(false);
     }
   }, []);
+
+  const fetchTrendingBeats = useCallback(async () => {
+    try {
+      setIsLoadingTrending(true);
+      setTrendingError(null);
+
+      const response = await fetch(`${API_BASE_URL}/beats/trending?limit=12&days=30`);
+      const data = await response.json();
+
+      if (!data.success || !data.data?.beats) {
+        throw new Error(data.message || 'Failed to fetch trending beats');
+      }
+
+      // Fill remaining slots with dummy beats if needed
+      const realBeats = data.data.beats;
+      const allBeats = [
+        ...realBeats,
+        ...dummyBeats.slice(0, Math.max(0, 12 - realBeats.length))
+      ].slice(0, 12);
+
+      setTrendingBeats(allBeats);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load trending beats';
+      setTrendingError(errorMessage);
+      // Fallback to dummy beats on error
+      setTrendingBeats(dummyBeats.slice(0, 12));
+      console.error('Error fetching trending beats:', err);
+    } finally {
+      setIsLoadingTrending(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchTrendingBeats();
+
+    // Refresh trending beats every 1 hour
+    const interval = setInterval(() => {
+      void fetchTrendingBeats();
+    }, 60 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [fetchTrendingBeats]);
 
   useEffect(() => {
     if (!submittedQuery) {
@@ -428,11 +473,50 @@ const BuyerDashboardPage: React.FC = () => {
               </Button>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
-              {trendingBeats.map((beat) => (
-                <BeatCard key={beat.id} beat={beat} />
-              ))}
-            </div>
+            {/* Error State */}
+            {trendingError && !isLoadingTrending && trendingBeats.length === 0 && (
+              <div className="mt-6 rounded-2xl border border-[#3B1F1F] bg-[#0B0B0B]/50 p-6 text-center">
+                <p className="text-[#FCA5A5]">{trendingError}</p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => void fetchTrendingBeats()}
+                  className="mt-4"
+                >
+                  Try Again
+                </Button>
+              </div>
+            )}
+
+            {/* Loading State */}
+            {isLoadingTrending && (
+              <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+                {Array(12)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div
+                      key={i}
+                      className="aspect-square rounded-2xl bg-[#121212] animate-pulse border border-[#262626]"
+                    />
+                  ))}
+              </div>
+            )}
+
+            {/* Beats Grid */}
+            {!isLoadingTrending && !trendingError && trendingBeats.length > 0 && (
+              <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+                {trendingBeats.map((beat) => (
+                  <BeatCard key={beat.id} beat={beat} />
+                ))}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!isLoadingTrending && !trendingError && trendingBeats.length === 0 && (
+              <div className="mt-6 rounded-2xl border border-[#262626] bg-[#0B0B0B]/50 p-12 text-center">
+                <p className="text-[#B3B3B3]">No trending beats found. Come back soon!</p>
+              </div>
+            )}
           </div>
         </section>
       </main>
