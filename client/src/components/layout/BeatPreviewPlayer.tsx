@@ -71,6 +71,8 @@ const BeatPreviewPlayer: React.FC = () => {
   const [downloadTermsAccepted, setDownloadTermsAccepted] = useState(false);
   const [isDownloadSubmitting, setIsDownloadSubmitting] = useState(false);
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [copiedShareUrl, setCopiedShareUrl] = useState(false);
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const [authPromptCopy, setAuthPromptCopy] = useState<{ title: string; message: string }>({
     title: 'Sign in required',
@@ -117,6 +119,24 @@ const BeatPreviewPlayer: React.FC = () => {
 
   const toggleMute = () => {
     setVolume(volume > 0 ? 0 : 0.8);
+  };
+
+  const shareUrl = currentBeat?.id ? `${window.location.origin}/beats/${currentBeat.id}` : '';
+
+  const handleOpenShare = () => {
+    setActionsMenuOpen(false);
+    setIsShareModalOpen(true);
+    setCopiedShareUrl(false);
+  };
+
+  const handleCopyShareUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedShareUrl(true);
+      window.setTimeout(() => setCopiedShareUrl(false), 1800);
+    } catch {
+      // fallback — select the input text
+    }
   };
 
   const isVisible = currentBeat !== null;
@@ -559,7 +579,10 @@ const BeatPreviewPlayer: React.FC = () => {
           </div>
 
           <div className="min-w-0">
-            <p className="truncate text-xs font-semibold leading-tight text-white sm:text-sm">
+            <p
+              className="truncate text-xs font-semibold leading-tight text-white sm:text-sm cursor-pointer hover:text-[#1ED760] transition-colors duration-150"
+              onClick={() => currentBeat?.id && navigate(`/beats/${currentBeat.id}`)}
+            >
               {currentBeat?.title ?? '-'}
             </p>
             <div className="mt-0.5 flex items-center gap-1">
@@ -652,6 +675,7 @@ const BeatPreviewPlayer: React.FC = () => {
           <button
             type="button"
             aria-label="Share beat"
+            onClick={handleOpenShare}
             className="flex h-7 w-7 items-center justify-center rounded-full text-[#6B7280] transition-colors duration-150 hover:text-white"
           >
             <Share2 size={17} />
@@ -956,6 +980,60 @@ const BeatPreviewPlayer: React.FC = () => {
           document.body,
         )
         : null}
+      {isShareModalOpen && typeof document !== 'undefined'
+        ? createPortal(
+          <div
+            className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            onClick={() => setIsShareModalOpen(false)}
+          >
+            <div
+              className="w-full max-w-sm rounded-2xl border border-[#2A2A2A] bg-[#101010] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  type="button"
+                  onClick={() => setIsShareModalOpen(false)}
+                  className="text-[#6B7280] hover:text-white transition-colors"
+                  aria-label="Close"
+                >
+                  <XIcon size={16} />
+                </button>
+              </div>
+              {currentBeat?.coverImage && (
+                <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-[#171717] border border-[#262626]">
+                  <img src={currentBeat.coverImage} alt={currentBeat.title} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">{currentBeat.title}</p>
+                    <p className="text-xs text-[#6B7280] truncate">{currentBeat.producerName}</p>
+                  </div>
+                </div>
+              )}
+              <p className="text-xs text-[#6B7280] mb-2">Beat link</p>
+              <div className="flex items-center gap-2">
+                <input
+                  readOnly
+                  value={shareUrl}
+                  className="flex-1 min-w-0 rounded-xl border border-[#262626] bg-[#171717] px-3 py-2 text-xs text-[#D1D5DB] outline-none select-all"
+                  onFocus={(e) => e.target.select()}
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleCopyShareUrl()}
+                  className={`flex-shrink-0 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
+                    copiedShareUrl
+                      ? 'bg-[#1ED760]/20 text-[#1ED760]'
+                      : 'bg-[#1ED760] text-[#0B0B0B] hover:bg-[#19c453]'
+                  }`}
+                >
+                  {copiedShareUrl ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+        : null}
       {actionsMenuOpen && typeof document !== 'undefined'
         ? createPortal(
           <div 
@@ -999,9 +1077,7 @@ const BeatPreviewPlayer: React.FC = () => {
               <button
                 type="button"
                 className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-[#D1D5DB] transition-colors duration-150 hover:bg-[#161616] hover:text-white"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
+                onClick={(e) => { e.stopPropagation(); handleOpenShare(); }}
               >
                 <Share2 size={14} />
                 Share

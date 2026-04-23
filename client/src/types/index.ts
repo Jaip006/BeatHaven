@@ -4,6 +4,7 @@ export interface Beat {
   title: string;
   producerName: string;
   producerId: string;
+  producerHandle?: string;
   genre: string;
   bpm: number;
   key: string;

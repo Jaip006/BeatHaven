@@ -547,7 +547,10 @@ const MyStudioPage: React.FC = () => {
                           className="w-12 h-12 rounded-lg object-cover"
                         />
                         <div>
-                          <h4 className="truncate text-sm font-bold tracking-tight">{beat.title}</h4>
+                          <h4
+                            className="truncate text-sm font-bold tracking-tight cursor-pointer hover:text-[#1ED760] transition-colors duration-150"
+                            onClick={() => navigate(`/beats/${beat._id}`)}
+                          >{beat.title}</h4>
                           <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-gray-400 sm:gap-3">
                             <span className="text-orange-500">{studioNameLabel}</span>
                             <span>{beat.tempo} BPM</span>

@@ -123,10 +123,22 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, onPlay }) => {
 
       {/* Info */}
       <div className="p-4">
-        <h3 className="font-semibold text-white truncate mb-1 group-hover:text-[#1ED760] transition-colors duration-200">
+        <h3
+          className="font-semibold text-white truncate mb-1 hover:text-[#1ED760] transition-colors duration-200 cursor-pointer"
+          onClick={(e) => { e.stopPropagation(); navigate(`/beats/${beat.id}`); }}
+        >
           {beat.title}
         </h3>
-        <p className="text-sm text-[#B3B3B3] truncate mb-3">{beat.producerName}</p>
+        <p
+          className={`text-sm truncate mb-3 transition-colors duration-200 ${beat.producerHandle ? 'text-[#B3B3B3] hover:text-white cursor-pointer' : 'text-[#B3B3B3]'}`}
+          onClick={(e) => {
+            if (!beat.producerHandle) return;
+            e.stopPropagation();
+            navigate(`/studio?handle=${beat.producerHandle}`);
+          }}
+        >
+          {beat.producerName}
+        </p>
 
         {/* Stats row */}
         <div className="flex items-center gap-2 mb-4 flex-wrap">

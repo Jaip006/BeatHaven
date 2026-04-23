@@ -21,6 +21,7 @@ const CartPage = lazy(() => import('./pages/CartPage'));
 const LikedBeatsPage = lazy(() => import('./pages/LikedBeatsPage'));
 const DownloadsPage = lazy(() => import('./pages/DownloadsPage'));
 const MyLyricsPage = lazy(() => import('./pages/MyLyricsPage'));
+const BeatDetailPage = lazy(() => import('./pages/BeatDetailPage'));
 
 function App() {
   useEffect(() => {
@@ -40,6 +41,7 @@ function App() {
         >
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/beats/:id" element={<BeatDetailPage />} />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />

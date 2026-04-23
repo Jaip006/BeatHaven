@@ -45,6 +45,10 @@ export interface IBeat extends Document {
   exclusiveNegotiable: boolean;
   exclusivePublishingRights?: string;
 
+  // Audio fingerprint for duplicate detection
+  audioFingerprint?: number[];
+  audioDuration?: number;
+
   // Stats
   plays: number;
   likes: number;
@@ -96,6 +100,9 @@ const beatSchema = new Schema<IBeat>(
     exclusivePrice: { type: Number },
     exclusiveNegotiable: { type: Boolean, default: false },
     exclusivePublishingRights: { type: String },
+
+    audioFingerprint: { type: [Number], required: false },
+    audioDuration: { type: Number, required: false },
 
     plays: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },

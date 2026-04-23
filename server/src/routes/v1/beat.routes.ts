@@ -6,7 +6,9 @@ import AppError from "../../utils/appError";
 import cloudinary from "../../config/cloudinary.config";
 import Beat from "../../models/beat.model";
 import User from "../../models/user.model";
+import Comment from "../../models/comment.model";
 import { env } from "../../config/env.config";
+import { generateFingerprint, fingerprintSimilarity, SIMILARITY_THRESHOLD } from "../../utils/audioFingerprint";
 
 const beatRouter = Router();
 
@@ -178,6 +180,34 @@ beatRouter.post(
       exclusivePublishingRights,
     } = req.body;
 
+    // Audio fingerprint duplicate detection
+    let fingerprintData: { fingerprint: number[]; duration: number } | null = null;
+    try {
+      fingerprintData = await generateFingerprint(files.untaggedMp3[0].buffer);
+
+      // Load all stored fingerprints and compare — only beats that have a fingerprint
+      const existingBeats = await Beat.find(
+        { audioFingerprint: { $exists: true, $ne: [] } },
+        { audioFingerprint: 1, title: 1, sellerId: 1 }
+      ).lean();
+
+      for (const existing of existingBeats) {
+        if (!existing.audioFingerprint?.length) continue;
+        const similarity = fingerprintSimilarity(fingerprintData.fingerprint, existing.audioFingerprint);
+        if (similarity >= SIMILARITY_THRESHOLD) {
+          throw new AppError(
+            "This audio has already been uploaded. Duplicate beats are not allowed.",
+            409,
+            "DUPLICATE_AUDIO"
+          );
+        }
+      }
+    } catch (err) {
+      // Re-throw AppErrors (duplicate detection), swallow fingerprinting tool errors
+      if (err instanceof AppError) throw err;
+      console.error("Audio fingerprinting failed (skipping duplicate check):", err);
+    }
+
     // Upload files to Cloudinary
     const artworkUpload = await uploadBufferToCloudinary(files.artwork[0].buffer, "beats/artworks", "image");
     const untaggedMp3Upload = await uploadBufferToCloudinary(files.untaggedMp3[0].buffer, "beats/mp3", "video");
@@ -231,6 +261,9 @@ beatRouter.post(
       exclusivePrice: exclusivePrice ? Number(exclusivePrice) : undefined,
       exclusiveNegotiable: exclusiveNegotiable === "true",
       exclusivePublishingRights,
+
+      audioFingerprint: fingerprintData?.fingerprint,
+      audioDuration: fingerprintData?.duration,
     });
 
     await newBeat.save();
@@ -242,32 +275,31 @@ beatRouter.post(
   })
 );
 
+const trendingCache: { data: any; expiresAt: number } = { data: null, expiresAt: 0 };
+
 beatRouter.get(
   "/trending",
   asyncHandler(async (req, res) => {
     const limit = Math.min(Math.max(Number(req.query?.limit) || 16, 1), 50);
     const daysAgo = Math.max(Number(req.query?.days) || 30, 1);
 
-    // Calculate date for recent activity filter
+    const cacheKey = `${limit}-${daysAgo}`;
+    if (trendingCache.data?.key === cacheKey && Date.now() < trendingCache.expiresAt) {
+      return res.status(200).json(trendingCache.data.result);
+    }
+
     const recentDate = new Date();
     recentDate.setDate(recentDate.getDate() - daysAgo);
 
-    // Fetch beats updated in the recent period with engagement
-    const beats = await Beat.find({
-      updatedAt: { $gte: recentDate },
-    })
-      .populate("sellerId", "displayName avatar studioProfile")
-      .lean()
-      .exec();
-
-    // Calculate engagement score and sort
-    const beatsWithScore = beats
-      .map((beat: any) => ({
-        ...beat,
-        engagementScore: (Number(beat.plays ?? 0) * 0.3) + (Number(beat.likes ?? 0) * 0.7),
-      }))
-      .sort((a: any, b: any) => b.engagementScore - a.engagementScore)
-      .slice(0, limit);
+    // Score, sort, and limit inside MongoDB — avoid loading all docs into JS memory
+    const beatsWithScore = await Beat.aggregate([
+      { $match: { updatedAt: { $gte: recentDate } } },
+      { $addFields: { engagementScore: { $add: [{ $multiply: [{ $ifNull: ["$plays", 0] }, 0.3] }, { $multiply: [{ $ifNull: ["$likes", 0] }, 0.7] }] } } },
+      { $sort: { engagementScore: -1 } },
+      { $limit: limit },
+      { $lookup: { from: "users", localField: "sellerId", foreignField: "_id", as: "sellerId", pipeline: [{ $project: { displayName: 1, avatar: 1, studioProfile: 1 } }] } },
+      { $unwind: { path: "$sellerId", preserveNullAndEmptyArrays: true } },
+    ]);
 
     // Format response
     const beatResults = beatsWithScore.map((beat: any) => {
@@ -299,14 +331,19 @@ beatRouter.get(
       };
     });
 
-    res.status(200).json({
+    const result = {
       success: true,
       data: {
         beats: beatResults,
         count: beatResults.length,
         period: `${daysAgo} days`,
       },
-    });
+    };
+
+    trendingCache.data = { key: cacheKey, result };
+    trendingCache.expiresAt = Date.now() + 5 * 60 * 1000;
+
+    res.status(200).json(result);
   })
 );
 
@@ -561,10 +598,92 @@ beatRouter.put(
   })
 );
 
+beatRouter.get(
+  "/by-producer/:producerId",
+  asyncHandler(async (req, res) => {
+    const { producerId } = req.params;
+    const exclude = String(req.query?.exclude ?? "").trim();
+    const limit = Math.min(Math.max(Number(req.query?.limit) || 6, 1), 20);
+
+    const matchQuery: Record<string, unknown> = { sellerId: producerId };
+    if (exclude) matchQuery._id = { $ne: exclude };
+
+    const [beats, producer] = await Promise.all([
+      Beat.find(matchQuery).sort({ createdAt: -1 }).limit(limit).lean(),
+      User.findById(producerId).select("displayName avatar studioProfile").lean(),
+    ]);
+
+    const producerDisplayName = String((producer as any)?.studioProfile?.studioName ?? (producer as any)?.displayName ?? "Unknown Producer");
+    const producerHandle = String((producer as any)?.studioProfile?.handle ?? "").trim();
+
+    const beatResults = beats.map((beat: any) => {
+      const normalizedTags = normalizeStringArray(beat.tags);
+      return {
+        id: String(beat._id),
+        title: beat.title,
+        genre: resolveBeatGenre(beat.genre, beat.beatType, normalizedTags),
+        beatType: beat.beatType,
+        bpm: Number(beat.tempo ?? 0),
+        key: resolveBeatKey(beat.musicalKey),
+        price: Number(beat.basicPrice ?? 0),
+        coverImage: beat.artworkUrl,
+        audioUrl: beat.untaggedMp3Url,
+        producerId: String(beat.sellerId),
+        producerName: producerDisplayName,
+        producerHandle,
+        plays: Number(beat.plays ?? 0),
+        likes: Number(beat.likes ?? 0),
+        tags: normalizedTags,
+        freeMp3Enabled: Boolean(beat.freeMp3Enabled),
+      };
+    });
+
+    res.status(200).json({ success: true, data: { beats: beatResults } });
+  })
+);
+
+beatRouter.get(
+  "/:beatId",
+  asyncHandler(async (req, res) => {
+    const { beatId } = req.params;
+    const beat = await Beat.findById(beatId).lean();
+
+    if (!beat) throw new AppError("Beat not found", 404);
+
+    const producer = await User.findById((beat as any).sellerId).select("displayName avatar studioProfile").lean();
+    const producerDisplayName = String((producer as any)?.studioProfile?.studioName ?? (producer as any)?.displayName ?? "Unknown Producer");
+    const producerHandle = String((producer as any)?.studioProfile?.handle ?? "").trim();
+    const normalizedTags = normalizeStringArray((beat as any).tags);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: String((beat as any)._id),
+        title: (beat as any).title,
+        genre: resolveBeatGenre((beat as any).genre, (beat as any).beatType, normalizedTags),
+        beatType: (beat as any).beatType,
+        bpm: Number((beat as any).tempo ?? 0),
+        key: resolveBeatKey((beat as any).musicalKey),
+        price: Number((beat as any).basicPrice ?? 0),
+        coverImage: (beat as any).artworkUrl,
+        audioUrl: (beat as any).untaggedMp3Url,
+        producerId: String((beat as any).sellerId),
+        producerName: producerDisplayName,
+        producerHandle,
+        plays: Number((beat as any).plays ?? 0),
+        likes: Number((beat as any).likes ?? 0),
+        tags: normalizedTags,
+        freeMp3Enabled: Boolean((beat as any).freeMp3Enabled),
+        moods: normalizeStringArray((beat as any).moods),
+        createdAt: (beat as any).createdAt,
+      },
+    });
+  })
+);
+
 beatRouter.delete(
   "/:beatId",
   requireAuth,
-  requireSeller,
   asyncHandler(async (req, res) => {
     const { beatId } = req.params;
     const beat = await Beat.findOne({ _id: beatId, sellerId: req.user!.userId });
@@ -757,6 +876,121 @@ beatRouter.post(
         followers: targetUser.followers.length,
       },
     });
+  })
+);
+
+// ── Comments ─────────────────────────────────────────────────────────────────
+
+beatRouter.get(
+  "/:beatId/comments",
+  asyncHandler(async (req, res) => {
+    const { beatId } = req.params;
+    const limit = Math.min(Math.max(Number(req.query?.limit) || 20, 1), 100);
+    const skip = Math.max(Number(req.query?.skip) || 0, 0);
+
+    const [comments, total] = await Promise.all([
+      Comment.find({ beatId })
+        .sort({ pinned: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("userId", "displayName avatar studioProfile")
+        .lean(),
+      Comment.countDocuments({ beatId }),
+    ]);
+
+    const formatted = comments.map((c: any) => ({
+      id: String(c._id),
+      text: c.text,
+      pinned: Boolean(c.pinned),
+      createdAt: c.createdAt,
+      user: {
+        id: String(c.userId?._id ?? ""),
+        displayName: String(c.userId?.studioProfile?.studioName ?? c.userId?.displayName ?? "Unknown"),
+        avatar: String(c.userId?.avatar ?? ""),
+      },
+    }));
+
+    res.status(200).json({ success: true, data: { comments: formatted, total } });
+  })
+);
+
+beatRouter.post(
+  "/:beatId/comments",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { beatId } = req.params;
+    const text = String(req.body?.text ?? "").trim();
+
+    if (!text) throw new AppError("Comment text is required", 400);
+    if (text.length > 1000) throw new AppError("Comment must be 1000 characters or less", 400);
+
+    const beat = await Beat.findById(beatId).lean();
+    if (!beat) throw new AppError("Beat not found", 404);
+
+    const comment = await Comment.create({ beatId, userId: req.user!.userId, text });
+    await comment.populate("userId", "displayName avatar studioProfile");
+
+    const c = comment as any;
+    res.status(201).json({
+      success: true,
+      data: {
+        id: String(c._id),
+        text: c.text,
+        pinned: false,
+        createdAt: c.createdAt,
+        user: {
+          id: String(c.userId?._id ?? ""),
+          displayName: String(c.userId?.studioProfile?.studioName ?? c.userId?.displayName ?? "Unknown"),
+          avatar: String(c.userId?.avatar ?? ""),
+        },
+      },
+    });
+  })
+);
+
+beatRouter.patch(
+  "/:beatId/comments/:commentId/pin",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { beatId, commentId } = req.params;
+
+    const beat = await Beat.findById(beatId).lean();
+    if (!beat) throw new AppError("Beat not found", 404);
+    if (String((beat as any).sellerId) !== String(req.user!.userId))
+      throw new AppError("Only the beat owner can pin comments", 403);
+
+    const comment = await Comment.findOne({ _id: commentId, beatId });
+    if (!comment) throw new AppError("Comment not found", 404);
+
+    comment.pinned = !comment.pinned;
+    await comment.save();
+
+    res.status(200).json({ success: true, data: { id: commentId, pinned: comment.pinned } });
+  })
+);
+
+beatRouter.delete(
+  "/:beatId/comments/:commentId",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { beatId, commentId } = req.params;
+
+    const [comment, beat] = await Promise.all([
+      Comment.findOne({ _id: commentId, beatId }),
+      Beat.findById(beatId).lean(),
+    ]);
+
+    if (!comment) throw new AppError("Comment not found", 404);
+
+    const isBeatOwner = beat && String((beat as any).sellerId) === String(req.user!.userId);
+    const isCommentAuthor = String(comment.userId) === String(req.user!.userId);
+
+    if (!isBeatOwner && !isCommentAuthor)
+      throw new AppError("Not authorized to remove this comment", 403);
+
+    await comment.deleteOne();
+
+    res.status(200).json({ success: true, data: { id: commentId } });
   })
 );
 
