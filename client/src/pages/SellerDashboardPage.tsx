@@ -67,7 +67,7 @@ const SellerDashboardPage: React.FC = () => {
     },
     {
       title: 'Total Earnings',
-      value: 'Rs 8,420',
+      value: '0',
       note: 'Up 14% from last month',
       icon: IndianRupee,
       accent: 'text-[#1ED760]',
@@ -166,6 +166,7 @@ const SellerDashboardPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                  <Link to="/community" className="px-2 py-2 text-sm text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200">Community</Link>
                 </div>
               </div>
 

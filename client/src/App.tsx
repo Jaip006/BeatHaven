@@ -22,6 +22,7 @@ const LikedBeatsPage = lazy(() => import('./pages/LikedBeatsPage'));
 const DownloadsPage = lazy(() => import('./pages/DownloadsPage'));
 const MyLyricsPage = lazy(() => import('./pages/MyLyricsPage'));
 const BeatDetailPage = lazy(() => import('./pages/BeatDetailPage'));
+const CommunityPage = lazy(() => import('./pages/CommunityPage'));
 
 function App() {
   useEffect(() => {
@@ -42,6 +43,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/beats/:id" element={<BeatDetailPage />} />
+            <Route path="/community" element={<CommunityPage />} />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />

@@ -162,6 +162,13 @@ const Navbar: React.FC = () => {
                 <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-[#1ED760] group-hover:w-full transition-all duration-300" />
               </a>
             ))}
+            <Link
+              to="/community"
+              className="text-sm text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200 relative group"
+            >
+              Community
+              <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-[#1ED760] group-hover:w-full transition-all duration-300" />
+            </Link>
           </nav>
 
           {/* CTA Buttons */}
@@ -234,6 +241,14 @@ const Navbar: React.FC = () => {
                       >
                         <span>Seller Dashboard</span>
                         <Compass size={14} className="text-[#6B7280]" />
+                      </Link>
+                      <Link
+                        to="/community"
+                        className="flex items-center justify-between rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-[#1ED760] transition-colors duration-200 hover:border-[#2A2A2A] hover:bg-[#171717]"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <span>Community</span>
+                        <Compass size={14} className="text-[#1ED760]" />
                       </Link>
                     </>
                   ) : (

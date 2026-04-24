@@ -359,6 +359,7 @@ const BuyerDashboardPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                  <Link to="/community" className="px-2 py-2 text-sm text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200">Community</Link>
                 </div>
               </div>
 
