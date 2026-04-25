@@ -180,21 +180,21 @@ const PostCard: React.FC<{
   return (
     <div className="group rounded-2xl border border-[#1F1F1F] bg-[#0D0D0D] overflow-hidden transition-all duration-300 hover:border-[#2A2A2A] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1A1A1A] to-[#222] border border-[#2A2A2A] flex-shrink-0 flex items-center justify-center overflow-hidden shadow-inner">
+      <div className="flex items-center justify-between px-3 sm:px-5 pt-3 sm:pt-5 pb-2 sm:pb-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#1A1A1A] to-[#222] border border-[#2A2A2A] flex-shrink-0 flex items-center justify-center overflow-hidden shadow-inner">
             {post.user.avatar
               ? <img src={post.user.avatar} className="w-full h-full object-cover" alt={post.user.displayName} />
-              : <User size={16} className="text-[#6B7280]" />}
+              : <User size={14} className="text-[#6B7280]" />}
           </div>
           <div>
             <p
-              className={`text-sm font-semibold text-white leading-tight ${post.user.handle ? 'hover:text-[#1ED760] cursor-pointer transition-colors duration-150' : ''}`}
+              className={`text-xs sm:text-sm font-semibold text-white leading-tight ${post.user.handle ? 'hover:text-[#1ED760] cursor-pointer transition-colors duration-150' : ''}`}
               onClick={() => post.user.handle && navigate(`/studio?handle=${post.user.handle}`)}
             >
               {post.user.displayName}
             </p>
-            <p className="text-[11px] text-[#555] mt-0.5">{timeAgo(post.createdAt)}</p>
+            <p className="text-[10px] sm:text-[11px] text-[#555] mt-0.5">{timeAgo(post.createdAt)}</p>
           </div>
         </div>
 
@@ -225,14 +225,14 @@ const PostCard: React.FC<{
 
       {/* Text */}
       {post.text && (
-        <p className="px-5 pb-4 text-sm text-[#C8C8C8] leading-relaxed whitespace-pre-wrap break-words">
+        <p className="px-3 sm:px-5 pb-3 sm:pb-4 text-xs sm:text-sm text-[#C8C8C8] leading-relaxed whitespace-pre-wrap break-words">
           {post.text}
         </p>
       )}
 
       {/* Media */}
       {post.media.length > 0 && (
-        <div className={`px-5 pb-4 ${post.media.length > 1 ? 'grid grid-cols-2 gap-2' : ''}`}>
+        <div className={`px-3 sm:px-5 pb-3 sm:pb-4 ${post.media.length > 1 ? 'grid grid-cols-2 gap-2' : ''}`}>
           {post.media.map((m, i) => (
             m.type === 'image' ? (
               <CommunityImage key={i} src={m.url} variant="feed" />
@@ -256,46 +256,46 @@ const PostCard: React.FC<{
       )}
 
       {/* Action bar */}
-      <div className="flex items-center gap-0.5 px-3 py-2.5 border-t border-[#161616]">
+      <div className="flex items-center gap-0.5 px-2 sm:px-3 py-1.5 sm:py-2.5 border-t border-[#161616]">
         <button
           onClick={() => { if (!currentUserId) { navigate('/sign-in'); return; } onLike(post.id); }}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 ${
+          className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-sm font-medium transition-all duration-150 ${
             liked
               ? 'text-[#FF6FA1] bg-[#FF6FA1]/8'
               : 'text-[#555] hover:text-[#FF6FA1] hover:bg-[#FF6FA1]/8'
           }`}
         >
-          <Heart size={15} fill={liked ? 'currentColor' : 'none'} strokeWidth={liked ? 0 : 2} />
-          <span className="text-xs">{post.likesCount}</span>
+          <Heart size={13} fill={liked ? 'currentColor' : 'none'} strokeWidth={liked ? 0 : 2} />
+          <span className="text-[11px]">{post.likesCount}</span>
         </button>
 
         <button
           onClick={toggleComments}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 ${
+          className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-sm font-medium transition-all duration-150 ${
             showComments
               ? 'text-[#1ED760] bg-[#1ED760]/8'
               : 'text-[#555] hover:text-[#1ED760] hover:bg-[#1ED760]/8'
           }`}
         >
-          <MessageSquare size={15} />
-          <span className="text-xs">{localCommentsCount}</span>
+          <MessageSquare size={13} />
+          <span className="text-[11px]">{localCommentsCount}</span>
         </button>
 
         <button
           onClick={() => { if (!currentUserId) { navigate('/sign-in'); return; } onSave(post.id); }}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 ml-auto ${
+          className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-sm font-medium transition-all duration-150 ml-auto ${
             saved
               ? 'text-[#7C5CFF] bg-[#7C5CFF]/8'
               : 'text-[#555] hover:text-[#7C5CFF] hover:bg-[#7C5CFF]/8'
           }`}
         >
-          {saved ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
+          {saved ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
         </button>
       </div>
 
       {/* Comments */}
       {showComments && (
-        <div className="border-t border-[#161616] bg-[#0A0A0A] px-5 py-4 space-y-4">
+        <div className="border-t border-[#161616] bg-[#0A0A0A] px-3 sm:px-5 py-3 sm:py-4 space-y-3 sm:space-y-4">
           {currentUserId && (
             <div className="flex gap-2.5">
               <div className="flex-1 relative flex items-end gap-2 border-b border-[#262626] focus-within:border-[#1ED760] transition-colors pb-1">
@@ -774,18 +774,40 @@ const CommunityPage: React.FC = () => {
         </div>
 
         {/* ── Content ── */}
-        <div className="relative z-0 max-w-5xl mx-auto px-4 pt-[88px] h-full flex flex-col">
+        <div className="relative z-0 max-w-5xl mx-auto px-3 sm:px-4 pt-[72px] sm:pt-[88px] h-full flex flex-col">
 
           {/* Hero header */}
-          <div className="mb-6 pt-4">
+          <div className="mb-4 pt-3 sm:pt-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#1ED760]/20 to-[#1ED760]/5 border border-[#1ED760]/20 flex items-center justify-center">
-                <Users size={18} className="text-[#1ED760]" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-[#1ED760]/20 to-[#1ED760]/5 border border-[#1ED760]/20 flex items-center justify-center">
+                <Users size={16} className="text-[#1ED760]" />
               </div>
               <div>
-                <h1 className="text-2xl font-black text-white tracking-tight leading-none">Community</h1>
+                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-none">Community</h1>
               </div>
             </div>
+          </div>
+
+          {/* Mobile tabs — visible below lg */}
+          <div className="flex lg:hidden gap-1 mb-4 overflow-x-auto pb-1 scrollbar-hide">
+            {tabs.map((tab) => {
+              if (tab.requiresAuth && !currentUserId) return null;
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => handleTabChange(tab.key)}
+                  className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border ${
+                    isActive
+                      ? 'bg-[#1A1A1A] text-white border-[#2A2A2A]'
+                      : 'text-[#555] border-transparent hover:text-[#B3B3B3] hover:bg-[#141414]'
+                  }`}
+                >
+                  <span className={isActive ? 'text-[#1ED760]' : ''}>{tab.icon}</span>
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Two-column layout */}
@@ -819,7 +841,7 @@ const CommunityPage: React.FC = () => {
             <div className="hidden lg:block w-px bg-[#1F1F1F] flex-shrink-0 mt-5 mb-10" />
 
             {/* ── Right column: feed + create post ── */}
-            <div className="flex-1 min-w-0 pl-5 flex flex-col min-h-0">
+            <div className="flex-1 min-w-0 lg:pl-5 flex flex-col min-h-0">
 
               {/* Feed */}
               <div className="flex-1 overflow-y-auto space-y-4 py-2 pr-1">
@@ -868,13 +890,13 @@ const CommunityPage: React.FC = () => {
 
               {/* Create post — only on Feed tab, pinned at bottom */}
               {session && activeTab === 'feed' ? (
-                <div className="mt-3 rounded-2xl border border-[#262626] bg-[#0D0D0D]/95 backdrop-blur-xl shadow-[0_-8px_40px_rgba(0,0,0,0.6)] overflow-hidden flex-shrink-0 mb-6">
-                  <div className="p-4 pb-3">
-                    <div className="flex gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1A1A1A] to-[#222] border border-[#2A2A2A] flex-shrink-0 flex items-center justify-center overflow-hidden mt-0.5">
+                <div className="mt-2 sm:mt-3 rounded-2xl border border-[#262626] bg-[#0D0D0D]/95 backdrop-blur-xl shadow-[0_-8px_40px_rgba(0,0,0,0.6)] overflow-hidden flex-shrink-0 mb-4 sm:mb-6">
+                  <div className="p-3 sm:p-4 pb-2 sm:pb-3">
+                    <div className="flex gap-2 sm:gap-3">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-[#1A1A1A] to-[#222] border border-[#2A2A2A] flex-shrink-0 flex items-center justify-center overflow-hidden mt-0.5">
                         {session.user?.avatar
                           ? <img src={session.user.avatar} className="w-full h-full object-cover" alt="" />
-                          : <User size={14} className="text-[#555]" />}
+                          : <User size={12} className="text-[#555]" />}
                       </div>
                       <div className="flex-1 flex items-start gap-2">
                         <div className="relative flex-shrink-0 mt-[7px]">
@@ -884,7 +906,7 @@ const CommunityPage: React.FC = () => {
                             onClick={togglePostEmojiPicker}
                             className="text-[#444] hover:text-[#1ED760] transition-colors"
                           >
-                            <Smile size={16} />
+                            <Smile size={14} />
                           </button>
                           {showPostEmoji && canUsePortal && createPortal(
                             <>
@@ -902,13 +924,13 @@ const CommunityPage: React.FC = () => {
                           onChange={(e) => setPostText(e.target.value)}
                           placeholder="Share something with the community…"
                           rows={2}
-                          className="flex-1 bg-transparent outline-none text-sm text-white placeholder-[#444] resize-none leading-relaxed pt-1"
+                          className="flex-1 bg-transparent outline-none text-xs sm:text-sm text-white placeholder-[#444] resize-none leading-relaxed pt-1"
                         />
                       </div>
                     </div>
 
                     {mediaPreviews.length > 0 && (
-                      <div className={`mt-3 ml-12 ${mediaPreviews.length > 1 ? 'grid grid-cols-2 gap-2' : ''}`}>
+                      <div className={`mt-3 ml-8 sm:ml-12 ${mediaPreviews.length > 1 ? 'grid grid-cols-2 gap-2' : ''}`}>
                         {mediaPreviews.map((m, i) => (
                           m.type === 'image' ? (
                             <div key={i} className="relative mx-auto w-fit max-w-full">
@@ -941,28 +963,28 @@ const CommunityPage: React.FC = () => {
                       </div>
                     )}
 
-                    {postError && <p className="text-xs text-red-400 mt-2 ml-12">{postError}</p>}
+                    {postError && <p className="text-xs text-red-400 mt-2 ml-8 sm:ml-12">{postError}</p>}
                   </div>
 
-                  <div className="flex items-center justify-between px-4 py-2.5 border-t border-[#161616] bg-[#0A0A0A]">
+                  <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 border-t border-[#161616] bg-[#0A0A0A]">
                     <div className="flex items-center gap-0.5">
                       <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelect} />
-                      <button type="button" onClick={() => openFilePicker('image')} className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs text-[#555] hover:text-[#1ED760] hover:bg-[#1ED760]/8 transition-colors" title="Photo">
-                        <Image size={14} />
+                      <button type="button" onClick={() => openFilePicker('image')} className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-lg text-xs text-[#555] hover:text-[#1ED760] hover:bg-[#1ED760]/8 transition-colors" title="Photo">
+                        <Image size={13} />
                       </button>
-                      <button type="button" onClick={() => openFilePicker('video')} className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs text-[#555] hover:text-[#1ED760] hover:bg-[#1ED760]/8 transition-colors" title="Video">
-                        <Video size={14} />
+                      <button type="button" onClick={() => openFilePicker('video')} className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-lg text-xs text-[#555] hover:text-[#1ED760] hover:bg-[#1ED760]/8 transition-colors" title="Video">
+                        <Video size={13} />
                       </button>
-                      <button type="button" onClick={() => openFilePicker('audio')} className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs text-[#555] hover:text-[#1ED760] hover:bg-[#1ED760]/8 transition-colors" title="Audio">
-                        <Music size={14} />
+                      <button type="button" onClick={() => openFilePicker('audio')} className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-lg text-xs text-[#555] hover:text-[#1ED760] hover:bg-[#1ED760]/8 transition-colors" title="Audio">
+                        <Music size={13} />
                       </button>
                     </div>
                     <button
                       onClick={() => void handleCreatePost()}
                       disabled={(!postText.trim() && mediaFiles.length === 0) || posting}
-                      className="flex items-center gap-2 bg-[#1ED760] hover:bg-[#19c453] text-[#0B0B0B] text-xs font-bold px-4 py-2 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="flex items-center gap-1.5 bg-[#1ED760] hover:bg-[#19c453] text-[#0B0B0B] text-xs font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      <Sparkles size={12} />
+                      <Sparkles size={11} />
                       {posting ? 'Posting…' : 'Post'}
                     </button>
                   </div>

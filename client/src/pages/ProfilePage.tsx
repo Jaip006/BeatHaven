@@ -485,9 +485,7 @@ const ProfilePage: React.FC = () => {
           ════════════════════════════════════════════════════════════ */}
           <SectionCard
             icon={<User size={18} />}
-            title="Full Name & Email"
-            subtitle="Your display name can be edited. Email is locked to your sign-up address."
-          >
+            title="Full Name & Email"          >
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Name */}
               <div className="flex flex-col gap-1.5">
@@ -551,7 +549,6 @@ const ProfilePage: React.FC = () => {
           <SectionCard
             icon={<CalendarDays size={18} />}
             title="Gender & Date of Birth"
-            subtitle="Used to personalise your experience and for KYC compliance."
           >
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Gender */}

@@ -330,36 +330,94 @@ const BeatDetailPage: React.FC = () => {
           {/* ── Left column ───────────────────────────────────────── */}
           <div className="min-w-0">
             {/* Beat hero */}
-            <div className="flex flex-col sm:flex-row gap-6 mb-10">
-              {/* Cover */}
-              <div className="flex-shrink-0 w-full sm:w-52 lg:w-60 aspect-square rounded-2xl overflow-hidden bg-[#121212] border border-[#262626]">
-                {beat.coverImage ? (
-                  <img src={beat.coverImage} alt={beat.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Music size={48} className="text-[#262626]" />
-                  </div>
-                )}
-              </div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:gap-6 mb-10">
 
-              {/* Details */}
-              <div className="flex flex-col justify-end gap-3 flex-1 min-w-0">
-                <div>
-                  <p className="text-xs font-semibold text-[#1ED760] uppercase tracking-widest mb-1">
-                    {beat.genre}
-                  </p>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-2 break-words">
-                    {beat.title}
-                  </h1>
-                  <button
-                    onClick={() => beat.producerHandle && navigate(`/studio?handle=${beat.producerHandle}`)}
-                    className="flex items-center gap-2 text-[#B3B3B3] hover:text-white transition-colors"
-                  >
-                    <User size={14} />
-                    <span className="text-sm">{beat.producerName}</span>
-                  </button>
+              {/* ── Top row: cover + identity (always side-by-side) ── */}
+              <div className="flex flex-row gap-4 sm:contents">
+                {/* Cover */}
+                <div className="flex-shrink-0 w-36 sm:w-52 lg:w-60 aspect-square rounded-2xl overflow-hidden bg-[#121212] border border-[#262626]">
+                  {beat.coverImage ? (
+                    <img src={beat.coverImage} alt={beat.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Music size={48} className="text-[#262626]" />
+                    </div>
+                  )}
                 </div>
 
+                {/* Details */}
+                <div className="flex flex-col justify-end gap-3 flex-1 min-w-0">
+                  <div>
+                    <p className="text-xs font-semibold text-[#1ED760] uppercase tracking-widest mb-1">
+                      {beat.genre}
+                    </p>
+                    <h1 className="text-lg sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-2 break-words">
+                      {beat.title}
+                    </h1>
+                    <button
+                      onClick={() => beat.producerHandle && navigate(`/studio?handle=${beat.producerHandle}`)}
+                      className="flex items-center gap-2 text-[#B3B3B3] hover:text-white transition-colors"
+                    >
+                      <User size={14} />
+                      <span className="text-sm">{beat.producerName}</span>
+                    </button>
+                  </div>
+
+                  {/* Badges / tags / plays — hidden on mobile, shown sm+ */}
+                  <div className="hidden sm:flex flex-wrap gap-2">
+                    <Badge variant="outline">{beat.bpm} BPM</Badge>
+                    <Badge variant="outline">{beat.key}</Badge>
+                    {beat.beatType && <Badge variant="outline">{beat.beatType}</Badge>}
+                    {beat.moods?.map((mood) => <Badge key={mood} variant="outline">{mood}</Badge>)}
+                  </div>
+
+                  {beat.tags?.length > 0 && (
+                    <div className="hidden sm:flex flex-wrap gap-1.5">
+                      {beat.tags.map((tag) => (
+                        <span key={tag} className="text-xs text-[#6B7280] bg-[#1A1A1A] border border-[#262626] px-2 py-0.5 rounded-full">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="hidden sm:flex items-center gap-4 text-sm text-[#6B7280]">
+                    <span>{beat.plays?.toLocaleString()} plays</span>
+                    <span>{beat.likes?.toLocaleString()} likes</span>
+                  </div>
+
+                  {/* Buttons — sm+ only */}
+                  <div className="hidden sm:flex items-center gap-3 flex-wrap">
+                    {beat.audioUrl && (
+                      <button
+                        onClick={handlePlay}
+                        className="flex items-center gap-2 bg-[#1ED760] hover:bg-[#19c453] text-[#0B0B0B] font-bold px-5 py-2.5 rounded-full transition-colors"
+                      >
+                        {isCurrentlyPlaying
+                          ? <Pause size={16} fill="currentColor" />
+                          : <Play size={16} fill="currentColor" className="ml-0.5" />}
+                        {isCurrentlyPlaying ? 'Pause' : 'Preview'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => { setIsShareModalOpen(true); setCopiedShareUrl(false); }}
+                      className="flex items-center gap-2 border border-[#262626] hover:border-[#1ED760]/50 text-[#B3B3B3] hover:text-white px-5 py-2.5 rounded-full transition-colors"
+                    >
+                      <Share2 size={15} />
+                      Share
+                    </button>
+                    {!isOwnBeat && (
+                      <PriceButton price={beat.price} onClick={() => {
+                        if (!session) { navigate('/sign-in'); return; }
+                        setIsLicenseModalOpen(true);
+                      }} />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Mobile-only: badges / tags / plays / buttons below ── */}
+              <div className="flex sm:hidden flex-col gap-3">
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline">{beat.bpm} BPM</Badge>
                   <Badge variant="outline">{beat.key}</Badge>
@@ -409,6 +467,7 @@ const BeatDetailPage: React.FC = () => {
                   )}
                 </div>
               </div>
+
             </div>
 
             {/* ── Comments section ───────────────────────────── */}
