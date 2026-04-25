@@ -21,21 +21,15 @@ const dashboardRoutes: Record<(typeof dashboardOptions)[number], string> = {
   'Seller Dashboard': '/dashboard/seller',
   'Buyer Dashboard': '/dashboard/buyer',
 };
-const browseSections = [
-  { title: 'Sales', items: ['Orders Received', 'Payouts', 'Customers'] },
-  { title: 'Workspace', items: ['Analytics', 'Licenses', 'Upload Queue'] },
-];
+const browseItems = ['Analytics', 'My Studio', 'Orders Received'];
 const beatOptionRoutes: Record<string, string> = {
   'My Beats': '/studio',
-  'Draft Uploads': '/dashboard/seller/upload',
+  'Draft Uploads': '/dashboard/seller/drafts',
 };
 const browseItemRoutes: Record<string, string> = {
+  'Analytics': '/dashboard/seller',
+  'My Studio': '/studio',
   'Orders Received': '/dashboard/seller',
-  Payouts: '/dashboard/seller',
-  Customers: '/dashboard/seller',
-  Analytics: '/dashboard/seller',
-  Licenses: '/dashboard/seller',
-  'Upload Queue': '/dashboard/seller/upload',
 };
 
 const SellerDashboardPage: React.FC = () => {
@@ -154,24 +148,16 @@ const SellerDashboardPage: React.FC = () => {
                       Browse
                       <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
                     </button>
-                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-[420px] rounded-[1.4rem] border border-[#262626] bg-[#101010] p-4 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                      <div className="grid gap-5 sm:grid-cols-2">
-                        {browseSections.map((section) => (
-                          <div key={section.title}>
-                            <div className="space-y-2">
-                              {section.items.map((item) => (
-                                <Link
-                                  key={item}
-                                  to={browseItemRoutes[item] ?? '/'}
-                                  className="block w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white"
-                                >
-                                  {item}
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                      {browseItems.map((item) => (
+                        <Link
+                          key={item}
+                          to={browseItemRoutes[item] ?? '/'}
+                          className="block w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white"
+                        >
+                          {item}
+                        </Link>
+                      ))}
                     </div>
                   </div>
                   <Link to="/community" className="px-2 py-2 text-sm text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200">Community</Link>

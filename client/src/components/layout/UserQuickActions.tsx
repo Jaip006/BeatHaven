@@ -97,7 +97,7 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false, mob
                 </span>
               ) : null}
             </Link>
-            <Link to="/dashboard/seller">
+            <Link to="/dashboard/seller/upload">
               <Button variant="primary" size="sm" className="h-11 w-full justify-start px-3">
                 <Upload size={14} />
                 Upload
@@ -151,7 +151,7 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false, mob
           </span>
         ) : null}
       </Link>
-      <Link to="/dashboard/seller">
+      <Link to="/dashboard/seller/upload">
         <Button variant="primary" size="sm" className="px-2.5 sm:px-4">
           <Upload size={16} />
           <span className="hidden sm:inline">Upload</span>

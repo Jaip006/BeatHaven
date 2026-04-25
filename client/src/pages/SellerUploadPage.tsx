@@ -10,7 +10,8 @@ import {
   Sparkles,
   Waves,
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { getDraftById, upsertDraft, removeDraft } from '../utils/drafts';
 import { Button } from '../components/ui/Button';
 import UserQuickActions from '../components/layout/UserQuickActions';
 import { getAuthSession, hydrateAuthSession } from '../utils/auth';
@@ -75,7 +76,7 @@ const browseSections = [
 ];
 const beatOptionRoutes: Record<string, string> = {
   'My Beats': '/studio',
-  'Draft Uploads': '/dashboard/seller/upload',
+  'Draft Uploads': '/dashboard/seller/drafts',
 };
 const browseItemRoutes: Record<string, string> = {
   'Orders Received': '/dashboard/seller',
@@ -193,7 +194,10 @@ const uploadSections = [
 
 const SellerUploadPage: React.FC = () => {
   const navigate = useNavigate();
-  const draftStorageKey = getSellerUploadDraftStorageKey(getAuthSession()?.user?.id);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const userId = getAuthSession()?.user?.id;
+  const draftStorageKey = getSellerUploadDraftStorageKey(userId);
+  const draftIdParam = searchParams.get('draftId');
   const [isMoodDropdownOpen, setIsMoodDropdownOpen] = useState(false);
   const [isInstrumentDropdownOpen, setIsInstrumentDropdownOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<UploadSectionKey>('metadata');
@@ -275,7 +279,15 @@ const SellerUploadPage: React.FC = () => {
   }, [uploadNotice]);
 
   useEffect(() => {
-    const savedDraft = window.localStorage.getItem(draftStorageKey);
+    const rawDraft = draftIdParam
+      ? (getDraftById(userId, draftIdParam) as SellerUploadDraft | null)
+      : (() => {
+          const saved = window.localStorage.getItem(draftStorageKey);
+          if (!saved) return null;
+          try { return JSON.parse(saved) as SellerUploadDraft; } catch { return null; }
+        })();
+
+    const savedDraft = rawDraft ? JSON.stringify(rawDraft) : null;
 
     if (!savedDraft) {
       return;
@@ -314,9 +326,10 @@ const SellerUploadPage: React.FC = () => {
       setDraftStatus('Draft restored');
     } catch {
       setDraftStatus('Could not restore draft');
-      window.localStorage.removeItem(draftStorageKey);
+      if (!draftIdParam) window.localStorage.removeItem(draftStorageKey);
     }
-  }, [draftStorageKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftStorageKey, draftIdParam]);
 
   const toggleMood = (mood: string) => {
     setSelectedMoods((current) =>
@@ -415,6 +428,13 @@ const SellerUploadPage: React.FC = () => {
     };
 
     window.localStorage.setItem(draftStorageKey, JSON.stringify(draftPayload));
+
+    const id = draftIdParam ?? String(Date.now());
+    upsertDraft(userId, { id, savedAt: Date.now(), ...draftPayload });
+    if (!draftIdParam) {
+      setSearchParams({ draftId: id }, { replace: true });
+    }
+
     setDraftStatus('Draft saved');
   };
 
@@ -575,6 +595,7 @@ const SellerUploadPage: React.FC = () => {
       const data = await response.json().catch(() => null);
       if (response.ok && data?.success) {
         window.dispatchEvent(new Event('beathaven-beat-uploaded'));
+        if (draftIdParam) removeDraft(userId, draftIdParam);
         clearEntireUploadForm();
         navigate('/studio');
       } else {
@@ -1213,8 +1234,7 @@ const SellerUploadPage: React.FC = () => {
                       <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
                     </button>
                     <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                      <Link to="/dashboard/seller/upload" className="block w-full rounded-xl bg-[#161616] px-4 py-3 text-left text-sm text-[#1ED760]">New Upload</Link>
-                      {beatOptions.map((option) => (
+{beatOptions.map((option) => (
                         <Link key={option} to={beatOptionRoutes[option] ?? '/'} className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
                           {option}
                         </Link>
@@ -1243,6 +1263,7 @@ const SellerUploadPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                  <Link to="/community" className="px-2 py-2 text-sm text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200">Community</Link>
                 </div>
               </div>
 

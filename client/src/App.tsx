@@ -1,9 +1,10 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useState, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { PlayerProvider } from './context/PlayerContext';
 import BeatPreviewPlayer from './components/layout/BeatPreviewPlayer';
 import { startInactivityLogoutMonitor } from './utils/auth';
+import MusicLoader from './components/ui/MusicLoader';
 import './App.css';
 
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -23,12 +24,18 @@ const DownloadsPage = lazy(() => import('./pages/DownloadsPage'));
 const MyLyricsPage = lazy(() => import('./pages/MyLyricsPage'));
 const BeatDetailPage = lazy(() => import('./pages/BeatDetailPage'));
 const CommunityPage = lazy(() => import('./pages/CommunityPage'));
+const DraftUploadsPage = lazy(() => import('./pages/DraftUploadsPage'));
 
 function App() {
+  const [loading, setLoading] = useState(true);
+  const handleLoaderDone = useCallback(() => setLoading(false), []);
+
   useEffect(() => {
     const stopInactivityMonitor = startInactivityLogoutMonitor();
     return stopInactivityMonitor;
   }, []);
+
+  if (loading) return <MusicLoader onDone={handleLoaderDone} />;
 
   return (
     <PlayerProvider>
@@ -47,12 +54,13 @@ function App() {
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/seller-agreement" element={<SellerAgreementPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard/buyer" element={<BuyerDashboardPage />} />
               <Route path="/dashboard/seller" element={<SellerDashboardPage />} />
               <Route path="/dashboard/seller/upload" element={<SellerUploadPage />} />
+              <Route path="/dashboard/seller/drafts" element={<DraftUploadsPage />} />
               <Route path="/studio" element={<MyStudioPage />} />
-              <Route path="/seller-agreement" element={<SellerAgreementPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/studio-setup" element={<StudioSetupPage />} />
               <Route path="/cart" element={<CartPage />} />

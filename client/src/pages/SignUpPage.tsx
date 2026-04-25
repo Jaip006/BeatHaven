@@ -35,6 +35,7 @@ const SignUpPage: React.FC = () => {
   const [isResending, setIsResending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -278,16 +279,35 @@ const SignUpPage: React.FC = () => {
                     </div>
                   </label>
 
-                  <label className="flex items-start gap-3 rounded-2xl bg-[#121212]/70 px-4 py-3 text-sm text-[#B3B3B3]">
+                  <label className="flex items-start gap-3 rounded-2xl bg-[#121212]/70 px-4 py-3 text-sm text-[#B3B3B3] cursor-pointer">
                     <input
                       type="checkbox"
-                      className="mt-0.5 h-4 w-4 rounded border-[#262626] bg-[#121212]"
-                      required
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-[#262626] bg-[#121212] accent-[#1ED760]"
                     />
-                    <span>I have read and agree to all the terms and conditions.</span>
+                    <span>
+                      I have read and agree to all the{' '}
+                      <Link to="/seller-agreement" className="underline text-white hover:text-[#1ED760] transition-colors duration-200" target="_blank">
+                        terms and conditions
+                      </Link>.
+                    </span>
                   </label>
 
-                  <Button type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    className="w-full"
+                    disabled={
+                      isSubmitting ||
+                      !termsAccepted ||
+                      !formData.displayName.trim() ||
+                      !formData.email.trim() ||
+                      !formData.password ||
+                      !formData.confirmPassword
+                    }
+                  >
                     {isSubmitting ? 'Creating Account...' : 'Create Account'}
                   </Button>
                 </form>
