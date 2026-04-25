@@ -30,6 +30,18 @@ const browseSections = [
   { title: 'Sales', items: ['Orders Received', 'Payouts', 'Customers'] },
   { title: 'Workspace', items: ['Analytics', 'Licenses', 'Upload Queue'] },
 ];
+const beatOptionRoutes: Record<string, string> = {
+  'My Beats': '/studio',
+  'Draft Uploads': '/dashboard/seller/upload',
+};
+const browseItemRoutes: Record<string, string> = {
+  'Orders Received': '/dashboard/seller',
+  Payouts: '/dashboard/seller',
+  Customers: '/dashboard/seller',
+  Analytics: '/dashboard/seller',
+  Licenses: '/dashboard/seller',
+  'Upload Queue': '/dashboard/seller/upload',
+};
 
 const BEATHAVEN_BASE = 'beathaven.com/@';
 
@@ -319,9 +331,9 @@ const StudioSetupPage: React.FC = () => {
                     </button>
                     <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
                       {beatOptions.map((option) => (
-                        <button key={option} className="w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
+                        <Link key={option} to={beatOptionRoutes[option] ?? '/'} className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
                           {option}
-                        </button>
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -337,9 +349,9 @@ const StudioSetupPage: React.FC = () => {
                           <div key={section.title}>
                             <div className="space-y-2">
                               {section.items.map((item) => (
-                                <button key={item} className="w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white">
+                                <Link key={item} to={browseItemRoutes[item] ?? '/'} className="block w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white">
                                   {item}
-                                </button>
+                                </Link>
                               ))}
                             </div>
                           </div>

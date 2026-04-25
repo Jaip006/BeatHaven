@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Bookmark, BookmarkCheck, Heart, Image, MessageSquare, MoreVertical,
-  Music, Send, Smile, Trash2, User, Video, X, Users, Sparkles, Rss,
+  Music, Plus, Send, Smile, Trash2, User, Video, X, Users, Sparkles, Rss,
 } from 'lucide-react';
 import EmojiPicker, { type EmojiClickData, Theme } from 'emoji-picker-react';
 import UserQuickActions from '../components/layout/UserQuickActions';
@@ -22,6 +22,18 @@ const browseSections = [
   { title: 'Sales', items: ['Orders Received', 'Payouts', 'Customers'] },
   { title: 'Workspace', items: ['Analytics', 'Licenses', 'Upload Queue'] },
 ];
+const beatOptionRoutes: Record<string, string> = {
+  'My Beats': '/studio',
+  'Draft Uploads': '/dashboard/seller/upload',
+};
+const browseItemRoutes: Record<string, string> = {
+  'Orders Received': '/dashboard/seller',
+  Payouts: '/dashboard/seller',
+  Customers: '/dashboard/seller',
+  Analytics: '/dashboard/seller',
+  Licenses: '/dashboard/seller',
+  'Upload Queue': '/dashboard/seller/upload',
+};
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface MediaItem { url: string; type: 'image' | 'video' | 'audio' }
@@ -429,6 +441,7 @@ const CommunityPage: React.FC = () => {
   const [tabFetched, setTabFetched] = useState<Record<Tab, boolean>>({ feed: false, myposts: false, saved: false });
 
   // Create post state
+  const [showCreatePost, setShowCreatePost] = useState(false);
   const [postText, setPostText] = useState('');
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<{ url: string; type: 'image' | 'video' | 'audio' }[]>([]);
@@ -740,7 +753,7 @@ const CommunityPage: React.FC = () => {
                   </button>
                   <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
                     {beatOptions.map((option) => (
-                      <button key={option} className="w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">{option}</button>
+                      <Link key={option} to={beatOptionRoutes[option] ?? '/'} className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">{option}</Link>
                     ))}
                   </div>
                 </div>
@@ -755,7 +768,7 @@ const CommunityPage: React.FC = () => {
                         <div key={section.title}>
                           <div className="space-y-2">
                             {section.items.map((item) => (
-                              <button key={item} className="w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white">{item}</button>
+                              <Link key={item} to={browseItemRoutes[item] ?? '/'} className="block w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white">{item}</Link>
                             ))}
                           </div>
                         </div>
@@ -844,7 +857,7 @@ const CommunityPage: React.FC = () => {
             <div className="flex-1 min-w-0 lg:pl-5 flex flex-col min-h-0">
 
               {/* Feed */}
-              <div className="flex-1 overflow-y-auto space-y-4 py-2 pr-1">
+              <div className="flex-1 overflow-y-auto space-y-4 pt-2 pb-36 lg:pb-2 pr-1">
                 {loading ? (
                   <>
                     {[1, 2, 3].map((i) => <PostSkeleton key={i} />)}
@@ -889,8 +902,23 @@ const CommunityPage: React.FC = () => {
               </div>
 
               {/* Create post — only on Feed tab, pinned at bottom */}
+              {/* Backdrop — closes create post when tapping outside on mobile */}
+              {showCreatePost && (
+                <div className="lg:hidden fixed inset-0 z-[89]" onClick={() => setShowCreatePost(false)} />
+              )}
+
+              {/* FAB — mobile only, toggles create post */}
+              {session && activeTab === 'feed' && (
+                <button
+                  onClick={() => setShowCreatePost(v => !v)}
+                  className={`lg:hidden fixed bottom-5 right-4 z-[95] w-12 h-12 rounded-full bg-[#1ED760] text-[#0B0B0B] shadow-[0_4px_24px_rgba(30,215,96,0.45)] flex items-center justify-center transition-all duration-300 active:scale-90 ${showCreatePost ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'}`}
+                >
+                  <Plus size={22} />
+                </button>
+              )}
+
               {session && activeTab === 'feed' ? (
-                <div className="mt-2 sm:mt-3 rounded-2xl border border-[#262626] bg-[#0D0D0D]/95 backdrop-blur-xl shadow-[0_-8px_40px_rgba(0,0,0,0.6)] overflow-hidden flex-shrink-0 mb-4 sm:mb-6">
+                <div className={`fixed bottom-3 inset-x-3 z-[90] transition-transform duration-300 ease-out lg:relative lg:bottom-auto lg:inset-x-auto lg:z-auto lg:translate-y-0 lg:mt-3 lg:mb-6 rounded-2xl border border-[#262626] bg-[#0D0D0D]/95 backdrop-blur-xl shadow-[0_-8px_40px_rgba(0,0,0,0.6)] overflow-hidden flex-shrink-0 ${showCreatePost ? 'translate-y-0' : 'translate-y-[110%] lg:translate-y-0'}`}>
                   <div className="p-3 sm:p-4 pb-2 sm:pb-3">
                     <div className="flex gap-2 sm:gap-3">
                       <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-[#1A1A1A] to-[#222] border border-[#2A2A2A] flex-shrink-0 flex items-center justify-center overflow-hidden mt-0.5">

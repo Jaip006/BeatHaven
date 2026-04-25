@@ -33,6 +33,7 @@ const parseApiSong = (song: ApiLyricSong): LyricSong => ({
 const MyLyricsPage: React.FC = () => {
   const [songs, setSongs] = useState<LyricSong[]>([]);
   const [selectedSongId, setSelectedSongId] = useState<string>('');
+  const [mobileView, setMobileView] = useState<'list' | 'editor'>('list');
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [saveStatus, setSaveStatus] = useState<Record<string, SaveStatus>>({});
@@ -199,6 +200,7 @@ const MyLyricsPage: React.FC = () => {
       setSongs((prev) => {
         const next = prev.filter((song) => song.id !== songId);
         setSelectedSongId((prevSelected) => (prevSelected === songId ? next[0]?.id ?? '' : prevSelected));
+        if (selectedSongId === songId) setMobileView('list');
         return next;
       });
       setSaveStatus((prev) => {
@@ -257,7 +259,7 @@ const MyLyricsPage: React.FC = () => {
 
         <section className="relative z-0 mx-auto max-w-7xl px-4 pb-12 pt-7 sm:px-5 lg:px-7">
           <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
-            <aside className="glass h-fit rounded-[1.8rem] border border-[#262626] p-5 sm:p-6">
+            <aside className={`glass h-fit rounded-[1.8rem] border border-[#262626] p-5 sm:p-6 ${mobileView === 'editor' ? 'hidden lg:block' : ''}`}>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#121212] text-[#7C5CFF]">
@@ -268,7 +270,7 @@ const MyLyricsPage: React.FC = () => {
                     <p className="text-xs text-[#9CA3AF]">{songs.length} saved</p>
                   </div>
                 </div>
-                <Button variant="primary" size="sm" onClick={() => { void handleCreateSong(); }}>
+                <Button variant="primary" size="sm" onClick={() => { void handleCreateSong(); setMobileView('editor'); }}>
                   <Plus size={16} className="mr-1" />
                   New
                 </Button>
@@ -289,7 +291,7 @@ const MyLyricsPage: React.FC = () => {
                   songs.map((song) => (
                     <button
                       key={song.id}
-                      onClick={() => setSelectedSongId(song.id)}
+                      onClick={() => { setSelectedSongId(song.id); setMobileView('editor'); }}
                       className={`w-full rounded-2xl border px-4 py-3 text-left transition-colors ${
                         song.id === selectedSongId
                           ? 'border-[#1ED760]/40 bg-[#121212] text-white'
@@ -313,7 +315,13 @@ const MyLyricsPage: React.FC = () => {
               </div>
             </aside>
 
-            <div className="glass rounded-[1.8rem] border border-[#262626] p-5 sm:p-6">
+            <div className={`glass rounded-[1.8rem] border border-[#262626] p-5 sm:p-6 ${mobileView === 'list' ? 'hidden lg:block' : ''}`}>
+              <button
+                onClick={() => setMobileView('list')}
+                className="lg:hidden flex items-center gap-1.5 text-sm text-[#9CA3AF] hover:text-white mb-4 transition-colors"
+              >
+                <ArrowLeft size={15} /> Back to songs
+              </button>
               {!selectedSong ? (
                 <div className="flex min-h-[360px] flex-col items-center justify-center text-center">
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#121212] text-[#1ED760]">
@@ -338,7 +346,7 @@ const MyLyricsPage: React.FC = () => {
                       <input
                         value={selectedSong.title}
                         onChange={(e) => updateSelectedSong({ title: e.target.value })}
-                        className="flex-1 rounded-2xl border border-[#262626] bg-[#0B0B0B]/30 px-4 py-3 text-base font-semibold text-white outline-none transition-colors focus:border-[#1ED760]/50"
+                        className="flex-1 rounded-2xl border border-[#262626] bg-[#0B0B0B]/30 px-4 py-3 text-sm font-semibold text-white outline-none transition-colors focus:border-[#1ED760]/50"
                         placeholder="Song title"
                       />
                       <Button
@@ -366,7 +374,7 @@ const MyLyricsPage: React.FC = () => {
                       value={selectedSong.lyrics}
                       onChange={(e) => updateSelectedSong({ lyrics: e.target.value })}
                       placeholder="Write your lyrics here..."
-                      className="mt-2 min-h-[420px] w-full resize-y rounded-2xl border border-[#262626] bg-[#0B0B0B]/30 px-4 py-4 text-sm leading-relaxed text-white outline-none transition-colors focus:border-[#7C5CFF]/55"
+                      className="mt-2 min-h-[420px] w-full resize-y rounded-2xl border border-[#262626] bg-[#0B0B0B]/30 px-4 py-4 text-xs leading-relaxed text-white outline-none transition-colors focus:border-[#7C5CFF]/55"
                     />
                     <p className="mt-2 text-xs text-[#6B7280]">
                       Auto-saved to your account.

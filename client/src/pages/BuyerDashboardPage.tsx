@@ -33,17 +33,24 @@ const browseSections = [
   },
 ];
 
+const beatOptionRoutes: Record<string, string> = {
+  'All Beats': '/',
+  'Trending Beats': '/',
+};
 const browseItemRoutes: Record<string, string> = {
+  'My Store': '/studio',
+  'Order Placed': '/dashboard/buyer',
+  'Order Received': '/dashboard/seller',
   Liked: '/liked-beats',
   Downloads: '/downloads',
   'My Lyrics': '/my-lyrics',
 };
 
 const quickAccessItems = [
-  { title: 'Liked Beats', hint: 'Your liked beats', icon: Heart, accent: 'text-[#1ED760]', route: '/liked-beats' },
-  { title: 'Downloads', hint: 'Your downloaded beats', icon: Download, accent: 'text-[#7C5CFF]', route: '/downloads' },
-  { title: 'Cart', hint: 'Review beats ready for checkout', icon: ShoppingCart, accent: 'text-[#1ED760]', route: '/cart' },
-  { title: 'My Lyrics', hint: 'Keep your writing ideas close', icon: FileText, accent: 'text-[#7C5CFF]', route: '/my-lyrics' },
+  { title: 'Liked Beats', icon: Heart, accent: 'text-[#1ED760]', route: '/liked-beats' },
+  { title: 'Downloads', icon: Download, accent: 'text-[#7C5CFF]', route: '/downloads' },
+  { title: 'Cart', icon: ShoppingCart, accent: 'text-[#1ED760]', route: '/cart' },
+  { title: 'My Lyrics', icon: FileText, accent: 'text-[#7C5CFF]', route: '/my-lyrics' },
 ];
 
 type ApiBeatSearchResult = {
@@ -313,12 +320,13 @@ const BuyerDashboardPage: React.FC = () => {
                     </button>
                     <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010]/100 p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
                       {beatOptions.map((option) => (
-                        <button
+                        <Link
                           key={option}
-                          className="w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
+                          to={beatOptionRoutes[option] ?? '/'}
+                          className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
                         >
                           {option}
-                        </button>
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -427,18 +435,15 @@ const BuyerDashboardPage: React.FC = () => {
             </div>
           ) : null}
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {quickAccessItems.map(({ title, hint, icon: Icon, accent, route }) => {
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            {quickAccessItems.map(({ title, icon: Icon, accent, route }) => {
               const content = (
-                <>
-                  <div className="inline-flex items-center justify-between gap-4">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-[#121212] ${accent}`}>
-                      <Icon size={20} />
-                    </div>
-                    <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+                <div className="flex items-center gap-2.5">
+                  <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#121212] ${accent}`}>
+                    <Icon size={16} />
                   </div>
-                  <p className="mt-3 text-sm leading-relaxed text-[#B3B3B3]">{hint}</p>
-                </>
+                  <h2 className="text-sm font-bold tracking-tight">{title}</h2>
+                </div>
               );
 
               if (route) {
@@ -446,7 +451,7 @@ const BuyerDashboardPage: React.FC = () => {
                   <Link
                     key={title}
                     to={route}
-                    className="glass rounded-[1.75rem] border border-[#262626] p-6 text-left transition-all duration-200 hover:-translate-y-1 hover:border-[#1ED760]/50 hover:bg-[#121212]/90"
+                    className="glass rounded-2xl border border-[#262626] p-3.5 text-left transition-all duration-200 hover:-translate-y-1 hover:border-[#1ED760]/50 hover:bg-[#121212]/90"
                   >
                     {content}
                   </Link>
@@ -456,7 +461,7 @@ const BuyerDashboardPage: React.FC = () => {
               return (
                 <button
                   key={title}
-                  className="glass rounded-[1.75rem] border border-[#262626] p-6 text-left transition-all duration-200 hover:-translate-y-1 hover:border-[#1ED760]/50 hover:bg-[#121212]/90"
+                  className="glass rounded-2xl border border-[#262626] p-3.5 text-left transition-all duration-200 hover:-translate-y-1 hover:border-[#1ED760]/50 hover:bg-[#121212]/90"
                 >
                   {content}
                 </button>

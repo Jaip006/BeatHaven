@@ -526,7 +526,7 @@ const BeatPreviewPlayer: React.FC = () => {
   return (
     <>
       <div
-        className={`fixed inset-x-3 bottom-3 ${isLyricsModalOpen ? 'z-[1300]' : 'z-[300]'} overflow-hidden rounded-3xl border border-[#1f1f1f] shadow-[0_12px_34px_rgba(0,0,0,0.5)] transition-transform duration-500 ease-out sm:inset-x-0 sm:bottom-0 sm:rounded-none sm:border-0 sm:shadow-none ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`fixed inset-x-3 bottom-3 ${isLyricsModalOpen ? 'z-[1300]' : 'z-[300]'} overflow-hidden rounded-3xl border border-[#1f1f1f] shadow-[0_12px_34px_rgba(0,0,0,0.5)] transition-all duration-500 ease-out sm:inset-x-0 sm:bottom-0 sm:rounded-none sm:border-0 sm:shadow-none ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}
       >
         <div
         ref={progressBarRef}
