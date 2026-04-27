@@ -174,7 +174,7 @@ const BeatDetailPage: React.FC = () => {
       bpm: beat.bpm, price: beat.price, genre: beat.genre,
       freeMp3Enabled: parseFreeMp3Enabled(beat.freeMp3Enabled),
     });
-    void authFetch(`/beats/${beat.id}/play`, { method: 'POST' }).catch(() => null);
+    void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat.id}/play`, { method: 'POST' }).catch(() => null);
   };
 
   const handleMoreBeatPlay = (b: Beat) => {
@@ -186,7 +186,7 @@ const BeatDetailPage: React.FC = () => {
       bpm: b.bpm, price: b.price, genre: b.genre,
       freeMp3Enabled: parseFreeMp3Enabled(b.freeMp3Enabled),
     });
-    void authFetch(`/beats/${b.id}/play`, { method: 'POST' }).catch(() => null);
+    void authFetch(`${import.meta.env.VITE_API_URL}/beats/${b.id}/play`, { method: 'POST' }).catch(() => null);
   };
 
   const handleSubmitComment = async () => {

@@ -615,19 +615,19 @@ const SellerUploadPage: React.FC = () => {
   };
 
   const renderMetadataSection = () => (
-    <div className="mt-8 space-y-8">
-      <div className="grid gap-5 md:grid-cols-2">
+    <div className="mt-5 space-y-5 sm:mt-8 sm:space-y-8">
+      <div className="grid gap-3 sm:gap-5 md:grid-cols-2">
         <label className="space-y-3">
-          <input type="text" value={metadataForm.title} onChange={(event) => updateMetadataField('title', event.target.value)} placeholder="Title of beat" className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-3.5 text-sm text-white outline-none transition-colors focus:border-[#1ED760]" />
+          <input type="text" value={metadataForm.title} onChange={(event) => updateMetadataField('title', event.target.value)} placeholder="Title of beat" className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-[#1ED760] sm:py-3.5" />
         </label>
         <label className="space-y-3">
-          <select value={metadataForm.beatType} onChange={(event) => updateMetadataField('beatType', event.target.value)} className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-3.5 text-sm text-white outline-none transition-colors focus:border-[#1ED760]">
+          <select value={metadataForm.beatType} onChange={(event) => updateMetadataField('beatType', event.target.value)} className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-[#1ED760] sm:py-3.5">
             <option value="">Select beat type</option>
             {typeOptions.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
         </label>
         <label className="space-y-3">
-          <select value={metadataForm.genre} onChange={(event) => updateMetadataField('genre', event.target.value)} className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-3.5 text-sm text-white outline-none transition-colors focus:border-[#1ED760]">
+          <select value={metadataForm.genre} onChange={(event) => updateMetadataField('genre', event.target.value)} className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-[#1ED760] sm:py-3.5">
             <option value="">Select genre</option>
             {genreOptions.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
@@ -636,7 +636,7 @@ const SellerUploadPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsInstrumentDropdownOpen((current) => !current)}
-            className="flex w-full items-center justify-between rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-3.5 text-left text-sm text-white transition-colors focus:outline-none hover:border-[#1ED760]"
+            className="flex w-full items-center justify-between rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-2.5 text-left text-sm text-white transition-colors focus:outline-none hover:border-[#1ED760] sm:py-3.5"
           >
             <span className={metadataForm.instruments.length ? 'text-white' : 'text-[#6B7280]'}>
               {metadataForm.instruments.length
@@ -681,13 +681,13 @@ const SellerUploadPage: React.FC = () => {
         <label className="space-y-3">
           <span className="text-sm font-semibold text-white">Tempo</span>
           <div className="relative">
-            <input type="number" value={metadataForm.tempo} onChange={(event) => updateMetadataField('tempo', event.target.value)} placeholder="140" className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-3.5 pr-16 text-sm text-white outline-none transition-colors focus:border-[#1ED760]" />
+            <input type="number" value={metadataForm.tempo} onChange={(event) => updateMetadataField('tempo', event.target.value)} placeholder="140" className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-2.5 pr-16 text-sm text-white outline-none transition-colors focus:border-[#1ED760] sm:py-3.5" />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold uppercase tracking-[0.24em] text-[#6B7280]">BPM</span>
           </div>
         </label>
         <label className="space-y-3">
           <span className="text-sm font-semibold text-white">Key</span>
-          <select value={metadataForm.musicalKey} onChange={(event) => updateMetadataField('musicalKey', event.target.value)} className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-3.5 text-sm text-white outline-none transition-colors focus:border-[#1ED760]">
+          <select value={metadataForm.musicalKey} onChange={(event) => updateMetadataField('musicalKey', event.target.value)} className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-[#1ED760] sm:py-3.5">
             <option value="">Select musical key</option>
             {keyOptions.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
@@ -704,7 +704,7 @@ const SellerUploadPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsMoodDropdownOpen((current) => !current)}
-            className="flex w-full items-center justify-between rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-3.5 text-left text-sm text-white transition-colors focus:outline-none hover:border-[#1ED760]"
+            className="flex w-full items-center justify-between rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-2.5 text-left text-sm text-white transition-colors focus:outline-none hover:border-[#1ED760] sm:py-3.5"
           >
             <span className={selectedMoods.length ? 'text-white' : 'text-[#6B7280]'}>
               {selectedMoods.length ? selectedMoods.join(', ') : 'Select moods'}
@@ -748,7 +748,7 @@ const SellerUploadPage: React.FC = () => {
             <p className="mt-1 text-sm text-[#9CA3AF]">Add marketplace keywords like artist references, use cases, or sonic descriptors.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <input type="text" value={tagInput} onChange={(event) => setTagInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addTag(); } }} placeholder="Add a tag and press enter" className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-3.5 text-sm text-white outline-none transition-colors focus:border-[#1ED760]" />
+            <input type="text" value={tagInput} onChange={(event) => setTagInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addTag(); } }} placeholder="Add a tag and press enter" className="w-full rounded-[1.2rem] border border-[#2A2A2A] bg-[#101010] px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-[#1ED760] sm:py-3.5" />
             <Button type="button" variant="secondary" onClick={addTag} className="sm:min-w-[120px]">Add Tag</Button>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -848,28 +848,27 @@ const SellerUploadPage: React.FC = () => {
   );
 
   const renderMediaSection = () => (
-    <div className="mt-8 grid gap-5 md:grid-cols-2">
+    <div className="mt-5 grid grid-cols-2 gap-2 sm:mt-8 sm:gap-5">
       {uploadFields.map(({ key, title, format, instruction, accept, icon: Icon }) => (
         <label
           key={`${mediaInputResetKey}-${key}`}
-          className="group flex h-[160px] cursor-pointer flex-col items-center justify-center rounded-[1.45rem] border border-dashed border-[#676767] bg-[#232323] px-6 py-5 text-center transition-all duration-200 hover:-translate-y-1 hover:border-[#B8B8B8] hover:bg-[#272727]"
+          className="group flex h-[108px] cursor-pointer flex-col items-center justify-center rounded-[1.1rem] border border-dashed border-[#676767] bg-[#232323] px-3 py-3 text-center transition-all duration-200 hover:-translate-y-1 hover:border-[#B8B8B8] hover:bg-[#272727] sm:h-[160px] sm:rounded-[1.45rem] sm:px-6 sm:py-5"
         >
           <input type="file" accept={accept} className="hidden" onChange={(event) => handleFileChange(key, event.target.files)} />
           <div className="flex flex-col items-center justify-center">
-            <div className="flex h-14 w-14 items-center justify-center text-[#8C8C8C] transition-colors duration-200 group-hover:text-[#D4D4D4]">
-              <Icon size={36} strokeWidth={1.6} />
+            <div className="flex items-center justify-center text-[#8C8C8C] transition-colors duration-200 group-hover:text-[#D4D4D4]">
+              <Icon size={22} strokeWidth={1.6} className="sm:hidden" />
+              <Icon size={36} strokeWidth={1.6} className="hidden sm:block" />
             </div>
             {uploadedFiles[key] ? (
-              <div className="mt-4 max-w-full truncate rounded-full border border-[#3A3A3A] bg-[#1A1A1A] px-4 py-2 text-sm text-[#D1D5DB]">
+              <div className="mt-2 max-w-full truncate rounded-full border border-[#3A3A3A] bg-[#1A1A1A] px-2 py-1 text-[10px] text-[#D1D5DB] sm:mt-4 sm:px-4 sm:py-2 sm:text-sm">
                 {uploadedFiles[key]}
               </div>
             ) : (
-              <div className="mt-4 flex items-start justify-center gap-3">
-                <div>
-                  <p className="text-[1.02rem] font-medium leading-snug text-white">{title}</p>
-                  <p className="mt-1 text-sm leading-snug text-[#D5D5D5]">{format}</p>
-                </div>
-                <div className="group/info relative mt-0.5 shrink-0">
+              <div className="mt-2 sm:mt-4">
+                <p className="text-[10px] font-medium leading-snug text-white sm:text-sm">{title}</p>
+                <p className="mt-0.5 text-[9px] leading-snug text-[#D5D5D5] sm:mt-1 sm:text-xs">{format}</p>
+                <div className="group/info relative mt-1 hidden sm:inline-flex">
                   <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#E5E7EB] text-[11px] font-bold text-[#111111]">
                     i
                   </span>
@@ -886,9 +885,9 @@ const SellerUploadPage: React.FC = () => {
   );
 
   const renderLicenseSection = () => (
-    <div className="mt-8 space-y-6">
-      <div className="flex items-center gap-4 rounded-[0.8rem] bg-[#1E1E1E] px-6 py-5">
-        <span className="text-sm font-medium text-white">Enable Free MP3 Download?</span>
+    <div className="mt-5 space-y-4 sm:mt-8 sm:space-y-6">
+      <div className="flex items-center gap-3 rounded-[0.8rem] bg-[#1E1E1E] px-4 py-3 sm:gap-4 sm:px-6 sm:py-5">
+        <span className="text-xs font-medium text-white sm:text-sm">Enable Free MP3 Download?</span>
         <button
           type="button"
           onClick={() =>
@@ -909,17 +908,17 @@ const SellerUploadPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="rounded-[0.8rem] bg-[#1E1E1E] p-6 lg:p-8">
-        <h3 className="text-xl font-medium text-white mb-6">Non Exclusive License</h3>
-        <div className="grid gap-x-12 gap-y-6 lg:grid-cols-2">
+      <div className="rounded-[0.8rem] bg-[#1E1E1E] p-4 sm:p-6 lg:p-8">
+        <h3 className="mb-4 text-base font-medium text-white sm:mb-6 sm:text-xl">Non Exclusive License</h3>
+        <div className="grid gap-x-12 gap-y-4 sm:gap-y-6 lg:grid-cols-2">
           {/* Left Column: License Fee */}
-          <div className="space-y-4">
-            <h4 className="text-[13px] font-medium text-white mb-1">License Fee</h4>
+          <div className="space-y-3 sm:space-y-4">
+            <h4 className="text-xs font-medium text-white sm:text-[13px]">License Fee</h4>
 
             {/* WAV Block */}
             <div className="rounded-[0.6rem] bg-[#292929] overflow-hidden">
-              <div className="flex items-center justify-between px-4 pt-4 pb-2">
-                <span className="text-sm font-medium text-white">WAV</span>
+              <div className="flex items-center justify-between px-3 pt-3 pb-2 sm:px-4 sm:pt-4">
+                <span className="text-xs font-medium text-white sm:text-sm">WAV</span>
                 <button
                   type="button"
                   onClick={() => setLicenseForm(c => ({ ...c, wavEnabled: !c.wavEnabled }))}
@@ -932,9 +931,9 @@ const SellerUploadPage: React.FC = () => {
                   />
                 </button>
               </div>
-              <div className="px-4 pb-4">
-                <div className="flex items-center rounded-lg bg-[#141414] px-3 py-2.5">
-                  <span className="text-sm font-medium text-[#7B7B7B]">₹</span>
+              <div className="px-3 pb-3 sm:px-4 sm:pb-4">
+                <div className="flex items-center rounded-lg bg-[#141414] px-3 py-2">
+                  <span className="text-xs font-medium text-[#7B7B7B] sm:text-sm">₹</span>
                   <input
                     type="number"
                     min="0"
@@ -944,7 +943,7 @@ const SellerUploadPage: React.FC = () => {
                     }
                     placeholder="0"
                     disabled={!licenseForm.wavEnabled}
-                    className="ml-1 w-full bg-transparent text-sm font-medium text-white outline-none disabled:text-[#666666]"
+                    className="ml-1 w-full bg-transparent text-xs font-medium text-white outline-none disabled:text-[#666666] sm:text-sm"
                   />
                 </div>
               </div>
@@ -952,8 +951,8 @@ const SellerUploadPage: React.FC = () => {
 
             {/* WAV + STEMS Block */}
             <div className="rounded-[0.6rem] bg-[#292929] overflow-hidden">
-              <div className="flex items-center justify-between px-4 pt-4 pb-2">
-                <span className="text-sm font-medium text-white">WAV + STEMS</span>
+              <div className="flex items-center justify-between px-3 pt-3 pb-2 sm:px-4 sm:pt-4">
+                <span className="text-xs font-medium text-white sm:text-sm">WAV + STEMS</span>
                 <button
                   type="button"
                   onClick={() => setLicenseForm(c => ({ ...c, wavStemsEnabled: !c.wavStemsEnabled }))}
@@ -966,9 +965,9 @@ const SellerUploadPage: React.FC = () => {
                   />
                 </button>
               </div>
-              <div className="px-4 pb-4">
-                <div className="flex items-center rounded-lg bg-[#141414] px-3 py-2.5">
-                  <span className="text-sm font-medium text-[#7B7B7B]">₹</span>
+              <div className="px-3 pb-3 sm:px-4 sm:pb-4">
+                <div className="flex items-center rounded-lg bg-[#141414] px-3 py-2">
+                  <span className="text-xs font-medium text-[#7B7B7B] sm:text-sm">₹</span>
                   <input
                     type="number"
                     min="0"
@@ -978,7 +977,7 @@ const SellerUploadPage: React.FC = () => {
                     }
                     placeholder="0"
                     disabled={!licenseForm.wavStemsEnabled}
-                    className="ml-1 w-full bg-transparent text-sm font-medium text-white outline-none disabled:text-[#666666]"
+                    className="ml-1 w-full bg-transparent text-xs font-medium text-white outline-none disabled:text-[#666666] sm:text-sm"
                   />
                 </div>
               </div>
@@ -986,9 +985,9 @@ const SellerUploadPage: React.FC = () => {
           </div>
 
           {/* Right Column */}
-          <div className="space-y-5 mt-1">
-            <label className="block space-y-2">
-              <span className="text-[13px] font-medium text-white">Publishing Rights (%)</span>
+          <div className="space-y-3 mt-1 sm:space-y-5">
+            <label className="block space-y-1.5 sm:space-y-2">
+              <span className="text-xs font-medium text-white sm:text-[13px]">Publishing Rights (%)</span>
               <div className="relative">
                 <select
                   value={licenseForm.publishingRights}
@@ -998,7 +997,7 @@ const SellerUploadPage: React.FC = () => {
                       publishingRights: event.target.value,
                     }))
                   }
-                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-4 py-3 text-sm text-[#9CA3AF] outline-none"
+                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-3 py-2 text-xs text-[#9CA3AF] outline-none sm:px-4 sm:py-3 sm:text-sm"
                 >
                   <option value="" disabled hidden>Select Publishing Rights</option>
                   <option value="0">0%</option>
@@ -1012,8 +1011,8 @@ const SellerUploadPage: React.FC = () => {
               </div>
             </label>
 
-            <label className="block space-y-2">
-              <span className="text-[13px] font-medium text-white">No. of master recordings</span>
+            <label className="block space-y-1.5 sm:space-y-2">
+              <span className="text-xs font-medium text-white sm:text-[13px]">No. of master recordings</span>
               <div className="relative">
                 <select
                   value={licenseForm.masterRecordings}
@@ -1023,7 +1022,7 @@ const SellerUploadPage: React.FC = () => {
                       masterRecordings: event.target.value,
                     }))
                   }
-                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-4 py-3 text-sm text-[#9CA3AF] outline-none"
+                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-3 py-2 text-xs text-[#9CA3AF] outline-none sm:px-4 sm:py-3 sm:text-sm"
                 >
                   <option value="" disabled hidden>Select Master Recording</option>
                   <option value="1">1</option>
@@ -1038,8 +1037,8 @@ const SellerUploadPage: React.FC = () => {
               </div>
             </label>
 
-            <label className="block space-y-2">
-              <span className="text-[13px] font-medium text-white">License Period</span>
+            <label className="block space-y-1.5 sm:space-y-2">
+              <span className="text-xs font-medium text-white sm:text-[13px]">License Period</span>
               <div className="relative">
                 <select
                   value={licenseForm.licensePeriod}
@@ -1049,7 +1048,7 @@ const SellerUploadPage: React.FC = () => {
                       licensePeriod: event.target.value,
                     }))
                   }
-                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-4 py-3 text-sm text-[#9CA3AF] outline-none"
+                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-3 py-2 text-xs text-[#9CA3AF] outline-none sm:px-4 sm:py-3 sm:text-sm"
                 >
                   <option value="" disabled hidden>Select License Period</option>
                   <option value="5 Years">5 Years</option>
@@ -1073,9 +1072,9 @@ const SellerUploadPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="rounded-[0.8rem] bg-[#1E1E1E] p-6 lg:p-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-xl font-medium text-white">Exclusive License</h3>
+      <div className="rounded-[0.8rem] bg-[#1E1E1E] p-4 sm:p-6 lg:p-8">
+        <div className="mb-4 flex items-center justify-between sm:mb-6">
+          <h3 className="text-base font-medium text-white sm:text-xl">Exclusive License</h3>
           <button
             type="button"
             onClick={() => setLicenseForm(c => ({ ...c, exclusiveEnabled: !c.exclusiveEnabled }))}
@@ -1089,12 +1088,12 @@ const SellerUploadPage: React.FC = () => {
           </button>
         </div>
 
-        <div className="grid gap-x-12 gap-y-6 lg:grid-cols-2">
+        <div className="grid gap-x-12 gap-y-4 sm:gap-y-6 lg:grid-cols-2">
           {/* Left Column: License Fee */}
-          <div className="space-y-4">
-            <h4 className="text-[13px] font-medium text-white mb-2">License Fee</h4>
-            <div className="flex items-center rounded-lg bg-[#292929] px-3 py-3">
-              <span className="text-sm font-medium text-[#7B7B7B]">₹</span>
+          <div className="space-y-3 sm:space-y-4">
+            <h4 className="text-xs font-medium text-white sm:text-[13px]">License Fee</h4>
+            <div className="flex items-center rounded-lg bg-[#292929] px-3 py-2 sm:py-3">
+              <span className="text-xs font-medium text-[#7B7B7B] sm:text-sm">₹</span>
               <input
                 type="number"
                 min="0"
@@ -1104,12 +1103,12 @@ const SellerUploadPage: React.FC = () => {
                 }
                 placeholder="0"
                 disabled={!licenseForm.exclusiveEnabled}
-                className="ml-1 w-full bg-transparent text-sm font-medium text-white outline-none disabled:text-[#666666]"
+                className="ml-1 w-full bg-transparent text-xs font-medium text-white outline-none disabled:text-[#666666] sm:text-sm"
               />
             </div>
 
-            <div className={`pt-4 mt-2 flex items-center gap-3 ${!licenseForm.exclusiveEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
-              <span className="text-[13px] font-medium text-white">Is it negotiable?</span>
+            <div className={`pt-2 mt-1 flex items-center gap-3 sm:pt-4 sm:mt-2 ${!licenseForm.exclusiveEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
+              <span className="text-xs font-medium text-white sm:text-[13px]">Is it negotiable?</span>
               <button
                 type="button"
                 disabled={!licenseForm.exclusiveEnabled}
@@ -1127,8 +1126,8 @@ const SellerUploadPage: React.FC = () => {
 
           {/* Right Column: Publishing Rights */}
           <div className="space-y-2 mt-1">
-            <label className={`block space-y-2 ${!licenseForm.exclusiveEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
-              <span className="text-[13px] font-medium text-white">Publishing Rights (%)</span>
+            <label className={`block space-y-1.5 sm:space-y-2 ${!licenseForm.exclusiveEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
+              <span className="text-xs font-medium text-white sm:text-[13px]">Publishing Rights (%)</span>
               <div className="relative">
                 <select
                   disabled={!licenseForm.exclusiveEnabled}
@@ -1139,7 +1138,7 @@ const SellerUploadPage: React.FC = () => {
                       exclusivePublishingRights: event.target.value,
                     }))
                   }
-                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-4 py-3 text-sm text-[#9CA3AF] outline-none"
+                  className="w-full appearance-none rounded-[0.5rem] bg-[#292929] px-3 py-2 text-xs text-[#9CA3AF] outline-none sm:px-4 sm:py-3 sm:text-sm"
                 >
                   <option value="" disabled hidden>Select Publishing Rights</option>
                   <option value="0">0%</option>
@@ -1156,7 +1155,7 @@ const SellerUploadPage: React.FC = () => {
         </div>
       </div>
 
-      <label className="flex items-start gap-3 px-1 pt-4 cursor-pointer">
+      <label className="flex items-start gap-2 px-1 pt-3 cursor-pointer sm:gap-3 sm:pt-4">
         <div className="pt-0.5">
           <input
             type="checkbox"
@@ -1167,10 +1166,10 @@ const SellerUploadPage: React.FC = () => {
                 agreementAccepted: event.target.checked,
               }))
             }
-            className="h-4 w-4 shrink-0 rounded border-[#5A5A5A] bg-transparent text-[#5B10FF] focus:ring-[#5B10FF] cursor-pointer"
+            className="h-3.5 w-3.5 shrink-0 rounded border-[#5A5A5A] bg-transparent text-[#5B10FF] focus:ring-[#5B10FF] cursor-pointer sm:h-4 sm:w-4"
           />
         </div>
-        <span className="text-[13px] text-[#A1A1AA] leading-relaxed">
+        <span className="text-[9px] text-[#A1A1AA] leading-relaxed sm:text-[13px]">
           I hereby state that the Instrumental being uploaded by me on the Beat Store does not contain any pornographic or seditious content in audio/visual manner.
         </span>
       </label>
@@ -1274,25 +1273,25 @@ const SellerUploadPage: React.FC = () => {
 
         <section className="relative z-0 mx-auto max-w-7xl px-4 pb-10 pt-[7.5rem] sm:px-5 sm:pb-12 sm:pt-[8.25rem] lg:px-7">
           <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-            <aside className="space-y-4 xl:sticky xl:top-[9.5rem] xl:self-start">
+            <aside className="flex gap-2 xl:flex-col xl:gap-4 xl:sticky xl:top-[9.5rem] xl:self-start">
               {uploadSections.map((section) => {
                 const Icon = section.icon;
                 const isActive = section.key === activeSection;
                 return (
-                  <button key={section.key} type="button" onClick={() => setActiveSection(section.key)} className={`flex w-full items-center justify-between rounded-[1.5rem] border px-5 py-5 text-left transition-all duration-200 ${isActive ? 'border-[#7C5CFF] bg-gradient-to-r from-[#7C5CFF] to-[#B400FF] text-white shadow-[0_0_30px_rgba(124,92,255,0.35)]' : 'border-[#262626] bg-[#1A1A1A]/95 text-[#D1D5DB] hover:border-[#7C5CFF]/40 hover:bg-[#202020]'}`}>
-                    <div className="text-lg font-semibold tracking-tight">{section.label}</div>
-                    <Icon size={20} className={isActive ? 'text-white' : 'text-[#A1A1AA]'} />
+                  <button key={section.key} type="button" onClick={() => setActiveSection(section.key)} className={`flex flex-1 min-w-0 items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-center transition-all duration-200 xl:w-full xl:flex-initial xl:justify-between xl:rounded-[1.5rem] xl:px-5 xl:py-5 xl:text-left ${isActive ? 'border-[#7C5CFF] bg-gradient-to-r from-[#7C5CFF] to-[#B400FF] text-white shadow-[0_0_30px_rgba(124,92,255,0.35)]' : 'border-[#262626] bg-[#1A1A1A]/95 text-[#D1D5DB] hover:border-[#7C5CFF]/40 hover:bg-[#202020]'}`}>
+                    <Icon size={13} className={`shrink-0 xl:order-last xl:size-5 ${isActive ? 'text-white' : 'text-[#A1A1AA]'}`} />
+                    <div className="truncate text-[10px] font-semibold leading-tight xl:text-lg xl:tracking-tight">{section.label}</div>
                   </button>
                 );
               })}
             </aside>
 
             <div className="space-y-6">
-              <section className="glass rounded-[2rem] border border-[#262626] p-6 sm:p-8">
+              <section className="glass rounded-[2rem] border border-[#262626] p-4 sm:p-6 lg:p-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="text-[#1ED760]"><ActiveBadgeIcon size={16} className="text-[#1ED760]" /></div>
-                    <h2 className="text-3xl font-black tracking-tight text-white">{activeSectionConfig.title}</h2>
+                  <div className="flex items-center gap-3">
+                    <div className="text-[#1ED760]"><ActiveBadgeIcon size={14} className="text-[#1ED760] sm:size-4" /></div>
+                    <h2 className="text-xl font-black tracking-tight text-white sm:text-3xl">{activeSectionConfig.title}</h2>
                   </div>
                 </div>
                 {renderActiveSection()}
@@ -1300,17 +1299,17 @@ const SellerUploadPage: React.FC = () => {
 
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <Button variant="secondary" size="lg" className="justify-center sm:min-w-[180px]" onClick={handleClearAll}>
+                  <Button variant="secondary" size="lg" className="justify-center !px-4 !py-2 !text-xs sm:!px-8 sm:!py-3.5 sm:!text-base sm:min-w-[180px]" onClick={handleClearAll}>
                     Clear All
                   </Button>
-                  <Button variant="accent" size="lg" className="justify-center sm:min-w-[180px]" onClick={handleSaveDraft}>
+                  <Button variant="accent" size="lg" className="justify-center !px-4 !py-2 !text-xs sm:!px-8 sm:!py-3.5 sm:!text-base sm:min-w-[180px]" onClick={handleSaveDraft}>
                     Save Draft
                   </Button>
                 </div>
                 <Button
                   variant="accent"
                   size="lg"
-                  className="justify-center sm:min-w-[180px]"
+                  className="justify-center !px-4 !py-2 !text-xs sm:!px-8 sm:!py-3.5 sm:!text-base sm:min-w-[180px]"
                   onClick={isLastSection ? handleSubmit : handleNextSection}
                   disabled={isSubmitting}
                 >
