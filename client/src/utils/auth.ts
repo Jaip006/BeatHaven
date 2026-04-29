@@ -174,6 +174,8 @@ export function startInactivityLogoutMonitor() {
     }
   };
 
+  const PUBLIC_PATHS = ['/', '/sign-in', '/sign-up', '/reset-password', '/community', '/seller-agreement'];
+
   const enforceInactivityTimeout = () => {
     if (!getAuthSession()) {
       return;
@@ -182,6 +184,13 @@ export function startInactivityLogoutMonitor() {
       return;
     }
     clearAuthSession();
+
+    const isPublicPath = PUBLIC_PATHS.includes(window.location.pathname)
+      || window.location.pathname.startsWith('/beats/');
+    if (isPublicPath) {
+      return;
+    }
+
     redirectToSignIn('inactive');
   };
 
