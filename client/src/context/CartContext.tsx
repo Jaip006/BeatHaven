@@ -1,7 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Beat } from '../types';
+import { API_BASE_URL } from '../utils/apiBaseUrl';
 
 const CART_STORAGE_KEY = 'beathaven_cart_v1';
+const BEAT_DELETED_EVENT = 'beathaven-beat-deleted';
 
 interface CartItem {
   beat: Beat;
@@ -69,6 +71,60 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearCart = useCallback(() => {
     setItems([]);
+  }, []);
+
+  const pruneDeletedBeats = useCallback(async () => {
+    if (typeof window === 'undefined' || items.length === 0) {
+      return;
+    }
+
+    const checks = await Promise.allSettled(
+      items.map(async (item) => {
+        const response = await fetch(`${API_BASE_URL}/beats/${item.beat.id}`);
+        return {
+          beatId: item.beat.id,
+          status: response.status,
+        };
+      }),
+    );
+
+    const deletedBeatIds = checks.flatMap((result) => {
+      if (result.status !== 'fulfilled') return [];
+      return result.value.status === 404 ? [result.value.beatId] : [];
+    });
+
+    if (deletedBeatIds.length === 0) {
+      return;
+    }
+
+    setItems((currentItems) =>
+      currentItems.filter((item) => !deletedBeatIds.includes(item.beat.id)),
+    );
+  }, [items]);
+
+  useEffect(() => {
+    void pruneDeletedBeats();
+  }, [pruneDeletedBeats]);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      void pruneDeletedBeats();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [pruneDeletedBeats]);
+
+  useEffect(() => {
+    const handleBeatDeleted = (event: Event) => {
+      const beatId = (event as CustomEvent<{ beatId?: string }>).detail?.beatId;
+      if (!beatId) return;
+
+      setItems((currentItems) => currentItems.filter((item) => item.beat.id !== beatId));
+    };
+
+    window.addEventListener(BEAT_DELETED_EVENT, handleBeatDeleted);
+    return () => window.removeEventListener(BEAT_DELETED_EVENT, handleBeatDeleted);
   }, []);
 
   const isInCart = useCallback(

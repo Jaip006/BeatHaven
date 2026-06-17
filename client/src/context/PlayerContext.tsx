@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { getAuthSession, subscribeToAuthChanges } from '../utils/auth';
+const BEAT_DELETED_EVENT = 'beathaven-beat-deleted';
 
 export interface PlayerBeat {
   id: string;
@@ -159,6 +160,17 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       close();
     }
   }), [close]);
+
+  useEffect(() => {
+    const handleBeatDeleted = (event: Event) => {
+      const beatId = (event as CustomEvent<{ beatId?: string }>).detail?.beatId;
+      if (!beatId || currentBeat?.id !== beatId) return;
+      close();
+    };
+
+    window.addEventListener(BEAT_DELETED_EVENT, handleBeatDeleted);
+    return () => window.removeEventListener(BEAT_DELETED_EVENT, handleBeatDeleted);
+  }, [close, currentBeat]);
 
   return (
     <PlayerContext.Provider

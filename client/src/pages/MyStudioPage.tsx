@@ -9,6 +9,7 @@ import type { Beat as MarketplaceBeat } from '../types';
 import { getAuthSession } from '../utils/auth';
 import { authFetch } from '../utils/authFetch';
 import { usePlayer } from '../context/PlayerContext';
+const BEAT_DELETED_EVENT = 'beathaven-beat-deleted';
 
 const dashboardOptions = ['Seller Dashboard', 'Buyer Dashboard'] as const;
 const beatOptions = ['My Beats', 'Draft Uploads'] as const;
@@ -269,6 +270,11 @@ const MyStudioPage: React.FC = () => {
             totalBeats: Math.max(0, prev.totalBeats - 1),
           }
           : prev
+      );
+      window.dispatchEvent(
+        new CustomEvent(BEAT_DELETED_EVENT, {
+          detail: { beatId: beatToDelete._id },
+        }),
       );
       setBeatToDelete(null);
     } catch (error) {
