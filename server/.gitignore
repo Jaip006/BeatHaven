@@ -2,4 +2,6 @@ node_modules
 .env
 dist
 *.log
-bin/
+bin/*
+!bin/fpcalc
+!bin/fpcalc.exe

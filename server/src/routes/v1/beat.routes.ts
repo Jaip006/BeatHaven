@@ -8,7 +8,12 @@ import Beat from "../../models/beat.model";
 import User from "../../models/user.model";
 import Comment from "../../models/comment.model";
 import { env } from "../../config/env.config";
-import { generateFingerprint, fingerprintSimilarity, SIMILARITY_THRESHOLD } from "../../utils/audioFingerprint";
+import {
+  generateAudioFileHash,
+  generateFingerprint,
+  fingerprintSimilarity,
+  SIMILARITY_THRESHOLD,
+} from "../../utils/audioFingerprint";
 
 const beatRouter = Router();
 
@@ -180,6 +185,20 @@ beatRouter.post(
       exclusivePublishingRights,
     } = req.body;
 
+    const audioFileHash = generateAudioFileHash(files.untaggedMp3[0].buffer);
+    const exactDuplicateBeat = await Beat.findOne(
+      { audioFileHash },
+      { _id: 1, title: 1, sellerId: 1 }
+    ).lean();
+
+    if (exactDuplicateBeat) {
+      throw new AppError(
+        "This exact audio file has already been uploaded. Duplicate beats are not allowed.",
+        409,
+        "DUPLICATE_AUDIO"
+      );
+    }
+
     // Audio fingerprint duplicate detection
     let fingerprintData: { fingerprint: number[]; duration: number } | null = null;
     try {
@@ -203,9 +222,16 @@ beatRouter.post(
         }
       }
     } catch (err) {
-      // Re-throw AppErrors (duplicate detection), swallow fingerprinting tool errors
+      // Re-throw AppErrors (duplicate detection). Exact file duplicates are already
+      // blocked above even if fpcalc is unavailable in a deployment.
       if (err instanceof AppError) throw err;
-      console.error("Audio fingerprinting failed (skipping duplicate check):", err);
+      console.error("Audio fingerprinting failed:", err);
+
+      if (env.NODE_ENV === "production") {
+        console.error(
+          "Production is running without working fpcalc. Exact file duplicates remain blocked, but near-identical audio fingerprint matching is unavailable."
+        );
+      }
     }
 
     // Upload files to Cloudinary
@@ -262,6 +288,7 @@ beatRouter.post(
       exclusiveNegotiable: exclusiveNegotiable === "true",
       exclusivePublishingRights,
 
+      audioFileHash,
       audioFingerprint: fingerprintData?.fingerprint,
       audioDuration: fingerprintData?.duration,
     });

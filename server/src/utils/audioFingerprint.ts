@@ -1,37 +1,78 @@
 import { execFile } from "child_process";
+import crypto from "crypto";
 import * as fs from "fs";
-import * as path from "path";
 import * as os from "os";
+import * as path from "path";
 
-// Path to fpcalc binary — place fpcalc.exe (Windows) or fpcalc (Linux/Mac) in server/bin/
-const FPCALC_PATH = path.join(__dirname, "../../bin", process.platform === "win32" ? "fpcalc.exe" : "fpcalc");
-console.log("[audioFingerprint] fpcalc path:", FPCALC_PATH);
+const resolveBundledFpcalcPath = () => {
+  const fileName = process.platform === "win32" ? "fpcalc.exe" : "fpcalc";
+  return path.resolve(__dirname, "../../bin", fileName);
+};
+
+const resolveFpcalcCommand = () => {
+  const configuredPath = process.env.FPCALC_PATH?.trim();
+  if (configuredPath) {
+    return { command: configuredPath, source: "env" as const };
+  }
+
+  const bundledPath = resolveBundledFpcalcPath();
+  if (fs.existsSync(bundledPath)) {
+    if (process.platform !== "win32") {
+      try {
+        fs.chmodSync(bundledPath, 0o755);
+      } catch {
+        // Let execFile report any runtime issue if chmod is not allowed.
+      }
+    }
+
+    return { command: bundledPath, source: "bundled" as const };
+  }
+
+  return { command: "fpcalc", source: "path" as const };
+};
 
 export interface FingerprintResult {
   fingerprint: number[];
   duration: number;
 }
 
+export const generateAudioFileHash = (buffer: Buffer): string => {
+  return crypto.createHash("sha256").update(buffer).digest("hex");
+};
+
 export const generateFingerprint = (buffer: Buffer): Promise<FingerprintResult> => {
   return new Promise((resolve, reject) => {
-    // Write buffer to a temp file because fpcalc requires a file path
-    const tmpPath = path.join(os.tmpdir(), `bh_fp_${Date.now()}_${Math.random().toString(36).slice(2)}.mp3`);
+    const { command, source } = resolveFpcalcCommand();
+
+    // fpcalc requires a file path, so we fingerprint from a temp MP3.
+    const tmpPath = path.join(
+      os.tmpdir(),
+      `bh_fp_${Date.now()}_${Math.random().toString(36).slice(2)}.mp3`
+    );
 
     try {
       fs.writeFileSync(tmpPath, buffer);
-    } catch (err) {
+    } catch {
       return reject(new Error("Failed to write temp file for fingerprinting"));
     }
 
-    execFile(FPCALC_PATH, ["-raw", "-json", tmpPath], (error, stdout, stderr) => {
-      // Always clean up the temp file
-      try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+    execFile(command, ["-raw", "-json", tmpPath], (error, stdout, stderr) => {
+      try {
+        fs.unlinkSync(tmpPath);
+      } catch {
+        // Ignore temp cleanup failures.
+      }
 
       if (error) {
+        console.error("[audioFingerprint] fpcalc source:", source);
+        console.error("[audioFingerprint] fpcalc command:", command);
         console.error("[audioFingerprint] fpcalc error:", error.message);
         console.error("[audioFingerprint] fpcalc stderr:", stderr);
         return reject(new Error(`fpcalc failed: ${error.message}`));
       }
+
+      console.log("[audioFingerprint] fpcalc source:", source);
+      console.log("[audioFingerprint] fpcalc command:", command);
       console.log("[audioFingerprint] fpcalc stdout:", stdout.slice(0, 100));
 
       try {
@@ -39,6 +80,7 @@ export const generateFingerprint = (buffer: Buffer): Promise<FingerprintResult> 
         if (!parsed.fingerprint || !parsed.duration) {
           return reject(new Error("fpcalc returned unexpected output"));
         }
+
         resolve({
           fingerprint: parsed.fingerprint as number[],
           duration: parsed.duration as number,
@@ -58,7 +100,6 @@ export const fingerprintSimilarity = (fp1: number[], fp2: number[]): number => {
 
   let diffBits = 0;
   for (let i = 0; i < len; i++) {
-    // XOR the two 32-bit integers, then count set bits (Hamming weight)
     let xor = (fp1[i] ^ fp2[i]) >>> 0;
     xor = xor - ((xor >>> 1) & 0x55555555);
     xor = (xor & 0x33333333) + ((xor >>> 2) & 0x33333333);
@@ -68,5 +109,4 @@ export const fingerprintSimilarity = (fp1: number[], fp2: number[]): number => {
   return 1 - diffBits / (len * 32);
 };
 
-// Threshold above which two beats are considered the same audio
 export const SIMILARITY_THRESHOLD = 0.85;

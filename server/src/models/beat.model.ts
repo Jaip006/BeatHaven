@@ -46,6 +46,7 @@ export interface IBeat extends Document {
   exclusivePublishingRights?: string;
 
   // Audio fingerprint for duplicate detection
+  audioFileHash?: string;
   audioFingerprint?: number[];
   audioDuration?: number;
 
@@ -101,6 +102,7 @@ const beatSchema = new Schema<IBeat>(
     exclusiveNegotiable: { type: Boolean, default: false },
     exclusivePublishingRights: { type: String },
 
+    audioFileHash: { type: String, required: false },
     audioFingerprint: { type: [Number], required: false },
     audioDuration: { type: Number, required: false },
 
@@ -115,6 +117,7 @@ const beatSchema = new Schema<IBeat>(
 beatSchema.index({ sellerId: 1 });
 beatSchema.index({ createdAt: -1 });
 beatSchema.index({ sellerId: 1, createdAt: -1 });
+beatSchema.index({ audioFileHash: 1 });
 
 const Beat = mongoose.model<IBeat>("Beat", beatSchema);
 export default Beat;
