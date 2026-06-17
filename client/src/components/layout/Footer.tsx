@@ -73,15 +73,10 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-8 border-t border-[#1A1A1A] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-[#6B7280]">
+        <div className="mt-12 pt-8 border-t border-[#1A1A1A] flex flex-col sm:flex-row items-center justify-center gap-4">
+          <p className="text-sm text-[#6B7280] text-center">
             © 2025 BeatHaven. All rights reserved.
           </p>
-          <div className="flex items-center gap-1 text-xs text-[#6B7280]">
-            <span>Made with</span>
-            <span className="text-red-500">♥</span>
-            <span>for music creators worldwide</span>
-          </div>
         </div>
       </div>
     </footer>
