@@ -36,6 +36,12 @@ export const requireAuth = asyncHandler(async (req: Request, res: Response, next
     if (err instanceof AppError) {
       throw err;
     }
+    if (err instanceof Error && err.name === "TokenExpiredError") {
+      throw new AppError("Token expired", 401, "TOKEN_EXPIRED");
+    }
+    if (err instanceof Error && err.name === "JsonWebTokenError") {
+      throw new AppError("Invalid token", 401, "INVALID_TOKEN");
+    }
     throw new AppError("Not authorized, token failed", 401, "UNAUTHORIZED");
   }
 });

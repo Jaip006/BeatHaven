@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: BeatHavenBackend
+    runtime: docker
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    autoDeployTrigger: commit
+    healthCheckPath: /api/v1/health

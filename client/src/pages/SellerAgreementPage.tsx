@@ -173,8 +173,8 @@ const SellerAgreementPage: React.FC = () => {
                   <span className="gradient-text"> and seller responsibilities.</span>
                 </h1>
               </div>
-              <div className="rounded-[1.5rem] border border-[#2A2A2A] bg-[#121212]/85 px-5 py-4 text-sm text-[#B3B3B3]">
-                Last reviewed: March 18, 2026
+              <div className="rounded-[1.5rem] bg-[#121212]/85 px-5 py-4 text-sm text-[#B3B3B3]">
+                Last revised: March 18, 2026
               </div>
             </div>
           </div>
@@ -187,7 +187,7 @@ const SellerAgreementPage: React.FC = () => {
                   {section.points.map((point, index) => (
                     <div
                       key={point}
-                      className="rounded-[1.25rem] border border-[#262626] bg-[#121212]/90 px-4 py-4 text-sm leading-relaxed text-[#C8C8C8]"
+                      className="rounded-[1.25rem] bg-[#121212]/90 px-1 py-1 text-sm leading-relaxed text-[#C8C8C8]"
                     >
                       <span className="mr-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#171717] text-xs font-semibold text-[#1ED760]">
                         {index + 1}

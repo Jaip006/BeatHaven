@@ -4,6 +4,9 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
+let fpcalcUnavailableReason: string | null = null;
+let hasLoggedFpcalcUnavailable = false;
+
 const resolveBundledFpcalcPath = () => {
   const fileName = process.platform === "win32" ? "fpcalc.exe" : "fpcalc";
   return path.resolve(__dirname, "../../bin", fileName);
@@ -36,12 +39,44 @@ export interface FingerprintResult {
   duration: number;
 }
 
+const createFpcalcUnavailableError = (message: string) => {
+  const error = new Error(message) as NodeJS.ErrnoException;
+  error.code = "FPCALC_UNAVAILABLE";
+  return error;
+};
+
+const markFpcalcUnavailable = (
+  command: string,
+  source: "env" | "bundled" | "path",
+  error: NodeJS.ErrnoException
+) => {
+  const runtimeHint = process.env.RENDER
+    ? "Render native runtimes do not include fpcalc by default. Deploy this service with the Docker runtime so server/Dockerfile can install chromaprint-tools."
+    : "Install fpcalc (Chromaprint) or set FPCALC_PATH to a working binary.";
+
+  fpcalcUnavailableReason = `fpcalc is unavailable (${command}). ${runtimeHint}`;
+
+  if (!hasLoggedFpcalcUnavailable) {
+    hasLoggedFpcalcUnavailable = true;
+    console.error("[audioFingerprint] fpcalc source:", source);
+    console.error("[audioFingerprint] fpcalc command:", command);
+    console.error("[audioFingerprint] fpcalc error:", error.message);
+    console.error("[audioFingerprint] action:", fpcalcUnavailableReason);
+  }
+
+  return createFpcalcUnavailableError(fpcalcUnavailableReason);
+};
+
 export const generateAudioFileHash = (buffer: Buffer): string => {
   return crypto.createHash("sha256").update(buffer).digest("hex");
 };
 
 export const generateFingerprint = (buffer: Buffer): Promise<FingerprintResult> => {
   return new Promise((resolve, reject) => {
+    if (fpcalcUnavailableReason) {
+      return reject(createFpcalcUnavailableError(fpcalcUnavailableReason));
+    }
+
     const { command, source } = resolveFpcalcCommand();
 
     // fpcalc requires a file path, so we fingerprint from a temp MP3.
@@ -64,6 +99,11 @@ export const generateFingerprint = (buffer: Buffer): Promise<FingerprintResult> 
       }
 
       if (error) {
+        const execError = error as NodeJS.ErrnoException;
+        if (execError.code === "ENOENT") {
+          return reject(markFpcalcUnavailable(command, source, execError));
+        }
+
         console.error("[audioFingerprint] fpcalc source:", source);
         console.error("[audioFingerprint] fpcalc command:", command);
         console.error("[audioFingerprint] fpcalc error:", error.message);
