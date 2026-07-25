@@ -7,6 +7,7 @@ import BeatCard from '../components/ui/BeatCard';
 import { useLikedBeats } from '../context/LikedBeatsContext';
 import { usePlayer } from '../context/PlayerContext';
 import { authFetch } from '../utils/authFetch';
+import { recordBeatPlay } from '../utils/playTracking';
 import type { Beat } from '../types';
 
 const parseFreeMp3Enabled = (value: unknown): boolean => {
@@ -93,7 +94,7 @@ const LikedBeatsPage: React.FC = () => {
       freeMp3Enabled: parseFreeMp3Enabled(playableBeat.freeMp3Enabled),
     });
 
-    void authFetch(`${import.meta.env.VITE_API_URL}/beats/${playableBeat.id}/play`, { method: 'POST' }).catch(() => null);
+    void recordBeatPlay(playableBeat.id).catch(() => null);
   };
 
   useEffect(() => {

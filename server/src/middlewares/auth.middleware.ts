@@ -46,6 +46,31 @@ export const requireAuth = asyncHandler(async (req: Request, res: Response, next
   }
 });
 
+export const optionalAuth = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    next();
+    return;
+  }
+
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = verifyAccessToken(token);
+    const updateResult = await User.updateOne(
+      { _id: decoded.userId },
+      { $set: { lastActivityAt: new Date() } }
+    );
+
+    if (updateResult.matchedCount > 0) {
+      req.user = decoded;
+    }
+  } catch {
+    // Play tracking should still work for anonymous or stale sessions.
+  }
+
+  next();
+});
+
 export const requireSeller = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   if (req.user?.role !== "seller") {
     throw new AppError("Not authorized as a seller", 403, "FORBIDDEN");

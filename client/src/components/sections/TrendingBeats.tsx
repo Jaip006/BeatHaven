@@ -6,7 +6,7 @@ import type { Beat } from '../../types';
 import { API_BASE_URL } from '../../utils/apiBaseUrl';
 import { trendingBeats as dummyBeats } from '../../data/trendingBeats';
 import { usePlayer } from '../../context/PlayerContext';
-import { authFetch } from '../../utils/authFetch';
+import { recordBeatPlay } from '../../utils/playTracking';
 
 const parseFreeMp3Enabled = (value: unknown): boolean => {
   if (typeof value === 'boolean') return value;
@@ -46,7 +46,18 @@ const TrendingBeats: React.FC = () => {
     });
 
     if (!isDummyBeat(beat.id)) {
-      void authFetch(`${API_BASE_URL}/beats/${beat.id}/play`, { method: 'POST' }).catch(() => null);
+      void recordBeatPlay(beat.id)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data?.success && data?.data?.incremented) {
+            setBeats((current) =>
+              current.map((item) =>
+                item.id === beat.id ? { ...item, plays: (item.plays || 0) + 1 } : item,
+              ),
+            );
+          }
+        })
+        .catch(() => null);
     }
   };
 

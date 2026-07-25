@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { requireAuth, requireSeller } from "../../middlewares/auth.middleware";
+import { optionalAuth, requireAuth, requireSeller } from "../../middlewares/auth.middleware";
 import asyncHandler from "../../utils/asyncHandler";
 import AppError from "../../utils/appError";
 import cloudinary from "../../config/cloudinary.config";
@@ -818,26 +818,24 @@ beatRouter.post(
 
 beatRouter.post(
   "/:beatId/play",
-  requireAuth,
+  optionalAuth,
   asyncHandler(async (req, res) => {
     const { beatId } = req.params;
-    const beat = await Beat.findById(beatId).select("sellerId plays");
+    const beat = await Beat.findByIdAndUpdate(
+      beatId,
+      { $inc: { plays: 1 } },
+      { new: true }
+    ).select("plays");
 
     if (!beat) {
       throw new AppError("Beat not found.", 404);
-    }
-
-    const isSelfPlay = String(beat.sellerId) === String(req.user!.userId);
-    if (!isSelfPlay) {
-      beat.plays = (beat.plays || 0) + 1;
-      await beat.save();
     }
 
     res.status(200).json({
       success: true,
       data: {
         beatId,
-        incremented: !isSelfPlay,
+        incremented: true,
         plays: beat.plays || 0,
       },
     });

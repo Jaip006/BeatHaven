@@ -11,6 +11,7 @@ import PriceButton from '../components/ui/PriceButton';
 import LicensePurchaseModal from '../components/ui/LicensePurchaseModal';
 import { getAuthSession } from '../utils/auth';
 import { authFetch } from '../utils/authFetch';
+import { recordBeatPlay } from '../utils/playTracking';
 
 const dashboardOptions = ['Seller Dashboard', 'Buyer Dashboard'] as const;
 const beatOptions = ['My Beats', 'Draft Uploads'] as const;
@@ -121,6 +122,17 @@ const BeatDetailPage: React.FC = () => {
   const isOwnBeat = Boolean(currentUserId && beat && currentUserId === beat.producerId);
   const isCurrentlyPlaying = currentBeat?.id === beat?.id && isPlaying;
 
+  const incrementVisiblePlayCount = (beatId: string) => {
+    setBeat((current) =>
+      current?.id === beatId ? { ...current, plays: (current.plays || 0) + 1 } : current,
+    );
+    setMoreBeats((current) =>
+      current.map((item) =>
+        item.id === beatId ? { ...item, plays: (item.plays || 0) + 1 } : item,
+      ),
+    );
+  };
+
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
@@ -174,7 +186,14 @@ const BeatDetailPage: React.FC = () => {
       bpm: beat.bpm, price: beat.price, genre: beat.genre,
       freeMp3Enabled: parseFreeMp3Enabled(beat.freeMp3Enabled),
     });
-    void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat.id}/play`, { method: 'POST' }).catch(() => null);
+    void recordBeatPlay(beat.id)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.success && data?.data?.incremented) {
+          incrementVisiblePlayCount(beat.id);
+        }
+      })
+      .catch(() => null);
   };
 
   const handleMoreBeatPlay = (b: Beat) => {
@@ -186,7 +205,14 @@ const BeatDetailPage: React.FC = () => {
       bpm: b.bpm, price: b.price, genre: b.genre,
       freeMp3Enabled: parseFreeMp3Enabled(b.freeMp3Enabled),
     });
-    void authFetch(`${import.meta.env.VITE_API_URL}/beats/${b.id}/play`, { method: 'POST' }).catch(() => null);
+    void recordBeatPlay(b.id)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.success && data?.data?.incremented) {
+          incrementVisiblePlayCount(b.id);
+        }
+      })
+      .catch(() => null);
   };
 
   const handleSubmitComment = async () => {

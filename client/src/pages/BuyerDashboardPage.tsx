@@ -14,7 +14,7 @@ import type { Beat } from '../types';
 import { API_BASE_URL } from '../utils/apiBaseUrl';
 import { trendingBeats as dummyBeats } from '../data/trendingBeats';
 import { usePlayer } from '../context/PlayerContext';
-import { authFetch } from '../utils/authFetch';
+import { recordBeatPlay } from '../utils/playTracking';
 
 const dashboardOptions = ['Seller Dashboard', 'Buyer Dashboard'];
 const beatOptions = ['All Beats', 'Trending Beats'];
@@ -135,6 +135,14 @@ const BuyerDashboardPage: React.FC = () => {
     setSubmittedQuery(searchQuery.trim());
   };
 
+  const incrementVisiblePlayCount = (beatId: string) => {
+    const incrementBeat = (item: Beat) =>
+      item.id === beatId ? { ...item, plays: (item.plays || 0) + 1 } : item;
+
+    setSearchResults((current) => current.map(incrementBeat));
+    setTrendingBeats((current) => current.map(incrementBeat));
+  };
+
   const handlePlayBeat = (beat: Beat) => {
     if (!beat.audioUrl) {
       setSearchError('Preview is not available for this beat.');
@@ -158,7 +166,14 @@ const BuyerDashboardPage: React.FC = () => {
       freeMp3Enabled: parseFreeMp3Enabled(beat.freeMp3Enabled),
     });
 
-    void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat.id}/play`, { method: 'POST' }).catch(() => null);
+    void recordBeatPlay(beat.id)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.success && data?.data?.incremented) {
+          incrementVisiblePlayCount(beat.id);
+        }
+      })
+      .catch(() => null);
   };
 
   const fetchBeatsFromDatabase = useCallback(async (filters: SearchFilters) => {

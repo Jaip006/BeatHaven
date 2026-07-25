@@ -8,6 +8,7 @@ import LicensePurchaseModal from '../components/ui/LicensePurchaseModal';
 import type { Beat as MarketplaceBeat } from '../types';
 import { getAuthSession } from '../utils/auth';
 import { authFetch } from '../utils/authFetch';
+import { recordBeatPlay } from '../utils/playTracking';
 import { usePlayer } from '../context/PlayerContext';
 const BEAT_DELETED_EVENT = 'beathaven-beat-deleted';
 
@@ -34,6 +35,7 @@ interface Beat {
   tempo: number;
   musicalKey: string;
   basicPrice?: number;
+  plays: number;
   freeMp3Enabled?: boolean;
   artworkUrl: string;
   untaggedMp3Url: string;
@@ -313,11 +315,18 @@ const MyStudioPage: React.FC = () => {
       freeMp3Enabled: parseFreeMp3Enabled(beat.freeMp3Enabled),
       isOwnedByCurrentUser: canDeleteBeats,
     });
-    void authFetch(`${import.meta.env.VITE_API_URL}/beats/${beat._id}/play`, { method: 'POST' })
+    void recordBeatPlay(beat._id)
       .then((r) => r.json())
       .then((data) => {
         if (data?.success && data?.data?.incremented) {
           setStats((prev) => prev ? { ...prev, plays: prev.plays + 1 } : prev);
+          setBeats((prev) =>
+            prev.map((item) =>
+              item._id === beat._id
+                ? { ...item, plays: Number(data.data.plays ?? item.plays + 1) }
+                : item,
+            ),
+          );
         }
       })
       .catch(() => null);
@@ -562,6 +571,7 @@ const MyStudioPage: React.FC = () => {
                             <span className="text-orange-500">{studioNameLabel}</span>
                             <span>{beat.tempo} BPM</span>
                             <span>{beat.musicalKey}</span>
+                            <span>{Number(beat.plays || 0).toLocaleString()} plays</span>
                           </div>
                         </div>
                       </div>
