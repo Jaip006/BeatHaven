@@ -608,7 +608,7 @@ const MyStudioPage: React.FC = () => {
                   onClick={() => setIsShareModalOpen(false)}
                   className="rounded-lg border border-[#2A2A2A] px-2.5 py-1.5 text-sm text-[#B3B3B3] hover:text-white"
                 >
-                  Close
+                  X
                 </button>
               </div>
               <div className="mt-4 rounded-xl border border-[#2A2A2A] bg-[#0E0E0E] px-4 py-3 text-sm text-[#E5E7EB] break-all">
@@ -703,14 +703,3 @@ const MyStudioPage: React.FC = () => {
 };
 
 export default MyStudioPage;
-
-
-
-
-
-
-
-
-
-
-
