@@ -45,7 +45,6 @@ const browseItemRoutes: Record<string, string> = {
 
 const BEATHAVEN_BASE = 'beathaven.com/@';
 
-// â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const SectionCard: React.FC<{
   icon: React.ReactNode;
@@ -75,7 +74,6 @@ const SectionCard: React.FC<{
   );
 };
 
-// â”€â”€ Social link row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface SocialPlatform {
   key: string;
@@ -144,7 +142,6 @@ const platforms: SocialPlatform[] = [
   },
 ];
 
-// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const StudioSetupPage: React.FC = () => {
   const [currentUser] = useState<AuthUser | null>(getAuthSession()?.user ?? null);
@@ -293,7 +290,6 @@ const StudioSetupPage: React.FC = () => {
         <div className="absolute top-16 left-[-8rem] h-72 w-72 rounded-full bg-[#1ED760]/10 blur-[120px] pointer-events-none" />
         <div className="absolute top-56 right-[-8rem] h-72 w-72 rounded-full bg-[#7C5CFF]/10 blur-[120px] pointer-events-none" />
 
-        {/* â”€â”€ Navbar â”€â”€ */}
         <div className="fixed inset-x-0 top-0 z-[100] border-b border-[#262626] bg-[#0B0B0B]/90 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
           <div className="relative z-[120]">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
@@ -408,9 +404,6 @@ const StudioSetupPage: React.FC = () => {
             </div>
           )}
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              1. STUDIO NAME
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<Store size={18} />}
             title="Studio Name"
@@ -456,15 +449,12 @@ const StudioSetupPage: React.FC = () => {
                 >
                   {studioName
                     ? <span className="text-white">{studioName}</span>
-                    : <span className="text-[#4B4B4B]">Click to set your studio nameâ€¦</span>}
+                    : <span className="text-[#4B4B4B]">Click to set your studio name</span>}
                 </div>
               )}
             </div>
           </SectionCard>
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              2. STUDIO HANDLE
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<AtSign size={18} />}
             title="Studio Handle"
@@ -495,7 +485,7 @@ const StudioSetupPage: React.FC = () => {
                     onClick={handleSaveHandle}
                     className="w-full rounded-[0.85rem] bg-[#7C5CFF] px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#6D4FF5] active:scale-95 sm:w-auto"
                   >
-                    {handleSaved ? 'âœ“ Saved' : 'Save'}
+                    {handleSaved ? 'Saved' : 'Save'}
                   </button>
                 </div>
                 {handleError && (
@@ -522,9 +512,6 @@ const StudioSetupPage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              3. BIO
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<SlidersHorizontal size={18} />}
             title="Bio"
@@ -550,13 +537,10 @@ const StudioSetupPage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              4. SOCIAL MEDIA HANDLES
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<Link2 size={18} />}
             title="Social Media Links"
-            subtitle="Connect your socials â€” they'll appear on your public studio page to build credibility."
+            subtitle="Connect your socials, they'll appear on your public studio page to build credibility."
             accent="purple"
           >
             <div className="space-y-3">
@@ -598,7 +582,6 @@ const StudioSetupPage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* â”€â”€ Save Footer â”€â”€ */}
           <div className="pt-2 pb-4 flex justify-center">
             <button
               onClick={handleSaveStudioSettings}
@@ -621,14 +604,3 @@ const StudioSetupPage: React.FC = () => {
 };
 
 export default StudioSetupPage;
-
-
-
-
-
-
-
-
-
-
-

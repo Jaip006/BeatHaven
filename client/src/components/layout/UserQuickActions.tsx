@@ -176,15 +176,11 @@ const UserQuickActions: React.FC<UserQuickActionsProps> = ({ mobile = false, mob
               {getUserInitials(currentUser.displayName)}
             </span>
           )}
-          <span className="hidden max-w-[8rem] truncate sm:inline">{currentUser.displayName}</span>
           <ChevronDown size={16} className={menuOpen ? 'rotate-180 transition-transform duration-200' : 'transition-transform duration-200'} />
         </button>
 
         {menuOpen ? (
           <div className="absolute right-0 top-full z-[130] mt-3 w-64 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-            <div className="rounded-xl border border-[#1F1F1F] bg-[#141414] px-4 py-3">
-              <p className="mt-1 text-xs text-[#B3B3B3]">{currentUser.email}</p>
-            </div>
             <Link
               to={dashboardPath}
               onClick={() => setMenuOpen(false)}

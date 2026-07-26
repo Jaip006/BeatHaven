@@ -42,7 +42,7 @@ const browseItemRoutes: Record<string, string> = {
   'Upload Queue': '/dashboard/seller/upload',
 };
 
-// â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// helpers
 
 const VerifiedBadge = () => (
   <span className="inline-flex items-center gap-1 rounded-full bg-[#1ED760]/10 px-2.5 py-1 text-[11px] font-semibold text-[#1ED760]">
@@ -78,7 +78,7 @@ const SectionCard: React.FC<{
 };
 
 const InputField: React.FC<{
-  label: string;
+  label?: string;
   value: string;
   onChange?: (v: string) => void;
   placeholder?: string;
@@ -88,12 +88,18 @@ const InputField: React.FC<{
   suffix?: React.ReactNode;
 }> = ({ label, value, onChange, placeholder, disabled, type = 'text', badge, suffix }) => (
   <div className="flex flex-col gap-1.5">
-    <div className="flex items-center justify-between">
-      <label className="text-[11px] uppercase tracking-[0.18em] text-[#6B7280] font-medium">
-        {label}
-      </label>
-      {badge}
-    </div>
+    {(label || badge) && (
+      <div className="flex items-center justify-between">
+        {label ? (
+          <label className="text-[11px] uppercase tracking-[0.18em] text-[#6B7280] font-medium">
+            {label}
+          </label>
+        ) : (
+          <span />
+        )}
+        {badge}
+      </div>
+    )}
     <div className="relative flex items-center">
       <input
         type={type}
@@ -116,23 +122,23 @@ const InputField: React.FC<{
   </div>
 );
 
-// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Main Component
 
 const ProfilePage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(getAuthSession()?.user ?? null);
 
-  // â”€â”€ profile photo â”€â”€
+  // profile photo 
   const [photoPreview, setPhotoPreview] = useState<string | null>(currentUser?.avatar ?? null);
   const [isPhotoUploading, setIsPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  // â”€â”€ name edits â”€â”€
+  // name edits
   const [displayName, setDisplayName] = useState(currentUser?.displayName ?? '');
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(displayName);
 
-  // â”€â”€ gender & dob â”€â”€
+  // gender & dob 
   const [gender, setGender] = useState('');
   const [dob, setDob] = useState('');
   const [profileSaveLoading, setProfileSaveLoading] = useState(false);
@@ -418,10 +424,10 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* â”€â”€ Page Content â”€â”€ */}
+        {/* Page Content  */}
         <section className="relative z-0 mx-auto max-w-3xl space-y-5 px-4 pb-16 pt-[7.5rem] sm:px-5 sm:pt-[8.25rem] lg:px-7">
 
-          {/* â”€â”€ Page Header â”€â”€ */}
+          {/*  Page Header  */}
           <div className="mb-2">
             <h1 className="text-2xl font-bold tracking-tight text-white">My Profile</h1>
             <p className="mt-1 text-sm text-[#6B7280]">
@@ -429,14 +435,10 @@ const ProfilePage: React.FC = () => {
             </p>
           </div>
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              1. PROFILE PHOTO
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/*1. PROFILE PHOTO*/}
           <SectionCard
             icon={<Camera size={18} />}
-            title="Profile Photo"
-            subtitle="Upload a clear photo â€“ it appears on your public producer profile."
-          >
+            title="Profile Photo"          >
             <div className="flex items-center gap-5">
               <div className="relative flex-shrink-0">
                 {photoPreview ? (
@@ -465,10 +467,7 @@ const ProfilePage: React.FC = () => {
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <p className="text-sm text-white font-medium">
-                  {currentUser?.displayName ?? 'BeatHaven User'}
-                </p>
-                <p className="text-xs text-[#6B7280]">JPG, PNG or WebP Â· Max 5 MB</p>
+                <p className="text-xs text-[#6B7280]">.jpg or .png (Max 5 MB)</p>
                 <button
                   onClick={() => photoInputRef.current?.click()}
                   disabled={isPhotoUploading}
@@ -484,25 +483,15 @@ const ProfilePage: React.FC = () => {
           </SectionCard>
 
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              3. Mobile verification
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
 
-          
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              3. AADHAAR VERIFICATION
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-          
+          {/*  4. FULL NAME & EMAIL*/}
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              4. FULL NAME & EMAIL
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<User size={18} />}
             title="Full Name & Email"          >
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               {/* Name */}
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-2 pt-1">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] uppercase tracking-[0.18em] text-[#6B7280] font-medium">
                     Full Name
@@ -557,9 +546,8 @@ const ProfilePage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              5. GENDER & DATE OF BIRTH
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* 5. GENDER & DATE OF BIRTH*/}
+
           <SectionCard
             icon={<CalendarDays size={18} />}
             title="Gender & Date of Birth"
@@ -603,9 +591,8 @@ const ProfilePage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              6. BILLING ADDRESS
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* 6. BILLING ADDRESS*/}
+
           <SectionCard
             icon={<Building2 size={18} />}
             title="Billing Address"
@@ -614,36 +601,32 @@ const ProfilePage: React.FC = () => {
           >
             <div className="space-y-3">
               <InputField
-                label="Street Address"
                 value={billingAddress}
                 onChange={setBillingAddress}
                 placeholder="House / Flat no., Street, Colony"
               />
               <div className="grid gap-3 sm:grid-cols-3">
                 <InputField
-                  label="City"
                   value={billingCity}
                   onChange={setBillingCity}
-                  placeholder="Mumbai"
+                  placeholder="City"
                 />
                 <InputField
-                  label="State"
                   value={billingState}
                   onChange={setBillingState}
-                  placeholder="Maharashtra"
+                  placeholder="State"
                 />
                 <InputField
-                  label="PIN Code"
                   value={billingPin}
                   onChange={setBillingPin}
-                  placeholder="400001"
+                  placeholder="PIN Code"
                   type="text"
                 />
               </div>
             </div>
           </SectionCard>
 
-          {/* â”€â”€ Visual Separator â”€â”€ */}
+          {/* Visual Separator */}
           <div className="flex items-center gap-4 py-2">
             <div className="flex-1 h-px bg-[#1E1E1E]" />
             <span className="text-[11px] uppercase tracking-[0.22em] text-[#3B3B3B] font-medium">
@@ -652,9 +635,7 @@ const ProfilePage: React.FC = () => {
             <div className="flex-1 h-px bg-[#1E1E1E]" />
           </div>
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              7. PAYOUT BANK DETAILS
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* 7. PAYOUT BANK DETAILS */}
           <SectionCard
             icon={<CreditCard size={18} />}
             title="Payout Bank Details"
@@ -701,7 +682,7 @@ const ProfilePage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* â”€â”€ Save All Footer â”€â”€ */}
+          {/* Save All Footer */}
           <div className="pt-2 pb-4 flex justify-center">
             <button
               onClick={handleSaveProfileChanges}
