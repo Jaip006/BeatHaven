@@ -6,9 +6,15 @@ import { getAuthSession, hydrateAuthSession, subscribeToAuthChanges } from '../.
 import UserQuickActions from './UserQuickActions';
 
 const navLinks = [
-  { label: 'Beats', href: '#trending' },
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Licensing', href: '#licensing' },
+];
+
+const browseLinks = [
+  { label: 'My Studio', to: '/studio' },
+  { label: 'Draft Uploads', to: '/dashboard/seller/drafts' },
+  { label: 'Liked Beats', to: '/liked-beats' },
+  { label: 'Downloaded Beats', to: '/downloads' },
 ];
 
 const Navbar: React.FC = () => {
@@ -152,6 +158,28 @@ const Navbar: React.FC = () => {
                 </div>
               </div>
             ) : null}
+            <div className="relative group">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-sm text-[#B3B3B3] hover:text-white transition-colors duration-200 relative"
+              >
+                Browse
+                <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-[#1ED760] group-hover:w-full transition-all duration-300" />
+              </button>
+              <div className="invisible absolute left-0 top-full z-[120] pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                <div className="w-56 rounded-2xl border border-[#262626] bg-[#101010] p-2 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                  {browseLinks.map((item, index) => (
+                    <Link
+                      key={item.label}
+                      to={item.to}
+                      className={`${index > 0 ? 'mt-1 ' : ''}block rounded-xl px-3 py-2.5 text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
             {visibleNavLinks.map((link) => (
               <a
                 key={link.label}
@@ -208,16 +236,19 @@ const Navbar: React.FC = () => {
               <div className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-2.5">
                 <p className="mb-2 px-1 text-[11px] uppercase tracking-[0.16em] text-[#6B7280]">Explore</p>
                 <div className="space-y-1.5">
+                  {browseLinks.map((item) => (
+                    <Link
+                      key={item.label}
+                      to={item.to}
+                      className="flex items-center justify-between rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-[#D1D5DB] transition-colors duration-200 hover:border-[#2A2A2A] hover:bg-[#171717] hover:text-white"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <span>{item.label}</span>
+                      <Compass size={14} className="text-[#6B7280]" />
+                    </Link>
+                  ))}
                   {isSignedIn ? (
                     <>
-                      <a
-                        href="#trending"
-                        className="flex items-center justify-between rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-[#D1D5DB] transition-colors duration-200 hover:border-[#2A2A2A] hover:bg-[#171717] hover:text-white"
-                        onClick={() => setMobileOpen(false)}
-                      >
-                        <span>Beats</span>
-                        <Compass size={14} className="text-[#6B7280]" />
-                      </a>
                       <a
                         href="#licensing"
                         className="flex items-center justify-between rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-[#D1D5DB] transition-colors duration-200 hover:border-[#2A2A2A] hover:bg-[#171717] hover:text-white"

@@ -49,9 +49,6 @@ const CallToAction: React.FC = () => {
           />
 
           <div className="relative">
-            <div className="inline-flex items-center gap-2 bg-[#1ED760]/10 border border-[#1ED760]/20 rounded-full px-4 py-1.5 text-sm text-[#1ED760] font-medium mb-6">
-              ✨ Join 200,000+ artists worldwide
-            </div>
 
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-4 leading-tight">
               Artist or Producer?

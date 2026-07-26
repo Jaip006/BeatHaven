@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { MessageSquare, Music, MoreVertical, Pause, Pin, Play, Send, Share2, Smile, Trash2, User } from 'lucide-react';
 import EmojiPicker, { type EmojiClickData, Theme } from 'emoji-picker-react';
@@ -287,7 +287,7 @@ const BeatDetailPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0B0B0B] text-white pb-32 pt-[65px]">
-      {/* ── Header ── */}
+      {/* â”€â”€ Header â”€â”€ */}
       <div className="fixed inset-x-0 top-0 z-[100] border-b border-[#262626] bg-[#0B0B0B]/90 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
           <Link to="/" className="flex shrink-0 items-center gap-2.5 group">
@@ -318,20 +318,6 @@ const BeatDetailPage: React.FC = () => {
 
               <div className="relative group">
                 <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
-                  Beats
-                  <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
-                </button>
-                <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                  {beatOptions.map((option) => (
-                    <Link key={option} to={beatOptionRoutes[option] ?? '/'} className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
-                      {option}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              <div className="relative group">
-                <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
                   Browse
                   <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
                 </button>
@@ -351,6 +337,20 @@ const BeatDetailPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              <div className="relative group">
+                <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
+                  Beats
+                  <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
+                </button>
+                <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                  {beatOptions.map((option) => (
+                    <Link key={option} to={beatOptionRoutes[option] ?? '/'} className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
+                      {option}
+                    </Link>
+                  ))}
+                </div>
+              </div>
               <Link to="/community" className="px-2 py-2 text-sm text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200">Community</Link>
             </div>
           </div>
@@ -365,12 +365,12 @@ const BeatDetailPage: React.FC = () => {
         {/* Main grid: left content + right sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_320px] gap-8 lg:gap-12">
 
-          {/* ── Left column ───────────────────────────────────────── */}
+          {/* â”€â”€ Left column â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           <div className="min-w-0">
             {/* Beat hero */}
             <div className="flex flex-col gap-4 sm:flex-row sm:gap-6 mb-10">
 
-              {/* ── Top row: cover + identity (always side-by-side) ── */}
+              {/* â”€â”€ Top row: cover + identity (always side-by-side) â”€â”€ */}
               <div className="flex flex-row gap-4 sm:contents">
                 {/* Cover */}
                 <div className="flex-shrink-0 w-36 sm:w-52 lg:w-60 aspect-square rounded-2xl overflow-hidden bg-[#121212] border border-[#262626]">
@@ -401,7 +401,7 @@ const BeatDetailPage: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Badges / tags / plays — hidden on mobile, shown sm+ */}
+                  {/* Badges / tags / plays â€” hidden on mobile, shown sm+ */}
                   <div className="hidden sm:flex flex-wrap gap-2">
                     <Badge variant="outline">{beat.bpm} BPM</Badge>
                     <Badge variant="outline">{beat.key}</Badge>
@@ -424,7 +424,7 @@ const BeatDetailPage: React.FC = () => {
                     <span>{beat.likes?.toLocaleString()} likes</span>
                   </div>
 
-                  {/* Buttons — sm+ only */}
+                  {/* Buttons â€” sm+ only */}
                   <div className="hidden sm:flex items-center gap-3 flex-wrap">
                     {beat.audioUrl && (
                       <button
@@ -454,7 +454,7 @@ const BeatDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* ── Mobile-only: badges / tags / plays / buttons below ── */}
+              {/* â”€â”€ Mobile-only: badges / tags / plays / buttons below â”€â”€ */}
               <div className="flex sm:hidden flex-col gap-3">
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline">{beat.bpm} BPM</Badge>
@@ -508,7 +508,7 @@ const BeatDetailPage: React.FC = () => {
 
             </div>
 
-            {/* ── Comments section ───────────────────────────── */}
+            {/* â”€â”€ Comments section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <section>
               <div className="flex items-center gap-2 mb-6">
                 <MessageSquare size={18} className="text-[#1ED760]" />
@@ -560,7 +560,7 @@ const BeatDetailPage: React.FC = () => {
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void handleSubmitComment(); } }}
-                      placeholder={session ? 'Add a comment…' : 'Sign in to comment'}
+                      placeholder={session ? 'Add a commentâ€¦' : 'Sign in to comment'}
                       disabled={!session || submitting}
                       rows={1}
                       className="flex-1 bg-transparent outline-none text-sm text-white placeholder-[#6B7280] py-2 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
@@ -583,7 +583,7 @@ const BeatDetailPage: React.FC = () => {
                         className="flex items-center gap-1.5 text-xs font-semibold bg-[#1ED760] hover:bg-[#19c453] text-[#0B0B0B] px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
                       >
                         <Send size={12} />
-                        {submitting ? 'Posting…' : 'Comment'}
+                        {submitting ? 'Postingâ€¦' : 'Comment'}
                       </button>
                     </div>
                   )}
@@ -680,7 +680,7 @@ const BeatDetailPage: React.FC = () => {
             </section>
           </div>
 
-          {/* ── Right sidebar: more from producer ─────────────── */}
+          {/* â”€â”€ Right sidebar: more from producer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           {moreBeats.length > 0 && (
             <aside className="lg:sticky lg:top-[60px] lg:self-start">
               <div className="rounded-2xl border border-[#1F1F1F] bg-[#0D0D0D]">
@@ -736,13 +736,13 @@ const BeatDetailPage: React.FC = () => {
                             {b.title}
                           </p>
                           <p className="text-xs text-[#6B7280] truncate mt-0.5">
-                            {b.genre} · {b.bpm} BPM
+                            {b.genre} Â· {b.bpm} BPM
                           </p>
                         </div>
 
                         {/* Price tag */}
                         <span className="text-xs font-semibold text-[#6B7280] flex-shrink-0">
-                          ₹{b.price}
+                          â‚¹{b.price}
                         </span>
                       </div>
                     );
@@ -778,7 +778,7 @@ const BeatDetailPage: React.FC = () => {
                 className="text-[#6B7280] hover:text-white transition-colors text-lg leading-none"
                 aria-label="Close"
               >
-                ✕
+                âœ•
               </button>
             </div>
             {beat.coverImage && (
@@ -818,3 +818,5 @@ const BeatDetailPage: React.FC = () => {
 };
 
 export default BeatDetailPage;
+
+

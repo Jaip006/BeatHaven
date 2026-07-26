@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   AtSign,
   Copy,
@@ -45,7 +45,7 @@ const browseItemRoutes: Record<string, string> = {
 
 const BEATHAVEN_BASE = 'beathaven.com/@';
 
-// ── helpers ────────────────────────────────────────────────────────────────
+// â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const SectionCard: React.FC<{
   icon: React.ReactNode;
@@ -75,7 +75,7 @@ const SectionCard: React.FC<{
   );
 };
 
-// ── Social link row ────────────────────────────────────────────────────────
+// â”€â”€ Social link row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface SocialPlatform {
   key: string;
@@ -144,7 +144,7 @@ const platforms: SocialPlatform[] = [
   },
 ];
 
-// ── Main Component ─────────────────────────────────────────────────────────
+// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const StudioSetupPage: React.FC = () => {
   const [currentUser] = useState<AuthUser | null>(getAuthSession()?.user ?? null);
@@ -207,7 +207,7 @@ const StudioSetupPage: React.FC = () => {
 
   const handleSaveHandle = () => {
     if (handle && !validateHandle(handle)) {
-      setHandleError('Handle must be 3–30 chars: lowercase letters, numbers, _ . -');
+      setHandleError('Handle must be 3â€“30 chars: lowercase letters, numbers, _ . -');
       return;
     }
     setHandleError('');
@@ -293,7 +293,7 @@ const StudioSetupPage: React.FC = () => {
         <div className="absolute top-16 left-[-8rem] h-72 w-72 rounded-full bg-[#1ED760]/10 blur-[120px] pointer-events-none" />
         <div className="absolute top-56 right-[-8rem] h-72 w-72 rounded-full bg-[#7C5CFF]/10 blur-[120px] pointer-events-none" />
 
-        {/* ── Navbar ── */}
+        {/* â”€â”€ Navbar â”€â”€ */}
         <div className="fixed inset-x-0 top-0 z-[100] border-b border-[#262626] bg-[#0B0B0B]/90 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
           <div className="relative z-[120]">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
@@ -326,20 +326,6 @@ const StudioSetupPage: React.FC = () => {
 
                   <div className="relative group">
                     <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
-                      Beats
-                      <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
-                    </button>
-                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                      {beatOptions.map((option) => (
-                        <Link key={option} to={beatOptionRoutes[option] ?? '/'} className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
-                          {option}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="relative group">
-                    <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
                       Browse
                       <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
                     </button>
@@ -357,6 +343,20 @@ const StudioSetupPage: React.FC = () => {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="relative group">
+                    <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
+                      Beats
+                      <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
+                    </button>
+                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                      {beatOptions.map((option) => (
+                        <Link key={option} to={beatOptionRoutes[option] ?? '/'} className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">
+                          {option}
+                        </Link>
+                      ))}
                     </div>
                   </div>
                   <Link to="/community" className="px-2 py-2 text-sm text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200">Community</Link>
@@ -408,19 +408,18 @@ const StudioSetupPage: React.FC = () => {
             </div>
           )}
 
-          {/* ═══════════════════════════════════════════════════════════
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               1. STUDIO NAME
-          ════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<Store size={18} />}
             title="Studio Name"
-            subtitle="This is what buyers see on your beats and public profile. You can change it anytime."
           >
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] uppercase tracking-[0.18em] text-[#6B7280] font-medium">
-                  Display Name
-                </label>
+                <p className="text-[11px] text-[#4B4B4B]">
+                Tip: keep it short and memorable. Max 60 characters.
+               </p>
                 {!editingName ? (
                   <button
                     onClick={() => { setTempName(studioName); setEditingName(true); }}
@@ -447,7 +446,7 @@ const StudioSetupPage: React.FC = () => {
                   maxLength={60}
                   value={tempName}
                   onChange={(e) => setTempName(e.target.value)}
-                  placeholder="e.g. LoFi Lab, Trap Syndicate…"
+                  placeholder="e.g. LoFi Lab, Trap Syndicateâ€¦"
                   className="rounded-[0.85rem] border border-[#1ED760]/50 bg-[#121212] px-4 py-3 text-sm text-white outline-none ring-1 ring-[#1ED760]/20 placeholder-[#4B4B4B]"
                 />
               ) : (
@@ -457,18 +456,15 @@ const StudioSetupPage: React.FC = () => {
                 >
                   {studioName
                     ? <span className="text-white">{studioName}</span>
-                    : <span className="text-[#4B4B4B]">Click to set your studio name…</span>}
+                    : <span className="text-[#4B4B4B]">Click to set your studio nameâ€¦</span>}
                 </div>
               )}
-              <p className="text-[11px] text-[#4B4B4B]">
-                Tip — keep it short and memorable. Max 60 characters.
-              </p>
             </div>
           </SectionCard>
 
-          {/* ═══════════════════════════════════════════════════════════
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               2. STUDIO HANDLE
-          ════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<AtSign size={18} />}
             title="Studio Handle"
@@ -477,9 +473,6 @@ const StudioSetupPage: React.FC = () => {
           >
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] uppercase tracking-[0.18em] text-[#6B7280] font-medium">
-                  Handle
-                </label>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   {/* prefix badge */}
                   <div className="flex w-full items-center justify-center gap-1.5 rounded-[0.85rem] border border-[#262626] bg-[#0B0B0B] px-3 py-3 text-xs font-medium text-[#7C5CFF] sm:w-auto sm:justify-start">
@@ -502,7 +495,7 @@ const StudioSetupPage: React.FC = () => {
                     onClick={handleSaveHandle}
                     className="w-full rounded-[0.85rem] bg-[#7C5CFF] px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#6D4FF5] active:scale-95 sm:w-auto"
                   >
-                    {handleSaved ? '✓ Saved' : 'Save'}
+                    {handleSaved ? 'âœ“ Saved' : 'Save'}
                   </button>
                 </div>
                 {handleError && (
@@ -529,52 +522,46 @@ const StudioSetupPage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* ═══════════════════════════════════════════════════════════
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               3. BIO
-          ════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<SlidersHorizontal size={18} />}
             title="Bio"
             subtitle="Tell buyers about your style, experience and vibe. Shown on your public studio page."
           >
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] uppercase tracking-[0.18em] text-[#6B7280] font-medium">
-                  About You
-                </label>
-                <span className={`text-[11px] ${bio.length > BIO_LIMIT * 0.9 ? 'text-yellow-400' : 'text-[#4B4B4B]'}`}>
-                  {bio.length}/{BIO_LIMIT}
-                </span>
-              </div>
               <textarea
                 value={bio}
                 maxLength={BIO_LIMIT}
                 onChange={(e) => setBio(e.target.value)}
                 rows={5}
-                placeholder="e.g. Producer from Mumbai crafting cinematic trap, lo-fi and Bollywood fusion beats. Available for custom work…"
+                placeholder="e.g. Producer from Mumbai crafting cinematic trap, lo-fi and Bollywood fusion beats. Available for custom workâ€¦"
                 className="w-full resize-none rounded-[0.85rem] border border-[#262626] bg-[#121212] px-4 py-3 text-sm text-white placeholder-[#4B4B4B] outline-none focus:border-[#1ED760]/60 focus:ring-1 focus:ring-[#1ED760]/20 leading-relaxed"
               />
-              <p className="text-[11px] text-[#4B4B4B]">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] text-[#4B4B4B]">
                 A great bio increases your chance of getting hired for custom beats.
-              </p>
+                </p>
+                  <span className={`text-[11px] ${bio.length > BIO_LIMIT * 0.9 ? 'text-yellow-400' : 'text-[#4B4B4B]'}`}>
+                  {bio.length}/{BIO_LIMIT}
+                </span>
+              </div>  
             </div>
           </SectionCard>
 
-          {/* ═══════════════════════════════════════════════════════════
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               4. SOCIAL MEDIA HANDLES
-          ════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<Link2 size={18} />}
             title="Social Media Links"
-            subtitle="Connect your socials — they'll appear on your public studio page to build credibility."
+            subtitle="Connect your socials â€” they'll appear on your public studio page to build credibility."
             accent="purple"
           >
             <div className="space-y-3">
               {platforms.map((p) => (
                 <div key={p.key} className="flex flex-col gap-1">
-                  <label className="text-[11px] uppercase tracking-[0.18em] text-[#6B7280] font-medium">
-                    {p.label}
-                  </label>
                   <div className="flex items-center gap-2">
                     {/* icon badge */}
                     <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[0.75rem] border border-[#262626] bg-[#0F0F0F] ${p.color}`}>
@@ -611,7 +598,7 @@ const StudioSetupPage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* ── Save Footer ── */}
+          {/* â”€â”€ Save Footer â”€â”€ */}
           <div className="pt-2 pb-4 flex justify-center">
             <button
               onClick={handleSaveStudioSettings}
@@ -634,6 +621,8 @@ const StudioSetupPage: React.FC = () => {
 };
 
 export default StudioSetupPage;
+
+
 
 
 

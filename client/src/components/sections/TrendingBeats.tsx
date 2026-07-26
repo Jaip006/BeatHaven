@@ -111,7 +111,6 @@ const TrendingBeats: React.FC = () => {
             <h2 className="text-3xl sm:text-4xl font-black text-white">
               Trending Beats
             </h2>
-            <p className="text-[#6B7280] mt-2">The hottest beats based on recent plays and likes</p>
           </div>
           <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-1.5">
             View All <ArrowRight size={14} />

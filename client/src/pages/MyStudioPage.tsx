@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Play, Pause, ShieldCheck, Share2, Trash2, Instagram, Youtube, Twitter, Disc3, Cloud, Globe } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -104,7 +104,7 @@ const toSocialHref = (key: SupportedSocialKey, value: string): string => {
     return `https://instagram.com/${cleaned.replace(/^instagram\.com\//i, '')}`;
   }
   if (key === 'youtube') {
-    return `https://youtube.com/${cleaned.replace(/^youtube\.com\//i, '')}`;
+    return `https://youtube.com/@${cleaned.replace(/^youtube\.com\//i, '')}`;
   }
   if (key === 'twitter') {
     return `https://x.com/${cleaned.replace(/^(x\.com|twitter\.com)\//i, '')}`;
@@ -373,7 +373,7 @@ const MyStudioPage: React.FC = () => {
         <div className="absolute top-16 left-[-8rem] h-72 w-72 rounded-full bg-[#1ED760]/10 blur-[120px] pointer-events-none" />
         <div className="absolute top-56 right-[-8rem] h-72 w-72 rounded-full bg-[#7C5CFF]/10 blur-[120px] pointer-events-none" />
 
-        {/* ── Header ── */}
+        {/* â”€â”€ Header â”€â”€ */}
         <div className="fixed inset-x-0 top-0 z-[100] border-b border-[#262626] bg-[#0B0B0B]/90 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
           <div className="relative z-[120]">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
@@ -405,21 +405,6 @@ const MyStudioPage: React.FC = () => {
 
                   <div className="relative group">
                     <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
-                      Beats
-                      <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
-                    </button>
-                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                      {beatOptions.map((option) => (
-                        <Link key={option} to={beatOptionRoutes[option] ?? '/'}
-                          className={`block w-full rounded-xl px-4 py-3 text-left text-sm transition-colors duration-200 ${option === 'My Beats' ? 'bg-[#161616] text-[#1ED760]' : 'text-[#B3B3B3] hover:bg-[#161616] hover:text-white'}`}>
-                          {option}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="relative group">
-                    <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
                       Browse
                       <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
                     </button>
@@ -428,6 +413,21 @@ const MyStudioPage: React.FC = () => {
                         <Link key={item} to={browseItemRoutes[item] ?? '/'}
                           className={`block w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm transition-colors duration-200 ${item === 'My Studio' ? 'bg-[#161616] text-[#1ED760]' : 'text-[#B3B3B3] hover:border-[#262626] hover:bg-[#161616] hover:text-white'}`}>
                           {item}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="relative group">
+                    <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
+                      Beats
+                      <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
+                    </button>
+                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                      {beatOptions.map((option) => (
+                        <Link key={option} to={beatOptionRoutes[option] ?? '/'}
+                          className={`block w-full rounded-xl px-4 py-3 text-left text-sm transition-colors duration-200 ${option === 'My Beats' ? 'bg-[#161616] text-[#1ED760]' : 'text-[#B3B3B3] hover:bg-[#161616] hover:text-white'}`}>
+                          {option}
                         </Link>
                       ))}
                     </div>
@@ -703,6 +703,8 @@ const MyStudioPage: React.FC = () => {
 };
 
 export default MyStudioPage;
+
+
 
 
 

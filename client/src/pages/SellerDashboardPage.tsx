@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   IndianRupee,
   FolderOpen,
@@ -125,26 +125,6 @@ const SellerDashboardPage: React.FC = () => {
                     <button
                       className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white"
                     >
-                      Beats
-                      <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
-                    </button>
-                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                      {beatOptions.map((option) => (
-                        <Link
-                          key={option}
-                          to={beatOptionRoutes[option] ?? '/'}
-                          className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
-                        >
-                          {option}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="relative group">
-                    <button
-                      className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white"
-                    >
                       Browse
                       <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
                     </button>
@@ -156,6 +136,26 @@ const SellerDashboardPage: React.FC = () => {
                           className="block w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white"
                         >
                           {item}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="relative group">
+                    <button
+                      className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white"
+                    >
+                      Beats
+                      <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
+                    </button>
+                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                      {beatOptions.map((option) => (
+                        <Link
+                          key={option}
+                          to={beatOptionRoutes[option] ?? '/'}
+                          className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
+                        >
+                          {option}
                         </Link>
                       ))}
                     </div>
@@ -228,6 +228,8 @@ const SellerDashboardPage: React.FC = () => {
 };
 
 export default SellerDashboardPage;
+
+
 
 
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import {
   BadgeCheck,
   Building2,
@@ -42,7 +42,7 @@ const browseItemRoutes: Record<string, string> = {
   'Upload Queue': '/dashboard/seller/upload',
 };
 
-// ── helpers ────────────────────────────────────────────────────────────────
+// â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const VerifiedBadge = () => (
   <span className="inline-flex items-center gap-1 rounded-full bg-[#1ED760]/10 px-2.5 py-1 text-[11px] font-semibold text-[#1ED760]">
@@ -116,36 +116,36 @@ const InputField: React.FC<{
   </div>
 );
 
-// ── Main Component ─────────────────────────────────────────────────────────
+// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const ProfilePage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(getAuthSession()?.user ?? null);
 
-  // ── profile photo ──
+  // â”€â”€ profile photo â”€â”€
   const [photoPreview, setPhotoPreview] = useState<string | null>(currentUser?.avatar ?? null);
   const [isPhotoUploading, setIsPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  // ── name edits ──
+  // â”€â”€ name edits â”€â”€
   const [displayName, setDisplayName] = useState(currentUser?.displayName ?? '');
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(displayName);
 
-  // ── gender & dob ──
+  // â”€â”€ gender & dob â”€â”€
   const [gender, setGender] = useState('');
   const [dob, setDob] = useState('');
   const [profileSaveLoading, setProfileSaveLoading] = useState(false);
   const [profileSaveMessage, setProfileSaveMessage] = useState('');
   const [profileSaveError, setProfileSaveError] = useState('');
 
-  // ── billing ──
+  // â”€â”€ billing â”€â”€
   const [billingAddress, setBillingAddress] = useState('');
   const [billingCity, setBillingCity] = useState('');
   const [billingState, setBillingState] = useState('');
   const [billingPin, setBillingPin] = useState('');
 
-  // ── bank / payout ──
+  // â”€â”€ bank / payout â”€â”€
   const [accountName, setAccountName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [ifscCode, setIfscCode] = useState('');
@@ -329,7 +329,7 @@ const ProfilePage: React.FC = () => {
         <div className="absolute top-16 left-[-8rem] h-72 w-72 rounded-full bg-[#1ED760]/10 blur-[120px] pointer-events-none" />
         <div className="absolute top-56 right-[-8rem] h-72 w-72 rounded-full bg-[#7C5CFF]/10 blur-[120px] pointer-events-none" />
 
-        {/* ── Navbar ── */}
+        {/* â”€â”€ Navbar â”€â”€ */}
         <div className="fixed inset-x-0 top-0 z-[100] border-b border-[#262626] bg-[#0B0B0B]/90 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
           <div className="relative z-[120]">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
@@ -366,24 +366,6 @@ const ProfilePage: React.FC = () => {
 
                   <div className="relative group">
                     <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
-                      Beats
-                      <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
-                    </button>
-                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                      {beatOptions.map((option) => (
-                        <Link
-                          key={option}
-                          to={beatOptionRoutes[option] ?? '/'}
-                          className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
-                        >
-                          {option}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="relative group">
-                    <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
                       Browse
                       <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
                     </button>
@@ -407,6 +389,24 @@ const ProfilePage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
+                  <div className="relative group">
+                    <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
+                      Beats
+                      <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
+                    </button>
+                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                      {beatOptions.map((option) => (
+                        <Link
+                          key={option}
+                          to={beatOptionRoutes[option] ?? '/'}
+                          className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white"
+                        >
+                          {option}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                   <Link to="/community" className="px-2 py-2 text-sm text-[#B3B3B3] hover:text-[#1ED760] transition-colors duration-200">Community</Link>
                 </div>
               </div>
@@ -418,10 +418,10 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* ── Page Content ── */}
+        {/* â”€â”€ Page Content â”€â”€ */}
         <section className="relative z-0 mx-auto max-w-3xl space-y-5 px-4 pb-16 pt-[7.5rem] sm:px-5 sm:pt-[8.25rem] lg:px-7">
 
-          {/* ── Page Header ── */}
+          {/* â”€â”€ Page Header â”€â”€ */}
           <div className="mb-2">
             <h1 className="text-2xl font-bold tracking-tight text-white">My Profile</h1>
             <p className="mt-1 text-sm text-[#6B7280]">
@@ -429,13 +429,13 @@ const ProfilePage: React.FC = () => {
             </p>
           </div>
 
-          {/* ═══════════════════════════════════════════════════════════
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               1. PROFILE PHOTO
-          ════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<Camera size={18} />}
             title="Profile Photo"
-            subtitle="Upload a clear photo – it appears on your public producer profile."
+            subtitle="Upload a clear photo â€“ it appears on your public producer profile."
           >
             <div className="flex items-center gap-5">
               <div className="relative flex-shrink-0">
@@ -468,7 +468,7 @@ const ProfilePage: React.FC = () => {
                 <p className="text-sm text-white font-medium">
                   {currentUser?.displayName ?? 'BeatHaven User'}
                 </p>
-                <p className="text-xs text-[#6B7280]">JPG, PNG or WebP · Max 5 MB</p>
+                <p className="text-xs text-[#6B7280]">JPG, PNG or WebP Â· Max 5 MB</p>
                 <button
                   onClick={() => photoInputRef.current?.click()}
                   disabled={isPhotoUploading}
@@ -484,19 +484,19 @@ const ProfilePage: React.FC = () => {
           </SectionCard>
 
 
-          {/* ═══════════════════════════════════════════════════════════
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               3. Mobile verification
-          ════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
 
           
-          {/* ═══════════════════════════════════════════════════════════
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               3. AADHAAR VERIFICATION
-          ════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           
 
-          {/* ═══════════════════════════════════════════════════════════
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               4. FULL NAME & EMAIL
-          ════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<User size={18} />}
             title="Full Name & Email"          >
@@ -557,9 +557,9 @@ const ProfilePage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* ═══════════════════════════════════════════════════════════
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               5. GENDER & DATE OF BIRTH
-          ════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<CalendarDays size={18} />}
             title="Gender & Date of Birth"
@@ -603,9 +603,9 @@ const ProfilePage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* ═══════════════════════════════════════════════════════════
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               6. BILLING ADDRESS
-          ════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<Building2 size={18} />}
             title="Billing Address"
@@ -643,7 +643,7 @@ const ProfilePage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* ── Visual Separator ── */}
+          {/* â”€â”€ Visual Separator â”€â”€ */}
           <div className="flex items-center gap-4 py-2">
             <div className="flex-1 h-px bg-[#1E1E1E]" />
             <span className="text-[11px] uppercase tracking-[0.22em] text-[#3B3B3B] font-medium">
@@ -652,9 +652,9 @@ const ProfilePage: React.FC = () => {
             <div className="flex-1 h-px bg-[#1E1E1E]" />
           </div>
 
-          {/* ═══════════════════════════════════════════════════════════
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               7. PAYOUT BANK DETAILS
-          ════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
           <SectionCard
             icon={<CreditCard size={18} />}
             title="Payout Bank Details"
@@ -701,7 +701,7 @@ const ProfilePage: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* ── Save All Footer ── */}
+          {/* â”€â”€ Save All Footer â”€â”€ */}
           <div className="pt-2 pb-4 flex justify-center">
             <button
               onClick={handleSaveProfileChanges}
@@ -724,6 +724,8 @@ const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
+
+
 
 
 

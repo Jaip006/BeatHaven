@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+﻿import React, { useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FileMusic, Trash2, PenLine, Music2 } from 'lucide-react';
 import UserQuickActions from '../components/layout/UserQuickActions';
@@ -105,6 +105,24 @@ const DraftUploadsPage: React.FC = () => {
                   </div>
 
                   <div className="relative group">
+                    <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
+                      Browse
+                      <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
+                    </button>
+                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                      {browseItems.map((item) => (
+                        <Link
+                          key={item}
+                          to={browseItemRoutes[item] ?? '/'}
+                          className="block w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white"
+                        >
+                          {item}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="relative group">
                     <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-white transition-colors duration-200">
                       Beats
                       <span className="absolute -bottom-0.5 left-2 h-px w-[calc(100%-1rem)] bg-[#1ED760]" />
@@ -121,24 +139,6 @@ const DraftUploadsPage: React.FC = () => {
                           }`}
                         >
                           {option}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="relative group">
-                    <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
-                      Browse
-                      <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
-                    </button>
-                    <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                      {browseItems.map((item) => (
-                        <Link
-                          key={item}
-                          to={browseItemRoutes[item] ?? '/'}
-                          className="block w-full rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:border-[#262626] hover:bg-[#161616] hover:text-white"
-                        >
-                          {item}
                         </Link>
                       ))}
                     </div>
@@ -250,3 +250,5 @@ const DraftUploadsPage: React.FC = () => {
 };
 
 export default DraftUploadsPage;
+
+

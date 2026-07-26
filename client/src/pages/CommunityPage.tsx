@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -11,7 +11,7 @@ import { getAuthSession } from '../utils/auth';
 import { authFetch } from '../utils/authFetch';
 import { API_BASE_URL } from '../utils/apiBaseUrl';
 
-// ── Nav constants ────────────────────────────────────────────────────────────
+// â”€â”€ Nav constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const dashboardOptions = ['Seller Dashboard', 'Buyer Dashboard'] as const;
 const beatOptions = ['My Beats', 'Draft Uploads'] as const;
 const dashboardRoutes: Record<(typeof dashboardOptions)[number], string> = {
@@ -35,7 +35,7 @@ const browseItemRoutes: Record<string, string> = {
   'Upload Queue': '/dashboard/seller/upload',
 };
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface MediaItem { url: string; type: 'image' | 'video' | 'audio' }
 interface PostUser { id: string; displayName: string; avatar: string; handle: string }
 interface Post {
@@ -66,7 +66,7 @@ const uploadAcceptMap: Record<UploadMediaType, string> = {
   audio: 'audio/*',
 };
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const timeAgo = (dateStr: string): string => {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -97,7 +97,7 @@ const CommunityImage: React.FC<{ src: string; alt?: string; variant: 'feed' | 'c
   );
 };
 
-// ── PostCard ─────────────────────────────────────────────────────────────────
+// â”€â”€ PostCard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PostCard: React.FC<{
   post: Post;
   currentUserId?: string;
@@ -338,7 +338,7 @@ const PostCard: React.FC<{
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void handleSubmitComment(); } }}
-                  placeholder="Add a comment…"
+                  placeholder="Add a commentâ€¦"
                   rows={1}
                   className="flex-1 bg-transparent outline-none text-sm text-white placeholder-[#444] py-1.5 resize-none"
                 />
@@ -404,7 +404,7 @@ const PostCard: React.FC<{
   );
 };
 
-// ── Skeleton ─────────────────────────────────────────────────────────────────
+// â”€â”€ Skeleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PostSkeleton: React.FC = () => (
   <div className="rounded-2xl border border-[#1F1F1F] bg-[#0D0D0D] p-5 animate-pulse">
     <div className="flex gap-3 mb-4">
@@ -427,7 +427,7 @@ const PostSkeleton: React.FC = () => (
   </div>
 );
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const CommunityPage: React.FC = () => {
   const navigate = useNavigate();
   const session = getAuthSession();
@@ -723,7 +723,7 @@ const CommunityPage: React.FC = () => {
         <div className="absolute top-60 right-[-6rem] h-80 w-80 rounded-full bg-[#7C5CFF]/8 blur-[140px] pointer-events-none" />
         <div className="absolute bottom-40 left-1/3 h-60 w-60 rounded-full bg-[#1ED760]/5 blur-[120px] pointer-events-none" />
 
-        {/* ── Navbar ── */}
+        {/* â”€â”€ Navbar â”€â”€ */}
         <div className="fixed inset-x-0 top-0 z-[100] border-b border-[#262626] bg-[#0B0B0B]/90 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:px-7">
             <Link to="/" className="flex shrink-0 items-center gap-2.5 group">
@@ -748,17 +748,6 @@ const CommunityPage: React.FC = () => {
                 </div>
                 <div className="relative group">
                   <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
-                    Beats
-                    <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
-                  </button>
-                  <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                    {beatOptions.map((option) => (
-                      <Link key={option} to={beatOptionRoutes[option] ?? '/'} className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">{option}</Link>
-                    ))}
-                  </div>
-                </div>
-                <div className="relative group">
-                  <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
                     Browse
                     <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
                   </button>
@@ -776,6 +765,17 @@ const CommunityPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
+                <div className="relative group">
+                  <button className="group inline-flex items-center gap-1 px-2 py-2 text-sm text-[#B3B3B3] transition-colors duration-200 hover:text-white">
+                    Beats
+                    <span className="absolute -bottom-0.5 left-2 h-px w-0 bg-[#1ED760] transition-all duration-300 group-hover:w-[calc(100%-1rem)]" />
+                  </button>
+                  <div className="invisible absolute left-0 top-full z-[120] mt-1 w-56 rounded-[1.25rem] border border-[#262626] bg-[#101010] p-2 opacity-0 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                    {beatOptions.map((option) => (
+                      <Link key={option} to={beatOptionRoutes[option] ?? '/'} className="block w-full rounded-xl px-4 py-3 text-left text-sm text-[#B3B3B3] transition-colors duration-200 hover:bg-[#161616] hover:text-white">{option}</Link>
+                    ))}
+                  </div>
+                </div>
                 <Link to="/community" className="px-2 py-2 text-sm text-[#1ED760] font-medium">Community</Link>
               </div>
             </div>
@@ -786,7 +786,7 @@ const CommunityPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ── Content ── */}
+        {/* â”€â”€ Content â”€â”€ */}
         <div className="relative z-0 max-w-5xl mx-auto px-3 sm:px-4 pt-[72px] sm:pt-[88px] h-full flex flex-col">
 
           {/* Hero header */}
@@ -801,7 +801,7 @@ const CommunityPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile tabs — visible below lg */}
+          {/* Mobile tabs â€” visible below lg */}
           <div className="flex lg:hidden gap-1 mb-4 overflow-x-auto pb-1 scrollbar-hide">
             {tabs.map((tab) => {
               if (tab.requiresAuth && !currentUserId) return null;
@@ -826,7 +826,7 @@ const CommunityPage: React.FC = () => {
           {/* Two-column layout */}
           <div className="flex gap-0 flex-1 min-h-0">
 
-            {/* ── Left sidebar: tabs ── */}
+            {/* â”€â”€ Left sidebar: tabs â”€â”€ */}
             <div className="hidden lg:flex flex-col gap-1 w-52 flex-shrink-0 self-start pr-5 pt-2">
               <div className="rounded-2xl border border-[#1F1F1F] bg-[#0D0D0D] p-2">
                 {tabs.map((tab) => {
@@ -853,7 +853,7 @@ const CommunityPage: React.FC = () => {
             {/* Vertical divider */}
             <div className="hidden lg:block w-px bg-[#1F1F1F] flex-shrink-0 mt-5 mb-10" />
 
-            {/* ── Right column: feed + create post ── */}
+            {/* â”€â”€ Right column: feed + create post â”€â”€ */}
             <div className="flex-1 min-w-0 lg:pl-5 flex flex-col min-h-0">
 
               {/* Feed */}
@@ -893,7 +893,7 @@ const CommunityPage: React.FC = () => {
                           disabled={loadingMore}
                           className="rounded-full border border-[#262626] px-6 py-2.5 text-sm text-[#555] hover:text-white hover:border-[#1ED760]/40 transition-colors disabled:opacity-50"
                         >
-                          {loadingMore ? 'Loading…' : 'Load more'}
+                          {loadingMore ? 'Loadingâ€¦' : 'Load more'}
                         </button>
                       </div>
                     )}
@@ -901,13 +901,13 @@ const CommunityPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Create post — only on Feed tab, pinned at bottom */}
-              {/* Backdrop — closes create post when tapping outside on mobile */}
+              {/* Create post â€” only on Feed tab, pinned at bottom */}
+              {/* Backdrop â€” closes create post when tapping outside on mobile */}
               {showCreatePost && (
                 <div className="lg:hidden fixed inset-0 z-[89]" onClick={() => setShowCreatePost(false)} />
               )}
 
-              {/* FAB — mobile only, toggles create post */}
+              {/* FAB â€” mobile only, toggles create post */}
               {session && activeTab === 'feed' && (
                 <button
                   onClick={() => setShowCreatePost(v => !v)}
@@ -950,7 +950,7 @@ const CommunityPage: React.FC = () => {
                           ref={postInputRef}
                           value={postText}
                           onChange={(e) => setPostText(e.target.value)}
-                          placeholder="Share something with the community…"
+                          placeholder="Share something with the communityâ€¦"
                           rows={2}
                           className="flex-1 bg-transparent outline-none text-xs sm:text-sm text-white placeholder-[#444] resize-none leading-relaxed pt-1"
                         />
@@ -1013,7 +1013,7 @@ const CommunityPage: React.FC = () => {
                       className="flex items-center gap-1.5 bg-[#1ED760] hover:bg-[#19c453] text-[#0B0B0B] text-xs font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <Sparkles size={11} />
-                      {posting ? 'Posting…' : 'Post'}
+                      {posting ? 'Postingâ€¦' : 'Post'}
                     </button>
                   </div>
                 </div>
@@ -1037,3 +1037,5 @@ const CommunityPage: React.FC = () => {
 };
 
 export default CommunityPage;
+
+
