@@ -92,7 +92,7 @@ const CookieConsentDialog = ({ consent, preferencesOpen, onClosePreferences, onS
               <div className="min-w-0">
                 <p id="cookie-consent-description" className="text-xs leading-5 text-[#A3A3A3] sm:text-sm">
                   We use essential cookies to run BeatHaven. Optional cookies help improve your experience.{' '}
-                  <Link to="/privacy" className="font-semibold text-[#1ED760] underline underline-offset-2 transition hover:text-[#22FFA3] sm:whitespace-nowrap">Privacy Policy</Link>
+                  <Link to="/privacy" className="font-semibold text-[#1ED760] underline underline-offset-2 outline-none transition hover:text-[#22FFA3] sm:whitespace-nowrap">Privacy Policy</Link>
                 </p>
               </div>
             </div>
