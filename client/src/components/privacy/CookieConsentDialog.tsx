@@ -96,9 +96,9 @@ const CookieConsentDialog = ({ consent, preferencesOpen, onClosePreferences, onS
                 </p>
               </div>
             </div>
-            <div className="grid w-full max-w-[300px] justify-self-center grid-cols-2 gap-2 sm:max-w-none sm:justify-self-auto lg:min-w-[270px] lg:w-auto">
-              <button type="button" onClick={handleAcceptAll} className="rounded-lg bg-[#1ED760] px-2.8 py-1.8 text-xs font-bold text-[#0B0B0B] transition hover:bg-[#22FFA3] focus:outline-none focus:ring-2 focus:ring-[#22FFA3] focus:ring-offset-2 focus:ring-offset-[#121212]">Accept All</button>
-              <button type="button" onClick={handleReject} className="rounded-lg border border-[#4A4A4A] px-2.8 py-1.8 text-xs font-bold text-[#E5E5E5] transition hover:border-[#777777] hover:bg-[#1A1A1A] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#1ED760] focus:ring-offset-2 focus:ring-offset-[#121212]">Reject Optional</button>
+            <div className="grid w-full max-w-[330px] justify-self-center grid-cols-2 gap-2 sm:max-w-none sm:justify-self-auto lg:min-w-[280px] lg:w-auto">
+              <button type="button" onClick={handleAcceptAll} className="min-h-10 rounded-lg bg-[#1ED760] px-2.5 py-2 text-sm font-bold text-[#0B0B0B] transition hover:bg-[#22FFA3] focus:outline-none focus:ring-2 focus:ring-[#22FFA3] focus:ring-offset-2 focus:ring-offset-[#121212]">Accept All</button>
+              <button type="button" onClick={handleReject} className="min-h-10 rounded-lg border border-[#4A4A4A] px-2.5 py-2 text-sm font-bold text-[#E5E5E5] transition hover:border-[#777777] hover:bg-[#1A1A1A] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#1ED760] focus:ring-offset-2 focus:ring-offset-[#121212]">Reject Optional</button>
             </div>
           </div>
         ) : (
