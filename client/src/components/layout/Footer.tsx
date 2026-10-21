@@ -1,5 +1,7 @@
 import React from 'react';
 import { Music2, Twitter, Instagram, Youtube, Disc3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useCookieConsent } from '../../hooks/useCookieConsent';
 
 const footerLinks = {
   Platform: ['Browse Beats', 'Featured Producers', 'New Releases', 'Top Charts'],
@@ -16,6 +18,7 @@ const socialLinks = [
 ];
 
 const Footer: React.FC = () => {
+  const { openPreferences } = useCookieConsent();
   return (
     <footer className="bg-[#080808] border-t border-[#1A1A1A]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -58,12 +61,11 @@ const Footer: React.FC = () => {
                 <ul className="space-y-3">
                   {links.map((link) => (
                     <li key={link}>
-                      <a
-                        href="#"
-                        className="text-sm text-[#6B7280] hover:text-[#1ED760] transition-colors duration-200"
-                      >
-                        {link}
-                      </a>
+                      {link === 'Privacy Policy' ? (
+                        <Link to="/privacy" className="text-sm text-[#6B7280] hover:text-[#1ED760] transition-colors duration-200">{link}</Link>
+                      ) : (
+                        <a href="#" className="text-sm text-[#6B7280] hover:text-[#1ED760] transition-colors duration-200">{link}</a>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -77,6 +79,9 @@ const Footer: React.FC = () => {
           <p className="text-sm text-[#6B7280] text-center">
             © 2025 BeatHaven. All rights reserved.
           </p>
+          <button type="button" onClick={openPreferences} className="text-sm text-[#6B7280] transition-colors hover:text-[#1ED760] focus:outline-none focus:ring-2 focus:ring-[#1ED760] focus:ring-offset-2 focus:ring-offset-[#080808]">
+            Cookie preferences
+          </button>
         </div>
       </div>
     </footer>

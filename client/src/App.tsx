@@ -5,6 +5,7 @@ import { PlayerProvider } from './context/PlayerContext';
 import BeatPreviewPlayer from './components/layout/BeatPreviewPlayer';
 import { startInactivityLogoutMonitor } from './utils/auth';
 import MusicLoader from './components/ui/MusicLoader';
+import { CookieConsentProvider } from './context/CookieConsentContext';
 import './App.css';
 
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -25,6 +26,7 @@ const MyLyricsPage = lazy(() => import('./pages/MyLyricsPage'));
 const BeatDetailPage = lazy(() => import('./pages/BeatDetailPage'));
 const CommunityPage = lazy(() => import('./pages/CommunityPage'));
 const DraftUploadsPage = lazy(() => import('./pages/DraftUploadsPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,8 @@ function App() {
   return (
     <PlayerProvider>
       <Router>
-        <Suspense
+        <CookieConsentProvider>
+          <Suspense
           fallback={(
             <div className="flex min-h-screen items-center justify-center bg-[#0B0B0B] text-sm text-[#B3B3B3]">
               Loading...
@@ -55,6 +58,7 @@ function App() {
             <Route path="/sign-up" element={<SignUpPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/seller-agreement" element={<SellerAgreementPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard/buyer" element={<BuyerDashboardPage />} />
               <Route path="/dashboard/seller" element={<SellerDashboardPage />} />
@@ -69,8 +73,9 @@ function App() {
               <Route path="/my-lyrics" element={<MyLyricsPage />} />
             </Route>
           </Routes>
-        </Suspense>
-        <BeatPreviewPlayer />
+          </Suspense>
+          <BeatPreviewPlayer />
+        </CookieConsentProvider>
       </Router>
     </PlayerProvider>
   );
