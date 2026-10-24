@@ -74,7 +74,7 @@ const CookieConsentDialog = ({ consent, preferencesOpen, onClosePreferences, onS
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[100]">
+    <div className="cookie-consent-enter fixed inset-x-0 bottom-0 z-[100]">
       <div
         ref={dialogRef}
         role="dialog"
