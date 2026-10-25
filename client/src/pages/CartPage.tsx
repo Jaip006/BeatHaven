@@ -30,12 +30,21 @@ const CartPage: React.FC = () => {
         body: JSON.stringify({ amount: amountInPaise }),
       });
 
-      const body = await res.json() as { data: { orderId: string; amount: number; currency: string }; error?: { message?: string } };
+      const body = await res.json().catch(() => null) as {
+        data?: { orderId: string; amount: number; currency: string };
+        message?: string;
+        error?: { message?: string; code?: string };
+      } | null;
 
       if (!res.ok) {
-        throw new Error(body?.error?.message ?? 'Failed to create payment order.');
+        // The API's standard error handler puts its message at the top level.
+        // Some endpoints may return it under `error.message`, so support both.
+        throw new Error(body?.message ?? body?.error?.message ?? 'Failed to create payment order.');
       }
 
+      if (!body?.data?.orderId) {
+        throw new Error('The server did not return a payment order. Please try again.');
+      }
       const { data } = body;
 
       openPayment({

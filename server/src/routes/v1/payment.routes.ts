@@ -35,7 +35,13 @@ router.post(
       });
     } catch (rzpErr: any) {
       console.error("[Razorpay] Order creation failed:", rzpErr?.error ?? rzpErr);
-      const msg = rzpErr?.error?.description ?? rzpErr?.message ?? "Razorpay order creation failed";
+      const gatewayMessage = rzpErr?.error?.description ?? rzpErr?.message ?? "";
+      const isAuthFailure =
+        rzpErr?.statusCode === 401 ||
+        /authentication failed|invalid key/i.test(String(gatewayMessage));
+      const msg = isAuthFailure
+        ? "Razorpay rejected the server credentials. Check that RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are a matching pair from the same Razorpay mode (test or live), then restart the backend."
+        : gatewayMessage || "Razorpay order creation failed";
       throw new AppError(msg, 502, "RAZORPAY_ERROR");
     }
 
