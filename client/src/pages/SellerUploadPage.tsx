@@ -933,7 +933,7 @@ const SellerUploadPage: React.FC = () => {
               </div>
               <div className="px-3 pb-3 sm:px-4 sm:pb-4">
                 <div className="flex items-center rounded-lg bg-[#141414] px-3 py-2">
-                  <span className="text-xs font-medium text-[#7B7B7B] sm:text-sm">â‚¹</span>
+                  <span className="text-xs font-medium text-[#7B7B7B] sm:text-sm">₹</span>
                   <input
                     type="number"
                     min="0"
@@ -967,7 +967,7 @@ const SellerUploadPage: React.FC = () => {
               </div>
               <div className="px-3 pb-3 sm:px-4 sm:pb-4">
                 <div className="flex items-center rounded-lg bg-[#141414] px-3 py-2">
-                  <span className="text-xs font-medium text-[#7B7B7B] sm:text-sm">â‚¹</span>
+                  <span className="text-xs font-medium text-[#7B7B7B] sm:text-sm">₹</span>
                   <input
                     type="number"
                     min="0"
@@ -1093,7 +1093,7 @@ const SellerUploadPage: React.FC = () => {
           <div className="space-y-3 sm:space-y-4">
             <h4 className="text-xs font-medium text-white sm:text-[13px]">License Fee</h4>
             <div className="flex items-center rounded-lg bg-[#292929] px-3 py-2 sm:py-3">
-              <span className="text-xs font-medium text-[#7B7B7B] sm:text-sm">â‚¹</span>
+              <span className="text-xs font-medium text-[#7B7B7B] sm:text-sm">₹</span>
               <input
                 type="number"
                 min="0"
